@@ -35,7 +35,8 @@ class Domain:
         #list consist of 3 float elements        (2D or 3D)
 
         self.pyhsical_domain = pyhsical_domain  
-        self.nodes = nodes                      
+        self.nodes = nodes             
+        self.matricies = None         
 
     def structured_grid_2D(self):
         
@@ -56,6 +57,9 @@ class Domain:
         if y_list[-1] > y_list[0]:
             y_list.reverse()
             
+        x_MAT, y_MAT = np.meshgrid(x_list, y_list) #gradient is zero. 
+
+        self.matricies = [x_MAT, y_MAT]
         
         
 
