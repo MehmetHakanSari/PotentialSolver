@@ -74,17 +74,26 @@ class Domain:
 
         #grid size changes for each step. 
 
+        x_list = np.zeros(self.nodes[0])
+        y_list = np.zeros(self.nodes[1])
+
         if self.pyhsical_domain[0][0] != self.pyhsical_domain[1][0]:
             ##calculate first step sizes 
             L_x = abs((self.pyhsical_domain[1][0] - self.pyhsical_domain[0][0])) #length in x direction
-            dx = L_x * (1 - g_x) / (1 - g_x**self.nodes[0])  #first step size. The remaining floats should be considered. Rounding error should be expected.
+            if g_x == 1:
+                dx = L_x / (self.nodes[0] - 1)
+            else:
+                dx = L_x * (1 - g_x) / (1 - g_x**self.nodes[0])  #first step size. The remaining floats should be considered. Rounding error should be expected.
             x_list[0] = self.pyhsical_domain[0][0] 
             for i in range(1,self.nodes[0]):
                 x_list[i] = x_list[i-1] + dx * g_x**(i-1)  
             
         elif self.pyhsical_domain[1][0] != self.pyhsical_domain[2][0]:
             L_x = abs((self.pyhsical_domain[2][0] - self.pyhsical_domain[1][0])) #length in x direction
-            dx = L_x * (1 - g_x) / (1 - g_x**self.nodes[0])  #first step size. The remaining floats should be considered. Rounding error should be expected.
+            if g_x == 1:
+                dx = L_x / (self.nodes[0] - 1)
+            else:
+                dx = L_x * (1 - g_x) / (1 - g_x**self.nodes[0])  #first step size. The remaining floats should be considered. Rounding error should be expected.
             x_list[0] = self.pyhsical_domain[1][0] 
             for i in range(1,self.nodes[0]):
                 x_list[i] = x_list[i-1] + dx * g_x**(i-1)  
@@ -92,20 +101,26 @@ class Domain:
 
         if self.pyhsical_domain[0][1] != self.pyhsical_domain[1][1]:
             L_y = abs((self.pyhsical_domain[1][1] - self.pyhsical_domain[0][1])) #length in x direction
-            dy = L_x * (1 - g_x) / (1 - g_y**self.nodes[1])  #first step size. The remaining floats should be considered. Rounding error should be expected.
+            if g_y == 1:
+                dy = L_y / (self.nodes[1] - 1)
+            else:
+                dy = L_x * (1 - g_x) / (1 - g_y**self.nodes[1])  #first step size. The remaining floats should be considered. Rounding error should be expected.
             y_list[0] = self.pyhsical_domain[0][1] 
             for i in range(1,self.nodes[1]):
                 y_list[i] = y_list[i-1] + dy * g_y**(i-1)  
             
         elif self.pyhsical_domain[1][1] != self.pyhsical_domain[2][1]:
-            L_x = abs((self.pyhsical_domain[2][1] - self.pyhsical_domain[1][1])) #length in x direction
-            dy = L_x * (1 - g_y) / (1 - g_y**self.nodes[1])  #first step size. The remaining floats should be considered. Rounding error should be expected.
+            L_y = abs((self.pyhsical_domain[2][1] - self.pyhsical_domain[1][1])) #length in x direction
+            if g_y == 1:
+                dy = L_y / (self.nodes[1] - 1)
+            else:
+                dy = L_x * (1 - g_y) / (1 - g_y**self.nodes[1])  #first step size. The remaining floats should be considered. Rounding error should be expected.
             y_list[0] = self.pyhsical_domain[1][1] 
             for i in range(1,self.nodes[1]):
                 y_list[i] = y_list[i-1] + dy * g_y**(i-1)  
             
-        x_list = np.array(x_list)
-        y_list = np.array(y_list)
+        # x_list = np.array(x_list)
+        # y_list = np.array(y_list)
 
         if x_list[-1] < x_list[0]:      #Small value to large value to be consistent for physiscs
             x_list = np.flip(x_list)
