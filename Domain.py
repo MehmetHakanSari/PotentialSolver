@@ -50,6 +50,11 @@ class Domain:
             y_list = np.linspace(self.pyhsical_domain[0][1], self.pyhsical_domain[1][1], self.nodes[0])
         elif self.pyhsical_domain[1][1] != self.pyhsical_domain[2][1]:
             y_list = np.linspace(self.pyhsical_domain[1][1], self.pyhsical_domain[2][1], self.nodes[0])
+
+        if x_list[-1] > x_list[0]:      #Small value to large value to be consistent for physiscs
+            x_list.reverse()
+        if y_list[-1] > y_list[0]:
+            y_list.reverse()
             
         
         
