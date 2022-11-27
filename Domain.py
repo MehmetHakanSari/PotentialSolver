@@ -38,8 +38,21 @@ class Domain:
         self.nodes = nodes                      
 
     def structured_grid_2D(self):
-        x_list = np.linspace(-1, 1, 100)
-        y_list = np.linspace(-1, 1, 100)
         
+        if self.pyhsical_domain[0][0] != self.pyhsical_domain[1][0]:
+            #if the given coordinates are in same line for y coordinate pass other coordinate
+            x_list = np.linspace(self.pyhsical_domain[0][0], self.pyhsical_domain[1][0], self.nodes[0])
+        elif self.pyhsical_domain[1][0] != self.pyhsical_domain[2][0]:
+            x_list = np.linspace(self.pyhsical_domain[1][0], self.pyhsical_domain[2][0], self.nodes[0])
+
+        if self.pyhsical_domain[0][1] != self.pyhsical_domain[1][1]:
+            #if the given coordinates are in same line for x coordinate pass other coordinate
+            y_list = np.linspace(self.pyhsical_domain[0][1], self.pyhsical_domain[1][1], self.nodes[0])
+        elif self.pyhsical_domain[1][1] != self.pyhsical_domain[2][1]:
+            y_list = np.linspace(self.pyhsical_domain[1][1], self.pyhsical_domain[2][1], self.nodes[0])
+            
+        
+        
+
 
 
