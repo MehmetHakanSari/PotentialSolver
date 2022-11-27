@@ -53,9 +53,9 @@ class Domain:
             y_list = np.linspace(self.pyhsical_domain[1][1], self.pyhsical_domain[2][1], self.nodes[0])
 
         if x_list[-1] > x_list[0]:      #Small value to large value to be consistent for physiscs
-            x_list.reverse()
+            x_list = np.flip(x_list)
         if y_list[-1] > y_list[0]:
-            y_list.reverse()
+            y_list = np.flip(y_list)
             
         x_MAT, y_MAT = np.meshgrid(x_list, y_list) #gradient is zero. 
 
