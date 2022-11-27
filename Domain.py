@@ -38,7 +38,37 @@ class Domain:
         self.nodes = nodes             
         self.matricies = None         
 
-    def structured_grid_2D(self):
+    def uniform_grid_2D(self):
+        
+        if self.pyhsical_domain[0][0] != self.pyhsical_domain[1][0]:
+            #if the given coordinates are in same line for y coordinate pass other coordinate
+            x_list = np.linspace(self.pyhsical_domain[0][0], self.pyhsical_domain[1][0], self.nodes[0])
+        elif self.pyhsical_domain[1][0] != self.pyhsical_domain[2][0]:
+            x_list = np.linspace(self.pyhsical_domain[1][0], self.pyhsical_domain[2][0], self.nodes[0])
+
+        if self.pyhsical_domain[0][1] != self.pyhsical_domain[1][1]:
+            #if the given coordinates are in same line for x coordinate pass other coordinate
+            y_list = np.linspace(self.pyhsical_domain[0][1], self.pyhsical_domain[1][1], self.nodes[1])
+        elif self.pyhsical_domain[1][1] != self.pyhsical_domain[2][1]:
+            y_list = np.linspace(self.pyhsical_domain[1][1], self.pyhsical_domain[2][1], self.nodes[1])
+
+        if x_list[-1] < x_list[0]:      #Small value to large value to be consistent for physiscs
+            x_list = np.flip(x_list)
+        if y_list[-1] < y_list[0]:
+            y_list = np.flip(y_list)
+            
+        x_MAT = np.zeros((self.nodes[1], self.nodes[0]))
+        y_MAT = np.zeros((self.nodes[1], self.nodes[0]))
+
+        #for uniform grid one can use np.meshgrid()
+        for i in range(len(y_list)):
+            x_MAT[i,:] = x_list
+        for i in range(len(x_list)):
+            y_MAT[:,i] = y_list
+
+        self.matricies = [x_MAT, y_MAT]
+
+    def nonuniform_grid_2D(self, g_x, g_y):
         
         if self.pyhsical_domain[0][0] != self.pyhsical_domain[1][0]:
             #if the given coordinates are in same line for y coordinate pass other coordinate
