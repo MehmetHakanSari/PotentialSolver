@@ -68,16 +68,11 @@ class Domain:
 
         self.matricies = [x_MAT, y_MAT]
 
-    def nonuniform_grid_2D(self, g_x = "1", g_y = "1"):
+    def nonuniform_grid_2D(self, g_x = 1, g_y = 1):
         #g_x is the gradient for delta_x. Float. Default value 1. 
         #g_y is the gradient for delta_Y. Float. Default value 1. 
 
         #grid size changes for each step. 
-
-        
-
-
-
 
         if self.pyhsical_domain[0][0] != self.pyhsical_domain[1][0]:
             ##calculate first step sizes 
