@@ -68,19 +68,37 @@ class Domain:
 
         self.matricies = [x_MAT, y_MAT]
 
-    def nonuniform_grid_2D(self, g_x, g_y):
+    def nonuniform_grid_2D(self, g_x = "1", g_y = "1"):
+        #g_x is the gradient for delta_x. Float. Default value 1. 
+        #g_y is the gradient for delta_Y. Float. Default value 1. 
+
+        #grid size changes for each step. 
+
         
+
+
+
+
         if self.pyhsical_domain[0][0] != self.pyhsical_domain[1][0]:
-            #if the given coordinates are in same line for y coordinate pass other coordinate
-            x_list = np.linspace(self.pyhsical_domain[0][0], self.pyhsical_domain[1][0], self.nodes[0])
+            ##calculate first step sizes 
+            L_x = abs((self.pyhsical_domain[1][0] - self.pyhsical_domain[0][0])) #length in x direction
+            dx = L_x * (1 - g_x) / (1 - g_x**self.nodes[0])                 #first step size. The remaining floats should be considered. Rounding error should be expected.
+            x_list[0] = self.pyhsical_domain[0][0] 
+            for i in range(1,self.nodes[0]):
+                x_list[i] = x_list[i-1] + dx * g_x**(i-1)
+                
+
+
+            
+            
         elif self.pyhsical_domain[1][0] != self.pyhsical_domain[2][0]:
-            x_list = np.linspace(self.pyhsical_domain[1][0], self.pyhsical_domain[2][0], self.nodes[0])
+
 
         if self.pyhsical_domain[0][1] != self.pyhsical_domain[1][1]:
             #if the given coordinates are in same line for x coordinate pass other coordinate
-            y_list = np.linspace(self.pyhsical_domain[0][1], self.pyhsical_domain[1][1], self.nodes[1])
+
         elif self.pyhsical_domain[1][1] != self.pyhsical_domain[2][1]:
-            y_list = np.linspace(self.pyhsical_domain[1][1], self.pyhsical_domain[2][1], self.nodes[1])
+
 
         if x_list[-1] < x_list[0]:      #Small value to large value to be consistent for physiscs
             x_list = np.flip(x_list)
