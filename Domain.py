@@ -82,22 +82,21 @@ class Domain:
             L_x = abs((self.pyhsical_domain[1][0] - self.pyhsical_domain[0][0])) #length in x direction
             if g_x == 1:
                 dx = L_x / (self.nodes[0] - 1)
-            # else:
-            #     dx = L_x * (1 - g_x) / (1 - g_x**(self.nodes[0] - 1))  #first step size. The remaining floats should be considered. Rounding error should be expected.
-            if g_x > 0:
-                dx = L_x * (1 - g_x) / (1 - g_x**(self.nodes[0] - 1)) 
-                if self.pyhsical_domain[0][0] < self.pyhsical_domain[1][0]:
-                    x_list[0] = self.pyhsical_domain[0][0] 
-                elif self.pyhsical_domain[0][0] > self.pyhsical_domain[1][0]:
-                    x_list[0] = self.pyhsical_domain[1][0]
             else:
-                g_x = abs(g_x)
-                dx = L_x * (1 - g_x) / (1 - g_x**(self.nodes[0] - 1))
-                dx = -dx
-                if self.pyhsical_domain[0][0] < self.pyhsical_domain[1][0]:
-                    x_list[0] = self.pyhsical_domain[1][0] 
-                elif self.pyhsical_domain[0][0] > self.pyhsical_domain[1][0]:
-                    x_list[0] = self.pyhsical_domain[0][0]
+                if g_x > 0:
+                    dx = L_x * (1 - g_x) / (1 - g_x**(self.nodes[0] - 1)) 
+                    if self.pyhsical_domain[0][0] < self.pyhsical_domain[1][0]:
+                        x_list[0] = self.pyhsical_domain[0][0] 
+                    elif self.pyhsical_domain[0][0] > self.pyhsical_domain[1][0]:
+                        x_list[0] = self.pyhsical_domain[1][0]
+                else:
+                    g_x = abs(g_x)
+                    dx = L_x * (1 - g_x) / (1 - g_x**(self.nodes[0] - 1))
+                    dx = -dx
+                    if self.pyhsical_domain[0][0] < self.pyhsical_domain[1][0]:
+                        x_list[0] = self.pyhsical_domain[1][0] 
+                    elif self.pyhsical_domain[0][0] > self.pyhsical_domain[1][0]:
+                        x_list[0] = self.pyhsical_domain[0][0]
             for i in range(1,self.nodes[0]):
                 x_list[i] = x_list[i-1] + dx * g_x**(i-1)  
             
@@ -106,32 +105,67 @@ class Domain:
             if g_x == 1:
                 dx = L_x / (self.nodes[0] - 1)
             else:
-                dx = L_x * (1 - g_x) / (1 - g_x**(self.nodes[0] - 1))  #first step size. The remaining floats should be considered. Rounding error should be expected.
-            x_list[0] = self.pyhsical_domain[1][0] 
+                if g_x > 0:
+                    dx = L_x * (1 - g_x) / (1 - g_x**(self.nodes[0] - 1)) 
+                    if self.pyhsical_domain[1][0] < self.pyhsical_domain[2][0]:
+                        x_list[0] = self.pyhsical_domain[1][0] 
+                    elif self.pyhsical_domain[1][0] > self.pyhsical_domain[2][0]:
+                        x_list[0] = self.pyhsical_domain[2][0]
+                else:
+                    g_x = abs(g_x)
+                    dx = L_x * (1 - g_x) / (1 - g_x**(self.nodes[0] - 1))
+                    dx = -dx
+                    if self.pyhsical_domain[1][0] < self.pyhsical_domain[2][0]:
+                        x_list[0] = self.pyhsical_domain[1][0] 
+                    elif self.pyhsical_domain[1][0] > self.pyhsical_domain[2][0]:
+                        x_list[0] = self.pyhsical_domain[2][0]
             for i in range(1,self.nodes[0]):
                 x_list[i] = x_list[i-1] + dx * g_x**(i-1)  
             
 
         if self.pyhsical_domain[0][1] != self.pyhsical_domain[1][1]:
-            L_y = abs((self.pyhsical_domain[1][1] - self.pyhsical_domain[0][1])) #length in x direction
+            L_y = abs((self.pyhsical_domain[1][1] - self.pyhsical_domain[0][1])) #length in y direction
             if g_y == 1:
                 dy = L_y / (self.nodes[1] - 1)
             else:
-                dy = L_y * (1 - g_y) / (1 - g_y**(self.nodes[1] - 1))  #first step size. The remaining floats should be considered. Rounding error should be expected.
-            y_list[0] = self.pyhsical_domain[0][1] 
-
+                if g_y > 0:
+                    dy = L_y * (1 - g_y) / (1 - g_y**(self.nodes[1] - 1)) 
+                    if self.pyhsical_domain[0][1] < self.pyhsical_domain[1][1]:
+                        y_list[0] = self.pyhsical_domain[0][1] 
+                    elif self.pyhsical_domain[0][1] > self.pyhsical_domain[1][1]:
+                        y_list[0] = self.pyhsical_domain[1][1]
+                else:
+                    g_y = abs(g_y)
+                    dy = L_y * (1 - g_y) / (1 - g_y**(self.nodes[1] - 1))
+                    dy = -dy
+                    if self.pyhsical_domain[0][1] < self.pyhsical_domain[1][1]:
+                        y_list[0] = self.pyhsical_domain[0][1] 
+                    elif self.pyhsical_domain[0][1] > self.pyhsical_domain[1][1]:
+                        y_list[0] = self.pyhsical_domain[1][1]
             for i in range(1,self.nodes[1]):
                 y_list[i] = y_list[i-1] + dy * g_y**(i-1)  
             
         elif self.pyhsical_domain[1][1] != self.pyhsical_domain[2][1]:
-            L_y = abs((self.pyhsical_domain[2][1] - self.pyhsical_domain[1][1])) #length in x direction
+            L_y = abs((self.pyhsical_domain[1][1] - self.pyhsical_domain[2][1])) #length in y direction
             if g_y == 1:
                 dy = L_y / (self.nodes[1] - 1)
             else:
-                dy = L_y * (1 - g_y) / (1 - g_y**(self.nodes[1] - 1))  #first step size. The remaining floats should be considered. Rounding error should be expected.
-            y_list[0] = self.pyhsical_domain[1][1] 
+                if g_y > 0:
+                    dy = L_y * (1 - g_y) / (1 - g_y**(self.nodes[1] - 1)) 
+                    if self.pyhsical_domain[1][1] < self.pyhsical_domain[2][1]:
+                        y_list[0] = self.pyhsical_domain[1][1] 
+                    elif self.pyhsical_domain[1][1] > self.pyhsical_domain[2][1]:
+                        y_list[0] = self.pyhsical_domain[2][1]
+                else:
+                    g_y = abs(g_y)
+                    dy = L_y * (1 - g_y) / (1 - g_y**(self.nodes[1] - 1))
+                    dy = -dy
+                    if self.pyhsical_domain[1][1] < self.pyhsical_domain[2][1]:
+                        y_list[0] = self.pyhsical_domain[1][1] 
+                    elif self.pyhsical_domain[1][1] > self.pyhsical_domain[2][1]:
+                        y_list[0] = self.pyhsical_domain[2][1]
             for i in range(1,self.nodes[1]):
-                y_list[i] = y_list[i-1] + dy * g_y**(i-1)  
+                y_list[i] = y_list[i-1] + dy * g_y**(i-1)   
             
         # x_list = np.array(x_list)
         # y_list = np.array(y_list)
