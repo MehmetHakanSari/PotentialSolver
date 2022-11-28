@@ -38,7 +38,7 @@ class Domain:
         self.nodes = nodes             
         self.matricies = None         
 
-    def uniform_grid_2D(self):
+    def uniform_block_mesh_2D(self):
         
         if self.pyhsical_domain[0][0] != self.pyhsical_domain[1][0]:
             #if the given coordinates are in same line for y coordinate pass other coordinate
@@ -68,7 +68,7 @@ class Domain:
 
         self.matricies = [x_MAT, y_MAT]
 
-    def nonuniform_grid_2D(self, g_x = 1, g_y = 1):
+    def nonuniform_block_mesh_2D(self, g_x = 1, g_y = 1):
         #g_x is the gradient for delta_x. Float. Default value 1. 
         #g_y is the gradient for delta_Y. Float. Default value 1. 
 
