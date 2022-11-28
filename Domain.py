@@ -94,9 +94,9 @@ class Domain:
                     dx = L_x * (1 - g_x) / (1 - g_x**(self.nodes[0] - 1))
                     dx = -dx
                     if self.pyhsical_domain[0][0] < self.pyhsical_domain[1][0]:
-                        x_list[0] = self.pyhsical_domain[1][0] 
+                        x_list[0] = self.pyhsical_domain[0][0] 
                     elif self.pyhsical_domain[0][0] > self.pyhsical_domain[1][0]:
-                        x_list[0] = self.pyhsical_domain[0][0]
+                        x_list[0] = self.pyhsical_domain[1][0]
             for i in range(1,self.nodes[0]):
                 x_list[i] = x_list[i-1] + dx * g_x**(i-1)  
             
@@ -116,9 +116,9 @@ class Domain:
                     dx = L_x * (1 - g_x) / (1 - g_x**(self.nodes[0] - 1))
                     dx = -dx
                     if self.pyhsical_domain[1][0] < self.pyhsical_domain[2][0]:
-                        x_list[0] = self.pyhsical_domain[1][0] 
+                        x_list[0] = self.pyhsical_domain[2][0] 
                     elif self.pyhsical_domain[1][0] > self.pyhsical_domain[2][0]:
-                        x_list[0] = self.pyhsical_domain[2][0]
+                        x_list[0] = self.pyhsical_domain[1][0]
             for i in range(1,self.nodes[0]):
                 x_list[i] = x_list[i-1] + dx * g_x**(i-1)  
             
@@ -139,9 +139,9 @@ class Domain:
                     dy = L_y * (1 - g_y) / (1 - g_y**(self.nodes[1] - 1))
                     dy = -dy
                     if self.pyhsical_domain[0][1] < self.pyhsical_domain[1][1]:
-                        y_list[0] = self.pyhsical_domain[0][1] 
+                        y_list[0] = self.pyhsical_domain[1][1] 
                     elif self.pyhsical_domain[0][1] > self.pyhsical_domain[1][1]:
-                        y_list[0] = self.pyhsical_domain[1][1]
+                        y_list[0] = self.pyhsical_domain[0][1]
             for i in range(1,self.nodes[1]):
                 y_list[i] = y_list[i-1] + dy * g_y**(i-1)  
             
@@ -161,9 +161,9 @@ class Domain:
                     dy = L_y * (1 - g_y) / (1 - g_y**(self.nodes[1] - 1))
                     dy = -dy
                     if self.pyhsical_domain[1][1] < self.pyhsical_domain[2][1]:
-                        y_list[0] = self.pyhsical_domain[1][1] 
+                        y_list[0] = self.pyhsical_domain[2][1] 
                     elif self.pyhsical_domain[1][1] > self.pyhsical_domain[2][1]:
-                        y_list[0] = self.pyhsical_domain[2][1]
+                        y_list[0] = self.pyhsical_domain[1][1]
             for i in range(1,self.nodes[1]):
                 y_list[i] = y_list[i-1] + dy * g_y**(i-1)   
 
