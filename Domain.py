@@ -15,12 +15,12 @@ class Domain:
 
         For 2D: 
 
-        each element is tuple of 3 elements, specifiying lengths of the block. 
+        each element is tuple of 3 elements, specifiying lengths of the block. The order of coordinates should be clockwise. 
 
-        [(x1, y1, z1),        Left Up Corner
-         (x2, y1, z1),        Right Up Corner
-         (x2, y2, z1),        Right Down Corner
-         (x1, y2, z1)]        Left Down Corner
+        [(x1, y1, z1),        
+         (x2, y1, z1),        
+         (x2, y2, z1),        
+         (x1, y2, z1)]        
 
         Mesh Properties:
 
@@ -166,9 +166,6 @@ class Domain:
                         y_list[0] = self.pyhsical_domain[2][1]
             for i in range(1,self.nodes[1]):
                 y_list[i] = y_list[i-1] + dy * g_y**(i-1)   
-            
-        # x_list = np.array(x_list)
-        # y_list = np.array(y_list)
 
         if x_list[-1] < x_list[0]:      #Small value to large value to be consistent for physiscs
             x_list = np.flip(x_list)
