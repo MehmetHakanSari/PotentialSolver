@@ -190,7 +190,15 @@ class Domain:
         lengths = {}
         for i in range(len(self.pyhsical_domain)):  #or simply write 4. But I want to keep it as parametric if we might change to polygon. 
             lengths["Lx" + str(i)] = self.pyhsical_domain[(i+1) % len(self.pyhsical_domain)][0] - self.pyhsical_domain[i][0]
-            lengths["Ly" + str(i)] = self.pyhsical_domain[1][(i+1) % len(self.pyhsical_domain)] - self.pyhsical_domain[1][i]
+            lengths["Ly" + str(i)] = self.pyhsical_domain[(i+1) % len(self.pyhsical_domain)][1] - self.pyhsical_domain[i][1]
+
+        x_MAT = np.zeros(N_y, N_x)
+        y_MAT = np.zeros(N_y, N_x)
+        dx_MAT = np.zeros(N_y, N_x -1)
+        dy_MAT = np.zeros(N_y - 1, N_x)
+
+        
+        # print(lengths)
             
 
     
