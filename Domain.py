@@ -186,4 +186,11 @@ class Domain:
 
 
     def nonuniform_mesh_2D(self, g_x = 1, g_y = 1):
-        
+        N_x, N_y = self.nodes[0], self.nodes[1]
+        lengths = {}
+        for i in range(len(self.pyhsical_domain)):  #or simply write 4. But I want to keep it as parametric if we might change to polygon. 
+            lengths["Lx" + str(i)] = self.pyhsical_domain[(i+1) % len(self.pyhsical_domain)][0] - self.pyhsical_domain[i][0]
+            lengths["Ly" + str(i)] = self.pyhsical_domain[1][(i+1) % len(self.pyhsical_domain)] - self.pyhsical_domain[1][i]
+            
+
+    
