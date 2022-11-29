@@ -197,7 +197,13 @@ class Domain:
         dx_MAT = np.zeros(N_y, N_x -1)
         dy_MAT = np.zeros(N_y - 1, N_x)
 
-        
+        for i in range(N_y):                 # i being the indicies in y direction
+            dx_MAT[i, :] = (lengths["Lx0"] + (lengths["Lx1"] - lengths["Lx2"]) * i / (N_y -1)) / (N_x - 1)
+
+        for j in range(N_x):                 # i being the indicies in y direction
+            dy_MAT[:, j] = (lengths["Ly3"] + (lengths["Ly0"] - lengths["Ly2"]) * i / (N_x -1)) / (N_y - 1)            
+            
+
         # print(lengths)
             
 
