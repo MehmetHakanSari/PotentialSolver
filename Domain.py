@@ -257,10 +257,10 @@ class PDE_2D_Solver:
         #Same if it is uniform-block mesh.
         #Same in row or column if it is non-uniform-block mesh
         #Different for row and coulmn for non-uniform mesh
-        a_e = np.zeros((N_x - 1, N_y))
-        a_w = np.zeros((N_x - 1, N_y))
-        a_n = np.zeros((N_x, N_y - 1))
-        a_s = np.zeros((N_x, N_y - 1))
+        a_e = np.zeros((N_x - 1, N_y)) + (mesh.matricies[0][0,1] - mesh.matricies[0][0,0])**2
+        a_w = np.zeros((N_x - 1, N_y)) + (mesh.matricies[0][0,1] - mesh.matricies[0][0,0])**2
+        a_n = np.zeros((N_x, N_y - 1)) + (mesh.matricies[1][1,0] - mesh.matricies[1][0,0])**2
+        a_s = np.zeros((N_x, N_y - 1)) + (mesh.matricies[1][1,0] - mesh.matricies[1][0,0])**2
 
 
         if self.BC['W'] == "D":
@@ -281,6 +281,7 @@ class PDE_2D_Solver:
         if self.BC['N'] == "N":
             a_n[:,0] += 1
             
+        
 
 
 
