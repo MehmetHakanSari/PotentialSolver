@@ -234,13 +234,53 @@ class PDE_2D_Solver:
     def __init__(self, BC):
         self.BC = BC
 
-    def solver(BC_values, mesh):
-        """Construct unknown matrix with its boundary condiations"""
+    def solver(self, BC_values, mesh):
+        """
+        Construct unknown matrix with its boundary condiations
+        
+        BC_values: dict 
+
+        BC_values: {'W': BC1, 'S': BC2, 'E': BC3, 'N': BC4}
+
+        BC's are: float or ndarray
+
+        """
 
         (N_x, N_y) = np.shape(mesh.matricies[0])
+        
 
         phi = np.zeros((N_x, N_y))       #unknown
-        phi_new = np.zeros((N_x, N_y))  
+        phi_new = np.zeros((N_x, N_y))   #unknown for storing new values
+        source = np.zeros((N_x, N_y))
+
+        #Coefficient Matricies 
+        #Same if it is uniform-block mesh.
+        #Same in row or column if it is non-uniform-block mesh
+        #Different for row and coulmn for non-uniform mesh
+        a_e = np.zeros((N_x - 1, N_y))
+        a_w = np.zeros((N_x - 1, N_y))
+        a_n = np.zeros((N_x, N_y - 1))
+        a_s = np.zeros((N_x, N_y - 1))
+
+
+        if self.BC['W'] == "D":
+            phi[0,:] = BC_values['W']
+        if self.BC['S'] == "D":
+            phi[:,-1] = BC_values['S']
+        if self.BC['E'] == "D":
+            phi[-1,:] = BC_values['E']
+        if self.BC['N'] == "D":
+            phi[:,0] = BC_values['N']
+
+        if self.BC['W'] == "N":
+            a_w[0,:] += 1
+        if self.BC['S'] == "N":
+            a_s[:,-1] += 1
+        if self.BC['E'] == "N":
+            a_e[-1,:] += 1
+        if self.BC['N'] == "N":
+            a_n[:,0] += 1
+            
 
 
 
@@ -253,4 +293,6 @@ class PDE_2D_Solver:
 
 
 
-        
+
+
+
