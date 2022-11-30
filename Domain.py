@@ -1,6 +1,6 @@
 import numpy as np
 
-class Domain:
+class Mesh:
     """
         Domain is the phsical domain that problem will be solved. (Formal)
         Unformal:
@@ -184,7 +184,6 @@ class Domain:
         self.matricies = [x_MAT, y_MAT]
 
 
-
     def nonuniform_mesh_2D(self, g_x = 1, g_y = 1):
         N_x, N_y = self.nodes[0], self.nodes[1]
         lengths = {}
@@ -192,19 +191,66 @@ class Domain:
             lengths["Lx" + str(i)] = self.pyhsical_domain[(i+1) % len(self.pyhsical_domain)][0] - self.pyhsical_domain[i][0]
             lengths["Ly" + str(i)] = self.pyhsical_domain[(i+1) % len(self.pyhsical_domain)][1] - self.pyhsical_domain[i][1]
 
-        x_MAT = np.zeros(N_y, N_x)
-        y_MAT = np.zeros(N_y, N_x)
-        dx_MAT = np.zeros(N_y, N_x -1)
-        dy_MAT = np.zeros(N_y - 1, N_x)
+        x_MAT = np.zeros((N_y, N_x))
+        y_MAT = np.zeros((N_y, N_x))
+        dx_MAT = np.zeros((N_y, N_x -1))
+        dy_MAT = np.zeros((N_y - 1, N_x))
 
         for i in range(N_y):                 # i being the indicies in y direction
-            dx_MAT[i, :] = (lengths["Lx0"] + (lengths["Lx1"] - lengths["Lx2"]) * i / (N_y -1)) / (N_x - 1)
+            dx_MAT[i, :] = (lengths["Lx3"] + (lengths["Lx0"] + lengths["Lx2"]) * i / (N_y - 1)) / (N_x - 1)
 
         for j in range(N_x):                 # i being the indicies in y direction
-            dy_MAT[:, j] = (lengths["Ly3"] + (lengths["Ly0"] - lengths["Ly2"]) * i / (N_x -1)) / (N_y - 1)            
+            dy_MAT[:, j] = (lengths["Ly0"] + (lengths["Ly3"] + lengths["Ly1"]) * j / (N_x - 1)) / (N_y - 1)            
             
+        print(lengths)
+        print(dx_MAT)
+        print(dy_MAT)
 
-        # print(lengths)
+        for i in range(N_y):
+            for j in range(N_x):
+                x_MAT[i,j] = x_MAT[i,j] + self.pyhsical_domain[0][0] - dx_MAT[i, j -1]
+                y_MAT[i,j] = y_MAT[i,j] + self.pyhsical_domain[0][1] - dy_MAT[i - 1, j]
+              
             
+        print(x_MAT)
+        print(y_MAT)
 
+        self.matricies = [x_MAT, y_MAT]
     
+
+class PDE_2D_Solver:
+    """
+        Solves 2D partial differential equation with given boundary condiations.
+
+        Takes Mesh class.
+        BC: dictionary
+
+        Boundary condiations:
+
+        BC = {'W': BC1, 'S': BC2, 'E': BC3, 'N': BC4 }
+        Each BC should be string, 'D' or 'N' for Diriclet or Neumann
+    """
+
+    def __init__(self, BC):
+        self.BC = BC
+
+    def solver(BC_values, mesh):
+        """Construct unknown matrix with its boundary condiations"""
+
+        (N_x, N_y) = np.shape(mesh.matricies[0])
+
+        phi = np.zeros((N_x, N_y))       #unknown
+        phi_new = np.zeros((N_x, N_y))  
+
+
+
+
+
+
+
+
+
+
+
+
+        
