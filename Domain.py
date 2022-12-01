@@ -234,7 +234,7 @@ class PDE_2D_Solver:
     def __init__(self, BC):
         self.BC = BC
 
-    def TDMA(W,C,E,Q):
+    def TDMA(self, W,C,E,Q):
         """
             W: west
             C: center
@@ -265,9 +265,9 @@ class PDE_2D_Solver:
         (N_y, N_x) = np.shape(mesh.matricies[0])
         
 
-        phi = np.zeros((N_x, N_y))       #unknown
-        phi_new = np.zeros((N_x, N_y))   #unknown for storing new values
-        source = np.zeros((N_x, N_y))
+        phi = np.zeros((N_y, N_x))       #unknown
+        phi_new = np.zeros((N_y, N_x))   #unknown for storing new values
+        source = np.zeros((N_y, N_x))
 
         #Coefficient Matricies 
         #Same if it is uniform-block mesh.
@@ -280,13 +280,13 @@ class PDE_2D_Solver:
 
 
         if self.BC['W'] == "D":
-            phi[0,:] = BC_values['W']
+            phi[:,0] = BC_values['W']
         if self.BC['S'] == "D":
-            phi[:,-1] = BC_values['S']
+            phi[-1,:] = BC_values['S']
         if self.BC['E'] == "D":
-            phi[-1,:] = BC_values['E']
+            phi[:,-1] = BC_values['E']
         if self.BC['N'] == "D":
-            phi[:,0] = BC_values['N']
+            phi[0,:] = BC_values['N']
 
         if self.BC['W'] == "N":
             a_w[:,0] += 1
@@ -301,6 +301,8 @@ class PDE_2D_Solver:
         print(a_w)
         print(a_s)
         print(a_n)
+        print(" ")
+        print(phi)
         
         #Column by Column TDMA
         """
@@ -308,19 +310,29 @@ class PDE_2D_Solver:
             first we solve phi[:,1]
             than pass to phi[:,2]
             than pass to phi[:,3]
-            than pass to phi[:,4]
 
             We will solve again this loop. 
         """
         W = np.zeros(N_y - 2)
         E = np.zeros(N_y - 2)
-        for i in range(1, N_x-1):
-            W[1:] = a_s[:, i]
-            C = 2 * a_s[1:, i] + 2 * a_w[:, i - 1]
-            E[:-1] = a_n[:, i]
-            Q = a_w[:,i-1] * phi[:,i-1] + a_e[:,i] * phi[:,i+1] 
+        for i in range(1, N_x):
+            W[1:] = a_s[1:-1, i]
+            C = 2 * a_s[1:, i] + 2 * a_w[1:-1, i - 1]
+            E[:-1] = a_n[1:-1, i]
+            Q = a_w[1:-1,i-1] * phi[1:-1,i-1] + a_e[1:-1,i] * phi[1:-1,i+1] 
             Q[0] += a_n[0,0] *  phi[0,i-1]
             Q[-1] += a_s[0,0] *  phi[-1,i-1] 
+
+            
+            print(W)
+            
+            print(C)
+            
+            print(E)
+            
+            print(Q)
+            
+
             phi[1:-1,i] = self.TDMA(W,C,E,Q)
 
             print(phi)
