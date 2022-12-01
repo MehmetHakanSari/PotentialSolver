@@ -234,6 +234,22 @@ class PDE_2D_Solver:
     def __init__(self, BC):
         self.BC = BC
 
+    def TDMA(W,C,E,Q):
+        """
+            W: west
+            C: center
+            E: east
+            Q: source
+        """
+        X = np.zeros(len(Q))
+        C[1:] = C[1:] - E[0:-1] * W[1:] / C[0:-1]
+        Q[1:] = Q[1:] - Q[0:-1] * W[1:] / C[0:-1]
+        X[-1] = Q[-1] / C[-1]
+        for i in range(len(Q),0,-1):
+            X[i] = (Q[i] - E[i] * X[i+1]) / C[i]
+        
+        return X
+
     def solver(self, BC_values, mesh):
         """
         Construct unknown matrix with its boundary condiations
@@ -286,6 +302,31 @@ class PDE_2D_Solver:
         print(a_s)
         print(a_n)
         
+        #Column by Column TDMA
+        """
+            Starting from first column that is unknown. Thus, 
+            first we solve phi[:,1]
+            than pass to phi[:,2]
+            than pass to phi[:,3]
+            than pass to phi[:,4]
+
+            We will solve again this loop. 
+        """
+        W = np.zeros(N_y - 2)
+        E = np.zeros(N_y - 2)
+        for i in range(1, N_x-1):
+            W[1:] = a_s[:, i]
+            C = 2 * a_s[1:, i] + 2 * a_w[:, i - 1]
+            E[:-1] = a_n[:, i]
+            Q = a_w[:,i-1] * phi[:,i-1] + a_e[:,i] * phi[:,i+1] 
+            Q[0] += a_n[0,0] *  phi[0,i-1]
+            Q[-1] += a_s[0,0] *  phi[-1,i-1] 
+            phi[1:-1,i] = self.TDMA(W,C,E,Q)
+
+            print(phi)
+
+            if i == 1:
+                break
 
 
 
