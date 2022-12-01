@@ -233,6 +233,7 @@ class PDE_2D_Solver:
 
     def __init__(self, BC):
         self.BC = BC
+        self.solution = None
 
     def TDMA(self, W,C,E,Q):
         """
@@ -241,11 +242,14 @@ class PDE_2D_Solver:
             E: east
             Q: source
         """
-        X = np.zeros(len(Q))
+        n = len(Q)
+        X = np.zeros(n)
         C[1:] = C[1:] - E[0:-1] * W[1:] / C[0:-1]
         Q[1:] = Q[1:] - Q[0:-1] * W[1:] / C[0:-1]
         X[-1] = Q[-1] / C[-1]
-        for i in range(len(Q),0,-1):
+        # print("ssdgdsg")
+        # print(list(range(n-1, -1, -1)))
+        for i in range(n-2, -1, -1):
             X[i] = (Q[i] - E[i] * X[i+1]) / C[i]
         
         return X
@@ -297,48 +301,46 @@ class PDE_2D_Solver:
         if self.BC['N'] == "N":
             a_n[0,:] += 1
             
-        print(a_e)
-        print(a_w)
-        print(a_s)
-        print(a_n)
-        print(" ")
-        print(phi)
+        # print(a_e)
+        # print(a_w)
+        # print(a_s)
+        # print(a_n)
+        # print(" ")
+        # print(phi)
         
         #Column by Column TDMA
         """
             Starting from first column that is unknown. Thus, 
             first we solve phi[:,1]
             than pass to phi[:,2]
-            than pass to phi[:,3]
 
             We will solve again this loop. 
         """
         W = np.zeros(N_y - 2)
         E = np.zeros(N_y - 2)
-        for i in range(1, N_x):
-            W[1:] = a_s[1:-1, i]
-            C = 2 * a_s[1:, i] + 2 * a_w[1:-1, i - 1]
-            E[:-1] = a_n[1:-1, i]
-            Q = a_w[1:-1,i-1] * phi[1:-1,i-1] + a_e[1:-1,i] * phi[1:-1,i+1] 
-            Q[0] += a_n[0,0] *  phi[0,i-1]
-            Q[-1] += a_s[0,0] *  phi[-1,i-1] 
+        for j in range(15):
+            for i in range(1, N_x):
+                W[1:] = a_s[1:-1, i]
+                C = 2 * a_s[1:, i] + 2 * a_w[1:-1, i - 1]
+                E[:-1] = a_n[1:-1, i]
+                Q = a_w[1:-1,i-1] * phi[1:-1,i-1] + a_e[1:-1,i-1] * phi[1:-1,(i+1)-(i != N_x)] 
+                Q[0] += a_n[0,0] *  phi[0,i-1]
+                Q[-1] += a_s[0,0] *  phi[-1,i-1] 
 
-            
-            print(W)
-            
-            print(C)
-            
-            print(E)
-            
-            print(Q)
-            
-
-            phi[1:-1,i] = self.TDMA(W,C,E,Q)
+                
+                # print(W)
+                
+                # print(C)
+                
+                # print(E)
+                
+                # print(Q)
+                
+                phi[1:-1,i] = self.TDMA(W,C,E,Q)
 
             print(phi)
 
-            if i == 1:
-                break
+        self.solution = phi
 
 
 
