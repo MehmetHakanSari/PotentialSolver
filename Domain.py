@@ -306,7 +306,8 @@ class PDE_2D_Solver:
             y_index = y_index[1:]
 
         if self.BC['W'] == "N":
-            a_w[:,0] += 1 * a_e[:,-1]
+            # a_w[:,0] += 1 * a_e[:,-1]
+            pass
         if self.BC['S'] == "N":
             a_s[-1,:] += 1 * a_n[0,:]
         if self.BC['E'] == "N":
@@ -332,20 +333,21 @@ class PDE_2D_Solver:
         """
         W = np.zeros(N_y - 2,dtype="float")
         E = np.zeros(N_y - 2,dtype="float")
-        for t in range(80):
+        for t in range(160):
 
             for i in x_index:
                 W[1:] = -a_s[1:-1, i]
                 C = 2 * a_s[1:, i] + 2 * a_w[1:-1, i - 1]
                 E[:-1] = -a_n[1:-1, i]
-                Q = a_w[1:-1,i-1] * phi[1:-1,i-1] + a_e[1:-1,i-1] * phi[1:-1,(i+1) - 2 * (i != N_x)] 
+                Q = a_w[1:-1,i-1] * phi[1:-1,(i-1) + 2 * (i-1 == 0)] + a_e[1:-1,i-1] * phi[1:-1,(i+1) - 2 * (i+1 == N_x)] 
                 # Q = a_w[1:-1,i-1] * phi[1:-1,i-1] + a_e[1:-1,i-1] * phi[1:-1,(i+1)] 
 
                 Q[0] += a_n[0,0] *  phi[0,i-1]
                 Q[-1] += a_s[0,0] *  phi[-1,i-1] 
-                Q = np.flip(Q)
+                Q = np.flip(Q)                     #The reason of reversing Q is, existing Q is inconsistent with the W and E and C list.
+        
 
-                phi[-2:0:-1,i] = self.TDMA(W,C,E,Q)  #interior points are calculated
+                phi[-2:0:-1,i] = self.TDMA(W,C,E,Q)  #interior points are calculated in reverse order. It is because of matrix index convention. 
 
 
         self.solution = phi
