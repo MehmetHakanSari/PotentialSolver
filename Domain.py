@@ -310,14 +310,15 @@ class PDE_2D_Solver:
         if self.BC['S'] == "N":
             a_s[-1,:] += 1 * a_n[0,:]
         if self.BC['E'] == "N":
-            a_e[:,-1] += 1 * a_w[:,0]
+            # a_e[:,-1] += 1 * a_w[:,0]
+            pass
         if self.BC['N'] == "N":
             a_n[0,:] += 1 * a_s[-1,:]
             
-        # print(a_e)
-        # print(a_w)
-        # print(a_s)
-        # print(a_n)
+        print(a_e)
+        print(a_w)
+        print(a_s)
+        print(a_n)
         # print(" ")
         # print(phi)
         
@@ -337,8 +338,8 @@ class PDE_2D_Solver:
                 W[1:] = -a_s[1:-1, i]
                 C = 2 * a_s[1:, i] + 2 * a_w[1:-1, i - 1]
                 E[:-1] = -a_n[1:-1, i]
-                # Q = a_w[1:-1,i-1] * phi[1:-1,i-1] + a_e[1:-1,i-1] * phi[1:-1,(i+1) - (i != N_x)] 
-                Q = a_w[1:-1,i-1] * phi[1:-1,i-1] + a_e[1:-1,i-1] * phi[1:-1,(i+1)] 
+                Q = a_w[1:-1,i-1] * phi[1:-1,i-1] + a_e[1:-1,i-1] * phi[1:-1,(i+1) - 2 * (i != N_x)] 
+                # Q = a_w[1:-1,i-1] * phi[1:-1,i-1] + a_e[1:-1,i-1] * phi[1:-1,(i+1)] 
 
                 Q[0] += a_n[0,0] *  phi[0,i-1]
                 Q[-1] += a_s[0,0] *  phi[-1,i-1] 
