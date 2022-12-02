@@ -244,8 +244,9 @@ class PDE_2D_Solver:
         """
         n = len(Q)
         X = np.zeros(n)
-        C[1:] = C[1:] - E[0:-1] * W[1:] / C[0:-1]
-        Q[1:] = Q[1:] - Q[0:-1] * W[1:] / C[0:-1]
+        for i in range(1,n):
+            C[i] = C[i] - E[i-1] * W[i] / C[i-1]
+            Q[i] = Q[i] - Q[i-1] * W[i] / C[i-1]
         X[-1] = Q[-1] / C[-1]
         # print("ssdgdsg")
         # print(list(range(n-1, -1, -1)))
@@ -277,10 +278,15 @@ class PDE_2D_Solver:
         #Same if it is uniform-block mesh.
         #Same in row or column if it is non-uniform-block mesh
         #Different for row and coulmn for non-uniform mesh
-        a_e = np.zeros((N_y, N_x - 1)) + (mesh.matricies[0][0,1] - mesh.matricies[0][0,0])**2
-        a_w = np.zeros((N_y, N_x - 1)) + (mesh.matricies[0][0,1] - mesh.matricies[0][0,0])**2
-        a_n = np.zeros((N_y - 1, N_x)) + (mesh.matricies[1][1,0] - mesh.matricies[1][0,0])**2
-        a_s = np.zeros((N_y - 1, N_x)) + (mesh.matricies[1][1,0] - mesh.matricies[1][0,0])**2
+        # a_e = np.zeros((N_y, N_x - 1)) + (mesh.matricies[0][0,1] - mesh.matricies[0][0,0])**2
+        # a_w = np.zeros((N_y, N_x - 1)) + (mesh.matricies[0][0,1] - mesh.matricies[0][0,0])**2
+        # a_n = np.zeros((N_y - 1, N_x)) + (mesh.matricies[1][1,0] - mesh.matricies[1][0,0])**2
+        # a_s = np.zeros((N_y - 1, N_x)) + (mesh.matricies[1][1,0] - mesh.matricies[1][0,0])**2
+
+        a_e = np.zeros((N_y, N_x - 1),dtype="float") + (mesh.matricies[1][1,0] - mesh.matricies[1][0,0])**2
+        a_w = np.zeros((N_y, N_x - 1),dtype="float") + (mesh.matricies[1][1,0] - mesh.matricies[1][0,0])**2
+        a_n = np.zeros((N_y - 1, N_x),dtype="float") + (mesh.matricies[0][0,1] - mesh.matricies[0][0,0])**2
+        a_s = np.zeros((N_y - 1, N_x),dtype="float") + (mesh.matricies[0][0,1] - mesh.matricies[0][0,0])**2
 
 
         if self.BC['W'] == "D":
@@ -293,18 +299,18 @@ class PDE_2D_Solver:
             phi[0,:] = BC_values['N']
 
         if self.BC['W'] == "N":
-            a_w[:,0] += 1
+            a_w[:,0] += 1 * a_e[:,-1]
         if self.BC['S'] == "N":
-            a_s[-1,:] += 1
+            a_s[-1,:] += 1 * a_n[0,:]
         if self.BC['E'] == "N":
-            a_e[:,-1] += 1
+            a_e[:,-1] += 1 * a_w[:,0]
         if self.BC['N'] == "N":
-            a_n[0,:] += 1
+            a_n[0,:] += 1 * a_s[-1,:]
             
-        # print(a_e)
-        # print(a_w)
-        # print(a_s)
-        # print(a_n)
+        print(a_e)
+        print(a_w)
+        print(a_s)
+        print(a_n)
         # print(" ")
         # print(phi)
         
@@ -316,29 +322,32 @@ class PDE_2D_Solver:
 
             We will solve again this loop. 
         """
-        W = np.zeros(N_y - 2)
-        E = np.zeros(N_y - 2)
-        for j in range(15):
+        W = np.zeros(N_y - 2,dtype="float")
+        E = np.zeros(N_y - 2,dtype="float")
+        for j in range(1):
             for i in range(1, N_x):
-                W[1:] = a_s[1:-1, i]
+                W[1:] = -a_s[1:-1, i]
                 C = 2 * a_s[1:, i] + 2 * a_w[1:-1, i - 1]
-                E[:-1] = a_n[1:-1, i]
-                Q = a_w[1:-1,i-1] * phi[1:-1,i-1] + a_e[1:-1,i-1] * phi[1:-1,(i+1)-(i != N_x)] 
+                E[:-1] = -a_n[1:-1, i]
+                Q = a_w[1:-1,i-1] * phi[1:-1,i-1] + a_e[1:-1,i-1] * phi[1:-1,(i+1) - (i != N_x)] 
                 Q[0] += a_n[0,0] *  phi[0,i-1]
                 Q[-1] += a_s[0,0] *  phi[-1,i-1] 
+                Q = np.flip(Q)
 
-                
+                # print("West")
                 # print(W)
-                
+                # print("Center")
                 # print(C)
-                
+                # print("East")
                 # print(E)
-                
+                # print("Force")
                 # print(Q)
                 
-                phi[1:-1,i] = self.TDMA(W,C,E,Q)
+                phi[-2:0:-1,i] = self.TDMA(W,C,E,Q)
+                print(phi)
+                if i == 1:
+                    break
 
-            print(phi)
 
         self.solution = phi
 
