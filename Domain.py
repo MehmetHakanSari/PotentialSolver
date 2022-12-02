@@ -288,15 +288,22 @@ class PDE_2D_Solver:
         a_n = np.zeros((N_y - 1, N_x),dtype="float") + (mesh.matricies[0][0,1] - mesh.matricies[0][0,0])**2
         a_s = np.zeros((N_y - 1, N_x),dtype="float") + (mesh.matricies[0][0,1] - mesh.matricies[0][0,0])**2
 
+        x_index = list(range(N_x))
+        y_index = list(range(N_y))
+
 
         if self.BC['W'] == "D":
             phi[:,0] = BC_values['W']
+            x_index = x_index[1:] 
         if self.BC['S'] == "D":
             phi[-1,:] = BC_values['S']
+            y_index = y_index[:-1]
         if self.BC['E'] == "D":
             phi[:,-1] = BC_values['E']
+            x_index = x_index[:-1]
         if self.BC['N'] == "D":
             phi[0,:] = BC_values['N']
+            y_index = y_index[1:]
 
         if self.BC['W'] == "N":
             a_w[:,0] += 1 * a_e[:,-1]
@@ -307,10 +314,10 @@ class PDE_2D_Solver:
         if self.BC['N'] == "N":
             a_n[0,:] += 1 * a_s[-1,:]
             
-        print(a_e)
-        print(a_w)
-        print(a_s)
-        print(a_n)
+        # print(a_e)
+        # print(a_w)
+        # print(a_s)
+        # print(a_n)
         # print(" ")
         # print(phi)
         
@@ -324,9 +331,9 @@ class PDE_2D_Solver:
         """
         W = np.zeros(N_y - 2,dtype="float")
         E = np.zeros(N_y - 2,dtype="float")
-        for j in range(20):
-            # print(j)
-            for i in range(1, N_x-1):
+        for t in range(80):
+
+            for i in x_index:
                 W[1:] = -a_s[1:-1, i]
                 C = 2 * a_s[1:, i] + 2 * a_w[1:-1, i - 1]
                 E[:-1] = -a_n[1:-1, i]
@@ -337,19 +344,7 @@ class PDE_2D_Solver:
                 Q[-1] += a_s[0,0] *  phi[-1,i-1] 
                 Q = np.flip(Q)
 
-                # print("West")
-                # print(W)
-                # print("Center")
-                # print(C)
-                # print("East")
-                # print(E)
-                # print("Force")
-                # print(Q)
-                
-                phi[-2:0:-1,i] = self.TDMA(W,C,E,Q)
-                # print(phi)
-                # if i == 1:
-                #     break
+                phi[-2:0:-1,i] = self.TDMA(W,C,E,Q)  #interior points are calculated
 
 
         self.solution = phi
