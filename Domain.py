@@ -324,12 +324,15 @@ class PDE_2D_Solver:
         """
         W = np.zeros(N_y - 2,dtype="float")
         E = np.zeros(N_y - 2,dtype="float")
-        for j in range(1):
-            for i in range(1, N_x):
+        for j in range(20):
+            # print(j)
+            for i in range(1, N_x-1):
                 W[1:] = -a_s[1:-1, i]
                 C = 2 * a_s[1:, i] + 2 * a_w[1:-1, i - 1]
                 E[:-1] = -a_n[1:-1, i]
-                Q = a_w[1:-1,i-1] * phi[1:-1,i-1] + a_e[1:-1,i-1] * phi[1:-1,(i+1) - (i != N_x)] 
+                # Q = a_w[1:-1,i-1] * phi[1:-1,i-1] + a_e[1:-1,i-1] * phi[1:-1,(i+1) - (i != N_x)] 
+                Q = a_w[1:-1,i-1] * phi[1:-1,i-1] + a_e[1:-1,i-1] * phi[1:-1,(i+1)] 
+
                 Q[0] += a_n[0,0] *  phi[0,i-1]
                 Q[-1] += a_s[0,0] *  phi[-1,i-1] 
                 Q = np.flip(Q)
@@ -344,9 +347,9 @@ class PDE_2D_Solver:
                 # print(Q)
                 
                 phi[-2:0:-1,i] = self.TDMA(W,C,E,Q)
-                print(phi)
-                if i == 1:
-                    break
+                # print(phi)
+                # if i == 1:
+                #     break
 
 
         self.solution = phi
