@@ -196,15 +196,78 @@ class Mesh:
         dx_MAT = np.zeros((N_y, N_x -1))
         dy_MAT = np.zeros((N_y - 1, N_x))
 
+        # Arrange the given coordinates starting from the lowest values of (x , y) to highest in clockwise direction.
+        # pysical_domain_matrix = []
+        # ordered_physical_corners = []
+        # for i in range(len(self.pyhsical_domain)):
+        #     pysical_domain_matrix.append(list(self.pyhsical_domain[i]))
+
+        # print(pysical_domain_matrix)
+
+        # pysical_domain_matrix = np.array(pysical_domain_matrix)
+
+        # print(pysical_domain_matrix[:,0])
+        # print(pysical_domain_matrix[:,1])
+
+        # temp_list_x = min(pysical_domain_matrix[:,0]) >= pysical_domain_matrix[:,0] #determining west x coordinates
+        # x_indixies = []
+        # #findone() def
+        # for i in range(len(temp_list_x)):
+        #     if temp_list_x[i] == 1:
+        #         x_indixies.append(i)
+        # if sum(temp_list_x) > 1:  #means that there are two same coordinates check their y values to determine north and south
+        #     y1 = pysical_domain_matrix[:,1][x_indixies[0]]
+        #     y2 = pysical_domain_matrix[:,1][x_indixies[1]]
+        #     print(x_indixies)
+        #     print(y1)
+        #     print(y2)
+        #     if y1 < y2:  # if y1 is higher it is in north. check its index. 
+        #         ordered_physical_corners.append(pysical_domain_matrix[x_indixies[0],:])
+        #         ordered_physical_corners.append(pysical_domain_matrix[x_indixies[1],:])
+        #     elif y2 < y1:
+        #         ordered_physical_corners.append(pysical_domain_matrix[x_indixies[1],:])
+        #         ordered_physical_corners.append(pysical_domain_matrix[x_indixies[0],:])
+        #     else:
+        #         IndexError("Points lies on same coordinates")
+        # else:
+        #     ordered_physical_corners.append(pysical_domain_matrix[x_indixies[0],:])
+             
+        # temp_list_x = min(pysical_domain_matrix[:,0]) <= pysical_domain_matrix[:,0] #determining east x coordinates
+        # if sum(temp_list_x) > 1:  #means that there are two same coordinates check their y values to determine north and south
+        #     x_indixies = []
+        #     #findone() def
+        #     for i in range(len(temp_list_x)):
+        #         if temp_list_x[i] == 1:
+        #             x_indixies.append(i)
+        #     y1 = pysical_domain_matrix[:,1][x_indixies[0]]
+        #     y2 = pysical_domain_matrix[:,1][x_indixies[1]]
+
+        #     print(x_indixies)
+        #     print(y1)
+        #     print(y2)
+
+        #     if y1 < y2:  # if y1 is higher it is in north. check its index. 
+        #         ordered_physical_corners.append(pysical_domain_matrix[x_indixies[0],:])
+        #         ordered_physical_corners.append(pysical_domain_matrix[x_indixies[1],:])
+        #     elif y2 < y1:
+        #         ordered_physical_corners.append(pysical_domain_matrix[x_indixies[1],:])
+        #         ordered_physical_corners.append(pysical_domain_matrix[x_indixies[0],:])
+        #     else:
+        #         IndexError("Points lies on same coordinates")
+
+        # print(ordered_physical_corners)
+
+
+          
         for i in range(N_y):                 # i being the indicies in y direction
-            dx_MAT[i, :] = (lengths["Lx3"] + (lengths["Lx0"] + lengths["Lx2"]) * i / (N_y - 1)) / (N_x - 1)
+            dx_MAT[i, :] = (lengths["Lx0"] + (lengths["Lx0"] + lengths["Lx2"]) * i / (N_y - 1)) / (N_x - 1)
 
         for j in range(N_x):                 # i being the indicies in y direction
             dy_MAT[:, j] = (lengths["Ly0"] + (lengths["Ly3"] + lengths["Ly1"]) * j / (N_x - 1)) / (N_y - 1)            
             
-        print(lengths)
-        print(dx_MAT)
-        print(dy_MAT)
+        # print(lengths)
+        # print(dx_MAT)
+        # print(dy_MAT)
 
         for i in range(N_y):
             for j in range(N_x):
@@ -212,8 +275,8 @@ class Mesh:
                 y_MAT[i,j] = y_MAT[i,j] + self.pyhsical_domain[0][1] - dy_MAT[i - 1, j]
               
             
-        print(x_MAT)
-        print(y_MAT)
+        # print(x_MAT)
+        # print(y_MAT)
 
         self.matricies = [x_MAT, y_MAT]
     
@@ -331,15 +394,15 @@ class PDE_2D_Solver:
 
             We will solve again this loop. 
         """
-        W = np.zeros(N_y - 2,dtype="float")
-        E = np.zeros(N_y - 2,dtype="float")
+        W = np.zeros(N_y - 2, dtype="float")
+        E = np.zeros(N_y - 2, dtype="float")
         for t in range(160):
 
             for i in x_index:
-                W[1:] = -a_s[1:-1, i]
+                W[1:] = -a_s[1:-1, i]                          #Neumann BC. implemented here 
                 C = 2 * a_s[1:, i] + 2 * a_w[1:-1, i - 1]
-                E[:-1] = -a_n[1:-1, i]
-                Q = a_w[1:-1,i-1] * phi[1:-1,(i-1) + 2 * (i-1 == 0)] + a_e[1:-1,i-1] * phi[1:-1,(i+1) - 2 * (i+1 == N_x)] 
+                E[:-1] = -a_n[1:-1, i]                          #Neumann BC. implemented here
+                Q = a_w[1:-1,i-1] * phi[1:-1,(i-1) + 2 * (i-1 == 0)] + a_e[1:-1,i-1] * phi[1:-1,(i+1) - 2 * (i+1 == N_x)] #conditions are set for neumann BC.
                 # Q = a_w[1:-1,i-1] * phi[1:-1,i-1] + a_e[1:-1,i-1] * phi[1:-1,(i+1)] 
 
                 Q[0] += a_n[0,0] *  phi[0,i-1]
