@@ -297,6 +297,7 @@ class PDE_2D_Solver:
     def __init__(self, BC):
         self.BC = BC
         self.solution = None
+        self.vector_field = None
 
     def TDMA(self, W,C,E,Q):
         """
@@ -414,6 +415,22 @@ class PDE_2D_Solver:
 
 
         self.solution = phi
+
+    def vector_field(self):
+        """
+            grad(phi) = d (phi) / dx  + d (phi) / dy =  0
+            Continiutiy in fluids. 
+
+            Thus:
+
+            u = d (phi) / dx
+            v = d (phi) / dy
+
+
+        """
+        dx, dy
+        (u, v) = TwoDCentralDiff(self.solution, dx, dy)
+
 
 
 
