@@ -1,5 +1,32 @@
 import numpy as np
 
+def TwoDcentraldiff(func, dx, dy):
+    """
+        func: 2D ndarray. Each node has its variables.
+        dx  : 1D ndarray. I will update to 2D or not. 
+        dy  : 1D ndarray. contains dy for each x  line. 
+
+        If grid changes both in direction of y and x, for dx or dy, I am not sure how to implement those codes. 
+    """
+    (m, n) = func.shape()
+    dfuncdx = np.zeros((m, n), dtype="float")
+    dfuncdy = np.zeros((m, n), dtype="float")
+
+    if n < 3:
+        KeyError("array size is too small")
+    if m < 3:
+        KeyError("array size is too small")
+
+    dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (2 * dx)
+    dfuncdx[:,1:-1] = (func[:,2:] - func[:,0:-2]) / (2 * dx)
+    dfuncdx[:,-1] = (func[:,-3] - 4 * func[:, -2] + 3 * func[:,-1]) / (2 * dx)
+
+    dfuncdy[0,:] = (func[2,:] - 4 * func[1,:] + 3 * func[0,:]) / (2 * dy)
+    dfuncdy[1:-1,:] = (-func[2:,:] + func[0:-2,:]) / (2 * dy)
+    dfuncdy[-1,:] = (-func[-3,:] + 4 * func[-2, :] - 3 * func[-1,:]) / (2 * dy)
+
+    return dfuncdx, dfuncdy
+
 class Mesh:
     """
         Domain is the phsical domain that problem will be solved. (Formal)
