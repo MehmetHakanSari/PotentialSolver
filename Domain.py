@@ -369,10 +369,9 @@ class PDE_2D_Solver:
         #Same if it is uniform-block mesh.
         #Same in row or column if it is non-uniform-block mesh
         #Different for row and coulmn for non-uniform mesh
-        # a_e = np.zeros((N_y, N_x - 1)) + (mesh.matricies[0][0,1] - mesh.matricies[0][0,0])**2
-        # a_w = np.zeros((N_y, N_x - 1)) + (mesh.matricies[0][0,1] - mesh.matricies[0][0,0])**2
-        # a_n = np.zeros((N_y - 1, N_x)) + (mesh.matricies[1][1,0] - mesh.matricies[1][0,0])**2
-        # a_s = np.zeros((N_y - 1, N_x)) + (mesh.matricies[1][1,0] - mesh.matricies[1][0,0])**2
+
+        #the matrix should include the spacing information. But at the moent I cant configure that if we will apply solver for unstructerde mesh or after Jacobi is defined. Thus I am not 
+        #hurrying to create unstrutred mesh and its spacing matrix. 
 
         a_e = np.zeros((N_y, N_x - 1),dtype="float") + (mesh.matricies[1][1,0] - mesh.matricies[1][0,0])**2
         a_w = np.zeros((N_y, N_x - 1),dtype="float") + (mesh.matricies[1][1,0] - mesh.matricies[1][0,0])**2
@@ -407,10 +406,10 @@ class PDE_2D_Solver:
         if self.BC['N'] == "N":
             a_n[0,:] += 1 * a_s[-1,:]
             
-        print(a_e)
-        print(a_w)
-        print(a_s)
-        print(a_n)
+        # print(a_e)
+        # print(a_w)
+        # print(a_s)
+        # print(a_n)
         # print(" ")
         # print(phi)
         
@@ -443,6 +442,7 @@ class PDE_2D_Solver:
 
         self.solution = phi
 
+
     def vector_field(self):
         """
             grad(phi) = d (phi) / dx  + d (phi) / dy =  0
@@ -455,8 +455,8 @@ class PDE_2D_Solver:
 
 
         """
-        dx, dy
-        (u, v) = TwoDCentralDiff(self.solution, dx, dy)
+        # dx, dy
+        # (u, v) = TwoDCentralDiff(self.solution, dx, dy)
 
 
 
