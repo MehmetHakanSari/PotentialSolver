@@ -399,19 +399,21 @@ class PDE_2D_Solver:
             # a_w[:,0] += 1 * a_e[:,-1]
             pass
         if self.BC['S'] == "N":
-            a_s[-1,:] += 1 * a_n[0,:]
+            # a_s[-1,:] += 1 * a_n[0,:]
+            pass
         if self.BC['E'] == "N":
             # a_e[:,-1] += 1 * a_w[:,0]
             pass
         if self.BC['N'] == "N":
-            a_n[0,:] += 1 * a_s[-1,:]
+            # a_n[0,:] += 1 * a_s[-1,:]
+            pass
             
         # print(a_e)
         # print(a_w)
         # print(a_s)
         # print(a_n)
         # print(" ")
-        # print(phi)
+        print(phi)
         
         #Column by Column TDMA
         """
@@ -421,24 +423,31 @@ class PDE_2D_Solver:
 
             We will solve again this loop. 
         """
-        W = np.zeros(N_y - 2, dtype="float")
-        E = np.zeros(N_y - 2, dtype="float")
+        W = np.zeros(len(y_index), dtype="float")
+        E = np.zeros(len(y_index), dtype="float")
+
+        print(y_index)
+        i = 2
+        print(a_w[y_index[0]:y_index[-1]+1,i-1])
+        print(phi[y_index[0]:y_index[-1],(i-1) + 2 * (i-1 == 0)])
         for t in range(160):
 
             for i in x_index:
-                W[1:] = -a_s[1:-1, i]                          #Neumann BC. implemented here 
-                C = 2 * a_s[1:, i] + 2 * a_w[1:-1, i - 1]
-                E[:-1] = -a_n[1:-1, i]                          #Neumann BC. implemented here
-                Q = a_w[1:-1,i-1] * phi[1:-1,(i-1) + 2 * (i-1 == 0)] + a_e[1:-1,i-1] * phi[1:-1,(i+1) - 2 * (i+1 == N_x)] #conditions are set for neumann BC.
+                W[1:] = -a_s[y_index[0]:y_index[-1], i]                          #Neumann BC. implemented here 
+                # C = 2 * a_s[1:, i] + 2 * a_w[1:-1, i - 1]
+                C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
+                E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            #Neumann BC. implemented here
+                # Q = a_w[1:-1,i-1] * phi[1:-1,(i-1) + 2 * (i-1 == 0)] + a_e[1:-1,i-1] * phi[1:-1,(i+1) - 2 * (i+1 == N_x)] #conditions are set for neumann BC.
+                Q = a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1) + 2 * (i-1 == 0)] + a_e[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i+1) - 2 * (i+1 == N_x)] #conditions are set for neumann BC.
                 # Q = a_w[1:-1,i-1] * phi[1:-1,i-1] + a_e[1:-1,i-1] * phi[1:-1,(i+1)] 
 
-                Q[0] += a_n[0,0] *  phi[0,i-1]
-                Q[-1] += a_s[0,0] *  phi[-1,i-1] 
+                Q[0] += a_n[0,0] *  phi[0,i-1] * (y_index[0] == 1) +  (y_index[0] == 0) * 2 * a_w[0,i - 1] * BC_values['N']
+                Q[-1] += a_s[0,0] *  phi[-1,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_w[0,i - 1] * BC_values['S']
                 Q = np.flip(Q)                     #The reason of reversing Q is, existing Q is inconsistent with the W and E and C list.
         
 
-                phi[-2:0:-1,i] = self.TDMA(W,C,E,Q)  #interior points are calculated in reverse order. It is because of matrix index convention. 
-
+                # phi[-2:0:-1,i] = self.TDMA(W,C,E,Q)  #interior points are calculated in reverse order. It is because of matrix index convention. 
+                phi[y_index[-1]:y_index[0] - 1:-1,i] = self.TDMA(W,C,E,Q) 
 
         self.solution = phi
 
