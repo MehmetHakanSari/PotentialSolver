@@ -399,8 +399,7 @@ class PDE_2D_Solver:
             # a_w[:,0] += 1 * a_e[:,-1]
             pass
         if self.BC['S'] == "N":
-            # a_s[-1,:] += 1 * a_n[0,:]
-            pass
+            a_s =  np.concatenate((a_s, np.array([a_s[-1,:]])), axis=0)
         if self.BC['E'] == "N":
             # a_e[:,-1] += 1 * a_w[:,0]
             pass
@@ -428,9 +427,10 @@ class PDE_2D_Solver:
 
         print(y_index)
         i = 2
-        print(a_w[y_index[0]:y_index[-1]+1,i-1])
-        print(phi[y_index[0]:y_index[-1],(i-1) + 2 * (i-1 == 0)])
-        for t in range(160):
+        print(a_s[y_index[0]:, i])
+        print(a_w[y_index[0]:y_index[-1]+1, i - 1])
+        
+        for t in range(1):
 
             for i in x_index:
                 W[1:] = -a_s[y_index[0]:y_index[-1], i]                          #Neumann BC. implemented here 
@@ -442,12 +442,24 @@ class PDE_2D_Solver:
                 # Q = a_w[1:-1,i-1] * phi[1:-1,i-1] + a_e[1:-1,i-1] * phi[1:-1,(i+1)] 
 
                 Q[0] += a_n[0,0] *  phi[0,i-1] * (y_index[0] == 1) +  (y_index[0] == 0) * 2 * a_w[0,i - 1] * BC_values['N']
-                Q[-1] += a_s[0,0] *  phi[-1,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_w[0,i - 1] * BC_values['S']
+                Q[-1] += a_s[0,0] *  phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_w[0,i - 1] * BC_values['S']
                 Q = np.flip(Q)                     #The reason of reversing Q is, existing Q is inconsistent with the W and E and C list.
-        
 
+                W[-1] +=  -a_s[y_index[-1], i] * (y_index[-1] == N_y - 1)
+                E[0] += -a_n[y_index[0], i] * (y_index[0] == 0) 
+        
                 # phi[-2:0:-1,i] = self.TDMA(W,C,E,Q)  #interior points are calculated in reverse order. It is because of matrix index convention. 
                 phi[y_index[-1]:y_index[0] - 1:-1,i] = self.TDMA(W,C,E,Q) 
+
+                print(i)
+
+                print(W)
+                print(C)
+                print(E)
+                print(Q)
+                
+                if i == 1:
+                    break
 
         self.solution = phi
 
