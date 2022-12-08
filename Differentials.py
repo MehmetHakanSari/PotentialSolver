@@ -8,7 +8,7 @@ def TwoDcentraldiff(func, dx, dy):
 
         If grid changes both in direction of y and x, for dx or dy, I am not sure how to implement those codes. 
     """
-    (m, n) = func.shape()
+    (m, n) = np.shape(func)
     dfuncdx = np.zeros((m, n), dtype="float")
     dfuncdy = np.zeros((m, n), dtype="float")
 

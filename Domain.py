@@ -296,14 +296,13 @@ class PDE_2D_Solver:
         Each BC should be string, 'D' or 'N' for Diriclet or Neumann
     """
 
-    def __init__(self, BC):
+    def __init__(self, mesh ,BC):
         self.BC = BC
         self.solution = None
-        self.vector_field = None
+        self.velocity = None
+        self.mesh = mesh
 
-
-
-    def solver(self, BC_values, mesh):
+    def solver(self, BC_values):
         """
         Construct unknown matrix with its boundary condiations
         
@@ -315,9 +314,10 @@ class PDE_2D_Solver:
 
         """
 
+        mesh = self.mesh
+
         (N_y, N_x) = np.shape(mesh.matricies[0])
         
-
         phi = np.zeros((N_y, N_x))       #unknown
         phi_new = np.zeros((N_y, N_x))   #unknown for storing new values
         source = np.zeros((N_y, N_x))
@@ -357,12 +357,13 @@ class PDE_2D_Solver:
             pass
         if self.BC['S'] == "N":
             a_s =  np.concatenate((a_s, np.array([a_s[-1,:]])), axis=0)
+            print("anan")
         if self.BC['E'] == "N":
             # a_e[:,-1] += 1 * a_w[:,0]
             pass
         if self.BC['N'] == "N":
-            # a_n[0,:] += 1 * a_s[-1,:]
-            pass
+            a_n =  np.concatenate((a_n, np.array([a_n[-1,:]])), axis=0)
+            
             
         # print(a_e)
         # print(a_w)
@@ -381,21 +382,29 @@ class PDE_2D_Solver:
         """
         W = np.zeros(len(y_index), dtype="float")
         E = np.zeros(len(y_index), dtype="float")
+        i = 2
+        print(y_index)
+        print(a_s)
+        print(a_s[y_index[0]:, i])
+        print(a_w[y_index[0]:y_index[-1]+1, i - 1])
 
-        
         for t in range(150):
 
             for i in x_index:
-                W[1:] = -a_s[y_index[0]:y_index[-1], i]                          #Neumann BC. implemented here 
+                W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
                 C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
-                E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            #Neumann BC. implemented here
-                Q = a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1) + 2 * (i-1 == -1)] + a_e[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i+1) - 2 * (i+1 == N_x)] #conditions are set for neumann BC.
-           
-                Q[0] += a_n[0,0] *  phi[0,i-1] * (y_index[0] == 1) +  (y_index[0] == 0) * 2 * a_w[0,i - 1] * BC_values['N']
-                Q[-1] += a_s[0,0] *  phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_w[0,i - 1] * BC_values['S']
+                E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
+                # Q = a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1) + 2 * (i-1 == -1)] + a_e[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i+1) - 2 * (i+1 == N_x)] #conditions are set for neumann BC.
+                Q = a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1)] + a_e[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i+1)] #conditions are set for neumann BC.
+                
+                # Q += 2 * a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1) + 2 * (i-1 == -1)] * (i == 0) * BC_values['W'] + 2 * a_e[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i+1) - 2 * (i+1 == N_x)] * (i == N_x - 1) * BC_values['E'] #west and east "N" BC.
+                
+                Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1] * BC_values['N']
+                Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1] * BC_values['S']
+                
                 Q = np.flip(Q)                     #The reason of reversing Q is, existing Q is inconsistent with the W and E and C list.
 
-                W[-1] +=  -a_s[y_index[-1], i] * (y_index[0] == 0)
+                W[-1] += -a_s[y_index[-1], i] * (y_index[0] == 0)                   #Neumann of N-S boundaries. implemented here. 
                 E[0] += -a_n[y_index[0], i] * (y_index[-1] == N_y - 1) 
 
                 if y_index[0] == 0:
@@ -408,7 +417,7 @@ class PDE_2D_Solver:
         self.solution = phi
 
 
-    def vector_field(self):
+    def velocityfield(self):
         """
             grad(phi) = d (phi) / dx  + d (phi) / dy =  0
             Continiutiy in fluids. 
@@ -421,9 +430,23 @@ class PDE_2D_Solver:
 
         """
         # dx, dy
-        # (u, v) = TwoDCentralDiff(self.solution, dx, dy)
+        # 
 
+        X, Y = self.mesh.matricies[0], self.mesh.matricies[1] 
 
+        (N_y, N_x) = np.shape(X)
+
+        dx = X[0,1] - X[0,0]
+        dy = Y[0,0] - Y[1,0]
+
+        (u, v) = TwoDcentraldiff(self.solution, dx, dy)
+
+        W = np.zeros((N_y, N_x, 3))
+
+        W[:,:,0] = u
+        W[:,:,1] = v
+
+        self.velocity = W
 
 
 
