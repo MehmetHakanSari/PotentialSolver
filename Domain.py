@@ -455,7 +455,12 @@ class PDE_2D_Solver:
                 print(Q)
         
                 # phi[-2:0:-1,i] = self.TDMA(W,C,E,Q)  #interior points are calculated in reverse order. It is because of matrix index convention. 
-                phi[y_index[-1]:y_index[0] - 1:-1,i] = self.TDMA(W,C,E,Q) 
+                # print(phi[y_index[-1]::-1,i])
+                # print(phi[y_index[-1]:y_index[0] - 1:-1,i])
+                # print(self.TDMA(W,C,E,Q) )
+
+                # phi[y_index[-1]:y_index[0] - 1:-1,i] = self.TDMA(W,C,E,Q) 
+                phi[y_index[-1]::-1,i] = self.TDMA(W,C,E,Q) 
 
                 # print("center")
                 # print(C)
