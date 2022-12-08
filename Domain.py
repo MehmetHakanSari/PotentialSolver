@@ -391,21 +391,37 @@ class PDE_2D_Solver:
         for t in range(150):
 
             for i in x_index:
-                W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
-                C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
-                E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
-                # Q = a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1) + 2 * (i-1 == -1)] + a_e[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i+1) - 2 * (i+1 == N_x)] #conditions are set for neumann BC.
-                Q = a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1)] + a_e[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i+1)] #conditions are set for neumann BC.
+
+                if i == 0:
+                    W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
+                    C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
+                    E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
+                    Q = 2 * a_e[y_index[0]:y_index[-1]+1,i] * phi[y_index[0]:y_index[-1]+1,(i+1)] + 2 * a_e[y_index[0]:y_index[-1]+1,i]**2 * BC_values['W']   #conditions are set for neumann BC.                
+                    Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
+                    Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
                 
-                # Q += 2 * a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1) + 2 * (i-1 == -1)] * (i == 0) * BC_values['W'] + 2 * a_e[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i+1) - 2 * (i+1 == N_x)] * (i == N_x - 1) * BC_values['E'] #west and east "N" BC.
+                if i > 0 and i < N_x-1:
+                    W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
+                    C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
+                    E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
+                    Q = a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1)] + a_e[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i+1)] #conditions are set for neumann BC.                
+                    Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
+                    Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
                 
-                Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1] * BC_values['N']
-                Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1] * BC_values['S']
+                if i == N_x - 1:
+                    W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
+                    C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
+                    E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
+                    Q = 2 * a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1)] + 2 * a_w[y_index[0]:y_index[-1]+1,i-1]**2 * BC_values['E']             
+                    Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
+                    Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
+                
+                
                 
                 Q = np.flip(Q)                     #The reason of reversing Q is, existing Q is inconsistent with the W and E and C list.
 
-                W[-1] += -a_s[y_index[-1], i] * (y_index[0] == 0)                   #Neumann of N-S boundaries. implemented here. 
-                E[0] += -a_n[y_index[0], i] * (y_index[-1] == N_y - 1) 
+                W[-1] += -a_s[y_index[-1], i] * (y_index[0] == 0)             #Neumann of N-S boundaries. implemented here. 
+                E[0] += -a_n[y_index[0], i] * (y_index[-1] == N_y - 1)        #probabaly for different spacing matrixies the east and west should fliped
 
                 if y_index[0] == 0:
                     phi[y_index[-1]::-1,i] = TDMA(W,C,E,Q) 
