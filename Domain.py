@@ -101,8 +101,8 @@ class Mesh:
 
         #grid size changes for each step. 
 
-        x_list = np.zeros(self.nodes[0])
-        y_list = np.zeros(self.nodes[1])
+        x_list = np.zeros(self.nodes[0], dtype="float")
+        y_list = np.zeros(self.nodes[1], dtype="float")
 
         if self.pyhsical_domain[0][0] != self.pyhsical_domain[1][0]:
             ##calculate first step sizes 
@@ -199,8 +199,8 @@ class Mesh:
         if y_list[-1] < y_list[0]:
             y_list = np.flip(y_list)
             
-        x_MAT = np.zeros((self.nodes[1], self.nodes[0]))
-        y_MAT = np.zeros((self.nodes[1], self.nodes[0]))
+        x_MAT = np.zeros((self.nodes[1], self.nodes[0]), dtype="float")
+        y_MAT = np.zeros((self.nodes[1], self.nodes[0]), dtype="float")
 
         #for uniform grid one can use np.meshgrid()
         for i in range(len(y_list)):
