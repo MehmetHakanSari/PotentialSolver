@@ -425,23 +425,15 @@ class PDE_2D_Solver:
         W = np.zeros(len(y_index), dtype="float")
         E = np.zeros(len(y_index), dtype="float")
 
-        print(y_index)
-        i = 2
-        print(a_s[y_index[0]:, i])
-        print(a_w[y_index[0]:y_index[-1]+1, i - 1])
         
         for t in range(150):
 
             for i in x_index:
                 W[1:] = -a_s[y_index[0]:y_index[-1], i]                          #Neumann BC. implemented here 
-                # C = 2 * a_s[1:, i] + 2 * a_w[1:-1, i - 1]
                 C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
-                
                 E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            #Neumann BC. implemented here
-                # Q = a_w[1:-1,i-1] * phi[1:-1,(i-1) + 2 * (i-1 == 0)] + a_e[1:-1,i-1] * phi[1:-1,(i+1) - 2 * (i+1 == N_x)] #conditions are set for neumann BC.
                 Q = a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1) + 2 * (i-1 == -1)] + a_e[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i+1) - 2 * (i+1 == N_x)] #conditions are set for neumann BC.
-                # Q = a_w[1:-1,i-1] * phi[1:-1,i-1] + a_e[1:-1,i-1] * phi[1:-1,(i+1)] 
-
+           
                 Q[0] += a_n[0,0] *  phi[0,i-1] * (y_index[0] == 1) +  (y_index[0] == 0) * 2 * a_w[0,i - 1] * BC_values['N']
                 Q[-1] += a_s[0,0] *  phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_w[0,i - 1] * BC_values['S']
                 Q = np.flip(Q)                     #The reason of reversing Q is, existing Q is inconsistent with the W and E and C list.
@@ -449,30 +441,12 @@ class PDE_2D_Solver:
                 W[-1] +=  -a_s[y_index[-1], i] * (y_index[0] == 0)
                 E[0] += -a_n[y_index[0], i] * (y_index[-1] == N_y - 1) 
 
-                # print(W)
-                # print(C)
-                # print(E)
-                # print(Q)
-        
-                # phi[-2:0:-1,i] = self.TDMA(W,C,E,Q)  #interior points are calculated in reverse order. It is because of matrix index convention. 
-                # print(phi[y_index[-1]::-1,i])
-                # print(phi[y_index[-1]:y_index[0] - 1:-1,i])
-                # print(self.TDMA(W,C,E,Q) )
-
                 if y_index[0] == 0:
                     phi[y_index[-1]::-1,i] = self.TDMA(W,C,E,Q) 
                 else:
                     phi[y_index[-1]:y_index[0] - 1:-1,i] = self.TDMA(W,C,E,Q) 
 
-                # print("center")
-                # print(C)
 
-                # print(i)
-
-
-                
-                # if i == 1:
-                    # break
 
         self.solution = phi
 
