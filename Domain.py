@@ -1,5 +1,10 @@
 import numpy as np
-from Differentials import * 
+from Differentials import *
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib import cm
+
 
 
 class Mesh:
@@ -382,11 +387,11 @@ class PDE_2D_Solver:
         """
         W = np.zeros(len(y_index), dtype="float")
         E = np.zeros(len(y_index), dtype="float")
-        i = 2
-        print(y_index)
-        print(a_s)
-        print(a_s[y_index[0]:, i])
-        print(a_w[y_index[0]:y_index[-1]+1, i - 1])
+        # i = 2
+        # print(y_index)
+        # print(a_s)
+        # print(a_s[y_index[0]:, i])
+        # print(a_w[y_index[0]:y_index[-1]+1, i - 1])
 
         for t in range(150):
 
@@ -445,8 +450,6 @@ class PDE_2D_Solver:
 
 
         """
-        # dx, dy
-        # 
 
         X, Y = self.mesh.matricies[0], self.mesh.matricies[1] 
 
@@ -463,6 +466,39 @@ class PDE_2D_Solver:
         W[:,:,1] = v
 
         self.velocity = W
+
+    def plot2D(self, colormap = "hot"):
+        """
+            plot Z for domain of the X and Y. 
+        """
+
+        fig, ax = plt.subplots()
+        
+        x_MAT = self.mesh.matricies[0]
+        y_MAT = self.mesh.matricies[1]
+
+        z_min = self.solution.min()
+        z_max = self.solution.max()
+
+        image = ax.pcolormesh(x_MAT,np.flip(y_MAT), self.solution, vmin=z_min, vmax=z_max, edgecolors="black", cmap=colormap, linewidth=0.1)
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.05)
+        plt.colorbar(image, cax=cax)
+        plt.show()
+
+    def stream(self, streamcolor = "blue"):
+        """
+            Plots streamplot for velocity of the solution
+        """
+
+        x_MAT = self.mesh.matricies[0]
+        y_MAT = self.mesh.matricies[1]
+
+        u = self.velocity[:,:,0]
+        v = self.velocity[:,:,1]
+
+        plt.streamplot(x_MAT, y_MAT, -u, v, color=streamcolor, linewidth=2, cmap='autumn')
+        plt.show()
 
 
 
