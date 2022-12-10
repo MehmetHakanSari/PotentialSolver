@@ -303,6 +303,7 @@ class PDE_2D_Solver:
 
     def __init__(self, mesh ,BC):
         self.BC = BC
+        self.BCvalues = None
         self.solution = None
         self.velocity = None
         self.mesh = mesh
@@ -319,6 +320,7 @@ class PDE_2D_Solver:
 
         """
 
+        self.BCvalues = BC_values
         mesh = self.mesh
 
         (N_y, N_x) = np.shape(mesh.matricies[0])
@@ -473,6 +475,8 @@ class PDE_2D_Solver:
         """
 
         fig, ax = plt.subplots()
+
+        twin2 = ax.twinx()
         
         x_MAT = self.mesh.matricies[0]
         y_MAT = self.mesh.matricies[1]
@@ -482,7 +486,29 @@ class PDE_2D_Solver:
 
         image = ax.pcolormesh(x_MAT,np.flip(y_MAT), self.solution, vmin=z_min, vmax=z_max, edgecolors="black", cmap=colormap, linewidth=0.1)
         divider = make_axes_locatable(ax)
-        cax = divider.append_axes("right", size="5%", pad=0.05)
+        cax = divider.append_axes("right", size="5%", pad="10%")
+
+        if self.BC["S"] == "D":
+            ax.set_xlabel(('$\phi$ = ' + str(self.BCvalues["S"])) , fontsize=20)
+        else:
+            ax.set_xlabel(('${\partial \phi}{\partial y}$ = '+ str(self.BCvalues["S"])) , fontsize=20)
+        if self.BC["W"] == "D":
+            ax.set_ylabel(('$\phi$ = '+ str(self.BCvalues["W"])) , fontsize=20)
+        else:
+            ax.set_ylabel(('${\partial \phi}{\partial x}$ = ' + str(self.BCvalues["W"])) , fontsize=20)
+        if self.BC["N"] == "D":
+            ax.set_title(('$\phi$ = ' + str(self.BCvalues["N"])) , fontsize=20)
+        else:
+            ax.set_title(('$\partial \phi \partial y$ = ' + str(self.BCvalues["N"])) , fontsize=20)
+ 
+# secondary y-axis label
+        
+        if self.BC["E"] == "D":
+            twin2.set_ylabel(('$\phi$ = ' + str(self.BCvalues["E"])) , fontsize=20)
+        else:
+            twin2.set_ylabel(('$\partial \phi}{\partial y}$ = ' +  str(self.BCvalues["E"])) , fontsize=20)
+        
+
         plt.colorbar(image, cax=cax)
         plt.show()
 
@@ -499,6 +525,9 @@ class PDE_2D_Solver:
 
         plt.streamplot(x_MAT, y_MAT, -u, v, color=streamcolor, linewidth=2, cmap='autumn')
         plt.show()
+
+    def countour(self):
+        pass
 
 
 
