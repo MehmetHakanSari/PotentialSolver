@@ -1,6 +1,6 @@
 import numpy as np
 
-def TwoDcentraldiff(func, dx, dy):
+def TwoDcentraldiff_simple(func, dx, dy):
     """
         func: 2D ndarray. Each node has its variables.
         dx  : 1D ndarray. I will update to 2D or not. 
