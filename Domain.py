@@ -65,8 +65,8 @@ class Mesh:
         if y_list[-1] < y_list[0]:
             y_list = np.flip(y_list)
 
-        x_spacing = x_list[1] - x_list[0] 
-        y_spacing = y_list[1] - y_list[0]   #signs convention might not hold
+        x_spacing = float(x_list[1] - x_list[0]) 
+        y_spacing = float(y_list[1] - y_list[0])   #signs convention might not hold
             
         x_MAT = np.zeros((self.nodes[1], self.nodes[0]))
         y_MAT = np.zeros((self.nodes[1], self.nodes[0]))
@@ -78,6 +78,8 @@ class Mesh:
             y_MAT[:,i] = y_list
 
         self.matricies = [x_MAT, y_MAT]
+
+        return x_spacing, y_spacing
 
     def nonuniform_block_mesh_2D(self, g_x = 1, g_y = 1):
         #g_x is the gradient for delta_x. Float. Default value 1. 
@@ -112,7 +114,7 @@ class Mesh:
                         x_list[0] = self.pyhsical_domain[1][0]
             for i in range(1,self.nodes[0]):
                 x_list[i] = x_list[i-1] + dx * g_x**(i-1)  
-                x_spacing[i-1] = dx * g_x**(i-1)  
+                x_spacing[:,i-1] = dx * g_x**(i-1)  
             
         elif self.pyhsical_domain[1][0] != self.pyhsical_domain[2][0]:
             L_x = abs((self.pyhsical_domain[2][0] - self.pyhsical_domain[1][0])) #length in x direction
@@ -135,7 +137,7 @@ class Mesh:
                         x_list[0] = self.pyhsical_domain[1][0]
             for i in range(1,self.nodes[0]):
                 x_list[i] = x_list[i-1] + dx * g_x**(i-1)
-                x_spacing[i-1] = dx * g_x**(i-1)    
+                x_spacing[:,i-1] = dx * g_x**(i-1)    
             
 
         if self.pyhsical_domain[0][1] != self.pyhsical_domain[1][1]:
@@ -159,7 +161,7 @@ class Mesh:
                         y_list[0] = self.pyhsical_domain[0][1]
             for i in range(1,self.nodes[1]):
                 y_list[i] = y_list[i-1] + dy * g_y**(i-1)
-                y_spacing[i-1] = dy * g_y**(i-1)   
+                y_spacing[:,i-1] = dy * g_y**(i-1)   
             
         elif self.pyhsical_domain[1][1] != self.pyhsical_domain[2][1]:
             L_y = abs((self.pyhsical_domain[1][1] - self.pyhsical_domain[2][1])) #length in y direction
@@ -182,7 +184,7 @@ class Mesh:
                         y_list[0] = self.pyhsical_domain[1][1]
             for i in range(1,self.nodes[1]):
                 y_list[i] = y_list[i-1] + dy * g_y**(i-1) 
-                y_spacing[i-1] = dy * g_y**(i-1)   
+                y_spacing[:,i-1] = dy * g_y**(i-1)   
 
         if x_list[-1] < x_list[0]:      #Small value to large value to be consistent for physiscs
             x_list = np.flip(x_list)

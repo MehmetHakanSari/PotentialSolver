@@ -70,11 +70,11 @@ def OneDcentraldiff(func, dx, axis = 0):
         if divflag:
             dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (dx[:,0] + dx[:,1])
             dfuncdx[:,1:-1] = (func[:,2:] - func[:,0:-2]) / (dx[:,0:-1] + dx[:,1:])
-            dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (dx[:,-1] + dx[:,-2])
+            dfuncdx[:,-1] = (func[:,-3] - 4 * func[:, -2] + 3 * func[:,-1]) / (dx[:,-1] + dx[:,-2])
         else:
             dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (2 * dx)
             dfuncdx[:,1:-1] = (func[:,2:] - func[:,0:-2]) / (2 * dx)
-            dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (2 * dx) 
+            dfuncdx[:,-1] = (func[:,-3] - 4 * func[:, -2] + 3 * func[:,-1]) / (2 * dx) 
 
         return dfuncdx
 
