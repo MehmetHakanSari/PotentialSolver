@@ -46,32 +46,36 @@ class Mesh:
         self.matricies = None         
 
     def uniform_block_mesh_2D(self):
-        
+
+       
         if self.pyhsical_domain[0][0] != self.pyhsical_domain[1][0]:
             #if the given coordinates are in same line for y coordinate pass other coordinate
-            x_spacing = np.linspace(self.pyhsical_domain[0][0], self.pyhsical_domain[1][0], self.nodes[0])
+            x_list = np.linspace(self.pyhsical_domain[0][0], self.pyhsical_domain[1][0], self.nodes[0])
         elif self.pyhsical_domain[1][0] != self.pyhsical_domain[2][0]:
-            x_spacing = np.linspace(self.pyhsical_domain[1][0], self.pyhsical_domain[2][0], self.nodes[0])
+            x_list = np.linspace(self.pyhsical_domain[1][0], self.pyhsical_domain[2][0], self.nodes[0])
 
         if self.pyhsical_domain[0][1] != self.pyhsical_domain[1][1]:
             #if the given coordinates are in same line for x coordinate pass other coordinate
-            y_spacing = np.linspace(self.pyhsical_domain[0][1], self.pyhsical_domain[1][1], self.nodes[1])
+            y_list = np.linspace(self.pyhsical_domain[0][1], self.pyhsical_domain[1][1], self.nodes[1])
         elif self.pyhsical_domain[1][1] != self.pyhsical_domain[2][1]:
-            y_spacing = np.linspace(self.pyhsical_domain[1][1], self.pyhsical_domain[2][1], self.nodes[1])
+            y_list = np.linspace(self.pyhsical_domain[1][1], self.pyhsical_domain[2][1], self.nodes[1])
 
-        if x_spacing[-1] < x_spacing[0]:      #Small value to large value to be consistent for physiscs
-            x_spacing = np.flip(x_spacing)
-        if y_spacing[-1] < y_spacing[0]:
-            y_spacing = np.flip(y_spacing)
+        if x_list[-1] < x_list[0]:      #Small value to large value to be consistent for physiscs
+            x_list = np.flip(x_list)
+        if y_list[-1] < y_list[0]:
+            y_list = np.flip(y_list)
+
+        x_spacing = x_list[1] - x_list[0] 
+        y_spacing = y_list[1] - y_list[0]   #signs convention might not hold
             
         x_MAT = np.zeros((self.nodes[1], self.nodes[0]))
         y_MAT = np.zeros((self.nodes[1], self.nodes[0]))
 
         #for uniform grid one can use np.meshgrid()
-        for i in range(len(y_spacing)):
-            x_MAT[i,:] = x_spacing
-        for i in range(len(x_spacing)):
-            y_MAT[:,i] = y_spacing
+        for i in range(len(y_list)):
+            x_MAT[i,:] = x_list
+        for i in range(len(x_list)):
+            y_MAT[:,i] = y_list
 
         self.matricies = [x_MAT, y_MAT]
 
@@ -81,8 +85,10 @@ class Mesh:
 
         #grid size changes for each step. 
 
-        x_spacing = np.zeros(self.nodes[0], dtype="float")
-        y_spacing = np.zeros(self.nodes[1], dtype="float")
+        x_list = np.zeros(self.nodes[0], dtype="float")
+        y_list = np.zeros(self.nodes[1], dtype="float")
+        x_spacing = np.zeros((1, self.nodes[0] - 1), dtype="float")
+        y_spacing = np.zeros((1, self.nodes[1] - 1), dtype="float")
 
         if self.pyhsical_domain[0][0] != self.pyhsical_domain[1][0]:
             ##calculate first step sizes 
@@ -93,19 +99,20 @@ class Mesh:
                 if g_x > 0:
                     dx = L_x * (1 - g_x) / (1 - g_x**(self.nodes[0] - 1)) 
                     if self.pyhsical_domain[0][0] < self.pyhsical_domain[1][0]:
-                        x_spacing[0] = self.pyhsical_domain[0][0] 
+                        x_list[0] = self.pyhsical_domain[0][0] 
                     elif self.pyhsical_domain[0][0] > self.pyhsical_domain[1][0]:
-                        x_spacing[0] = self.pyhsical_domain[1][0]
+                        x_list[0] = self.pyhsical_domain[1][0]
                 else:
                     g_x = abs(g_x)
                     dx = L_x * (1 - g_x) / (1 - g_x**(self.nodes[0] - 1))
                     dx = -dx
                     if self.pyhsical_domain[0][0] < self.pyhsical_domain[1][0]:
-                        x_spacing[0] = self.pyhsical_domain[0][0] 
+                        x_list[0] = self.pyhsical_domain[0][0] 
                     elif self.pyhsical_domain[0][0] > self.pyhsical_domain[1][0]:
-                        x_spacing[0] = self.pyhsical_domain[1][0]
+                        x_list[0] = self.pyhsical_domain[1][0]
             for i in range(1,self.nodes[0]):
-                x_spacing[i] = x_spacing[i-1] + dx * g_x**(i-1)  
+                x_list[i] = x_list[i-1] + dx * g_x**(i-1)  
+                x_spacing[i-1] = dx * g_x**(i-1)  
             
         elif self.pyhsical_domain[1][0] != self.pyhsical_domain[2][0]:
             L_x = abs((self.pyhsical_domain[2][0] - self.pyhsical_domain[1][0])) #length in x direction
@@ -115,19 +122,20 @@ class Mesh:
                 if g_x > 0:
                     dx = L_x * (1 - g_x) / (1 - g_x**(self.nodes[0] - 1)) 
                     if self.pyhsical_domain[1][0] < self.pyhsical_domain[2][0]:
-                        x_spacing[0] = self.pyhsical_domain[1][0] 
+                        x_list[0] = self.pyhsical_domain[1][0] 
                     elif self.pyhsical_domain[1][0] > self.pyhsical_domain[2][0]:
-                        x_spacing[0] = self.pyhsical_domain[2][0]
+                        x_list[0] = self.pyhsical_domain[2][0]
                 else:
                     g_x = abs(g_x)
                     dx = L_x * (1 - g_x) / (1 - g_x**(self.nodes[0] - 1))
                     dx = -dx
                     if self.pyhsical_domain[1][0] < self.pyhsical_domain[2][0]:
-                        x_spacing[0] = self.pyhsical_domain[2][0] 
+                        x_list[0] = self.pyhsical_domain[2][0] 
                     elif self.pyhsical_domain[1][0] > self.pyhsical_domain[2][0]:
-                        x_spacing[0] = self.pyhsical_domain[1][0]
+                        x_list[0] = self.pyhsical_domain[1][0]
             for i in range(1,self.nodes[0]):
-                x_spacing[i] = x_spacing[i-1] + dx * g_x**(i-1)  
+                x_list[i] = x_list[i-1] + dx * g_x**(i-1)
+                x_spacing[i-1] = dx * g_x**(i-1)    
             
 
         if self.pyhsical_domain[0][1] != self.pyhsical_domain[1][1]:
@@ -138,19 +146,20 @@ class Mesh:
                 if g_y > 0:
                     dy = L_y * (1 - g_y) / (1 - g_y**(self.nodes[1] - 1)) 
                     if self.pyhsical_domain[0][1] < self.pyhsical_domain[1][1]:
-                        y_spacing[0] = self.pyhsical_domain[0][1] 
+                        y_list[0] = self.pyhsical_domain[0][1] 
                     elif self.pyhsical_domain[0][1] > self.pyhsical_domain[1][1]:
-                        y_spacing[0] = self.pyhsical_domain[1][1]
+                        y_list[0] = self.pyhsical_domain[1][1]
                 else:
                     g_y = abs(g_y)
                     dy = L_y * (1 - g_y) / (1 - g_y**(self.nodes[1] - 1))
                     dy = -dy
                     if self.pyhsical_domain[0][1] < self.pyhsical_domain[1][1]:
-                        y_spacing[0] = self.pyhsical_domain[1][1] 
+                        y_list[0] = self.pyhsical_domain[1][1] 
                     elif self.pyhsical_domain[0][1] > self.pyhsical_domain[1][1]:
-                        y_spacing[0] = self.pyhsical_domain[0][1]
+                        y_list[0] = self.pyhsical_domain[0][1]
             for i in range(1,self.nodes[1]):
-                y_spacing[i] = y_spacing[i-1] + dy * g_y**(i-1)  
+                y_list[i] = y_list[i-1] + dy * g_y**(i-1)
+                y_spacing[i-1] = dy * g_y**(i-1)   
             
         elif self.pyhsical_domain[1][1] != self.pyhsical_domain[2][1]:
             L_y = abs((self.pyhsical_domain[1][1] - self.pyhsical_domain[2][1])) #length in y direction
@@ -160,35 +169,38 @@ class Mesh:
                 if g_y > 0:
                     dy = L_y * (1 - g_y) / (1 - g_y**(self.nodes[1] - 1)) 
                     if self.pyhsical_domain[1][1] < self.pyhsical_domain[2][1]:
-                        y_spacing[0] = self.pyhsical_domain[1][1] 
+                        y_list[0] = self.pyhsical_domain[1][1] 
                     elif self.pyhsical_domain[1][1] > self.pyhsical_domain[2][1]:
-                        y_spacing[0] = self.pyhsical_domain[2][1]
+                        y_list[0] = self.pyhsical_domain[2][1]
                 else:
                     g_y = abs(g_y)
                     dy = L_y * (1 - g_y) / (1 - g_y**(self.nodes[1] - 1))
                     dy = -dy
                     if self.pyhsical_domain[1][1] < self.pyhsical_domain[2][1]:
-                        y_spacing[0] = self.pyhsical_domain[2][1] 
+                        y_list[0] = self.pyhsical_domain[2][1] 
                     elif self.pyhsical_domain[1][1] > self.pyhsical_domain[2][1]:
-                        y_spacing[0] = self.pyhsical_domain[1][1]
+                        y_list[0] = self.pyhsical_domain[1][1]
             for i in range(1,self.nodes[1]):
-                y_spacing[i] = y_spacing[i-1] + dy * g_y**(i-1)   
+                y_list[i] = y_list[i-1] + dy * g_y**(i-1) 
+                y_spacing[i-1] = dy * g_y**(i-1)   
 
-        if x_spacing[-1] < x_spacing[0]:      #Small value to large value to be consistent for physiscs
-            x_spacing = np.flip(x_spacing)
-        if y_spacing[-1] < y_spacing[0]:
-            y_spacing = np.flip(y_spacing)
+        if x_list[-1] < x_list[0]:      #Small value to large value to be consistent for physiscs
+            x_list = np.flip(x_list)
+        if y_list[-1] < y_list[0]:
+            y_list = np.flip(y_list)
             
         x_MAT = np.zeros((self.nodes[1], self.nodes[0]), dtype="float")
         y_MAT = np.zeros((self.nodes[1], self.nodes[0]), dtype="float")
 
         #for uniform grid one can use np.meshgrid()
-        for i in range(len(y_spacing)):
-            x_MAT[i,:] = x_spacing
-        for i in range(len(x_spacing)):
-            y_MAT[:,i] = y_spacing
+        for i in range(len(y_list)):
+            x_MAT[i,:] = x_list
+        for i in range(len(x_list)):
+            y_MAT[:,i] = y_list
 
         self.matricies = [x_MAT, y_MAT]
+
+        return x_spacing, y_spacing
 
 
     def nonuniform_mesh_2D(self, g_x = 1, g_y = 1):
