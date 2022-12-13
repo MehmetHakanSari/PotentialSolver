@@ -47,6 +47,8 @@ def OneDcentraldiff(func, dx, axis = 0):
     divflag = True
     if type(dx) == float:
         divflag = False
+        if m > 1 and n == 1:        #if func is column vector
+            Operation = "column"
     else:
         (k,l) = np.shape(dx)
         
@@ -64,27 +66,26 @@ def OneDcentraldiff(func, dx, axis = 0):
 
         if divflag:
             dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (dx[0] + dx[1])
-            dfuncdx[:,1:-1] = (func[2:] - func[0:-2]) / (dx[0:-1] + dx[1:])
+            dfuncdx[:,1:-1] = (func[:,2:] - func[:,0:-2]) / (dx[0:-1] + dx[1:])
             dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (dx[-1] + dx[-2])
         else:
             dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (2 * dx)
-            dfuncdx[:,1:-1] = (func[2:] - func[0:-2]) / (2 * dx)
+            dfuncdx[:,1:-1] = (func[:,2:] - func[:,0:-2]) / (2 * dx)
             dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (2 * dx) 
 
         return dfuncdx
 
     elif Operation == "column":
         dfuncdy = np.zeros((m,n), dtype="float")
-        if l > k:               #if dx is given as row vector
-            dx = dx.T
-
-        dy = dx    #last elements should be 0 for y axis.
+        print(divflag)
 
         if divflag:
-            dfuncdy[0,:] = (func[2,:] - 4 * func[1,:] + 3 * func[0,:]) / (dy[0] + dy[1])
-            dfuncdy[1:-1,:] = (-func[2:,:] + func[0:-2,:]) / (dy[0:-1] + dy[1:])
-            dfuncdy[-1,:] = (-func[-3,:] + 4 * func[-2, :] - 3 * func[-1,:]) / (dy[-1] + dy[-2])
+            dy = dx    #last elements should be 0 for y axis.
+            dfuncdy[0,:] = (func[2,:] - 4 * func[1,:] + 3 * func[0,:]) / (dy[0,:] + dy[1,:])
+            dfuncdy[1:-1,:] = (-func[2:,:] + func[0:-2,:]) / (dy[0:-1,:] + dy[1:,:])
+            dfuncdy[-1,:] = (-func[-3,:] + 4 * func[-2, :] - 3 * func[-1,:]) / (dy[-1,:] + dy[-2,:])
         else:
+            dy = dx    #last elements should be 0 for y axis.
             dfuncdy[0,:] = (func[2,:] - 4 * func[1,:] + 3 * func[0,:]) / (2 * dy)
             dfuncdy[1:-1,:] = (-func[2:,:] + func[0:-2,:]) / (2 * dy)
             dfuncdy[-1,:] = (-func[-3,:] + 4 * func[-2, :] - 3 * func[-1,:]) / (2 * dy)
@@ -93,15 +94,10 @@ def OneDcentraldiff(func, dx, axis = 0):
 
 
 
-
-
-
-
-
-
 def TDMA(W,C,E,Q):
     """
-        W: west
+        The inputs should be row array.
+        W: west    
         C: center
         E: east
         Q: source
