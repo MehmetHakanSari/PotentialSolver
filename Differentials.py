@@ -29,7 +29,7 @@ def TwoDcentraldiff_simple(func, dx, dy):
 
 def OneDcentraldiff(func, dx, axis = 0):
     """
-        Function: 1D or 2D array. Functions derivative is taken w.r.t given spacing. 
+        Function: 1D or 2D array. Functions derivative is taken w.r.t given spacing. be careful that the shape should be (1,6) not (6,). 
         dx      : float or 1D array. Spacing of grid.
         axis    : the direction of the derivative. 0 is row derivative for 2D array. 1 is column derivatives.  
 
@@ -64,6 +64,9 @@ def OneDcentraldiff(func, dx, axis = 0):
     if Operation == "row":
         dfuncdx = np.zeros((m,n), dtype="float")
 
+        if n < 3:
+            IndexError("array size is too small")
+
         if divflag:
             dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (dx[:,0] + dx[:,1])
             dfuncdx[:,1:-1] = (func[:,2:] - func[:,0:-2]) / (dx[:,0:-1] + dx[:,1:])
@@ -77,7 +80,13 @@ def OneDcentraldiff(func, dx, axis = 0):
 
     elif Operation == "column":
         dfuncdy = np.zeros((m,n), dtype="float")
-        print(divflag)
+
+        if m < 3:
+            IndexError("array size is too small")
+
+        (k,l) = np.shape(dx)
+        if l > k:           #but dx is given as column vector
+            dx = dx.T
 
         if divflag:
             dy = dx    #last elements should be 0 for y axis.
