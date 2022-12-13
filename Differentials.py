@@ -65,9 +65,9 @@ def OneDcentraldiff(func, dx, axis = 0):
         dfuncdx = np.zeros((m,n), dtype="float")
 
         if divflag:
-            dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (dx[0] + dx[1])
-            dfuncdx[:,1:-1] = (func[:,2:] - func[:,0:-2]) / (dx[0:-1] + dx[1:])
-            dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (dx[-1] + dx[-2])
+            dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (dx[:,0] + dx[:,1])
+            dfuncdx[:,1:-1] = (func[:,2:] - func[:,0:-2]) / (dx[:,0:-1] + dx[:,1:])
+            dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (dx[:,-1] + dx[:,-2])
         else:
             dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (2 * dx)
             dfuncdx[:,1:-1] = (func[:,2:] - func[:,0:-2]) / (2 * dx)
