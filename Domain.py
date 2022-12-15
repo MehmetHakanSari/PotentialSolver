@@ -302,6 +302,40 @@ class Mesh:
 
         self.matricies = [x_MAT, y_MAT]
 
+    def Jacobi(self, X_spacing, Y_spacing):
+        """
+            X_spacing: 1D or 2D ndarray. Spacing matrix of the real pysical domain for X matrix 
+            Y_spacing: 1D or 2D ndarray. Spacing matrix of the real pysical domain for Y matrix
+        """
+
+        if (self.nodes[1]) != X_spacing.shape[0]:                   #element number in y
+            IndexError("Matrix sizes at axis 1 do not match for X spacing")
+        if (self.nodes[0] - 1) != X_spacing.shape[1]:               #element number in x
+            IndexError("Matrix sizes at axis 0 do not match for X spacing")
+        if (self.nodes[1] - 1) != Y_spacing.shape[0]:               #element number in y
+            IndexError("Matrix sizes at axis 1 do not match for Y spacing")
+        if (self.nodes[1]) != Y_spacing.shape[1]:                   #element number in x
+            IndexError("Matrix sizes at axis 0 do not match for Y spacing")
+            
+        #X_spacing nad Y_spacing are 1D vectors for tihs case
+
+        dXdx = OneDcentraldiff(self.matricies[0], X_spacing)
+        dXdy = OneDcentraldiff(self.matricies[0], -Y_spacing, axis=1)   #the minus sign put intentionally. 
+        dYdx = OneDcentraldiff(self.matricies[1], X_spacing)            #Matrix convention and coordinate convention do not hold   
+        dYdy = OneDcentraldiff(self.matricies[1], -Y_spacing, axis=1)   #the minus sign put intentionally.
+
+        #jacobi is 2D at the moment
+        J = np.zeros((self.nodes[1], self.nodes[0], 2, 2))
+
+        for j in range(self.nodes[1]):
+            for i in range(self.nodes[0]):
+                J_page = np.array([[dXdx[j,i], dXdy[j,i] ],[dYdx[j,i], dYdy[j,i] ]])
+                J[j,i,:,:] = J_page
+
+        self.Jacobian = J
+
+                        
+
     def plot2D(self):
         """
             plot mesh grid. 
@@ -490,7 +524,7 @@ class PDE_2D_Solver:
         dx = X[0,1] - X[0,0]
         dy = Y[0,0] - Y[1,0]
 
-        (u, v) = TwoDcentraldiff(self.solution, dx, dy)
+        (u, v) = TwoDcentraldiff_simple(self.solution, dx, dy)
 
         W = np.zeros((N_y, N_x, 3))
 
