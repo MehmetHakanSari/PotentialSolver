@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import cm
+from object import object
 
 
 
@@ -47,7 +48,6 @@ class Mesh:
 
     def uniform_block_mesh_2D(self):
 
-       
         if self.pyhsical_domain[0][0] != self.pyhsical_domain[1][0]:
             #if the given coordinates are in same line for y coordinate pass other coordinate
             x_list = np.linspace(self.pyhsical_domain[0][0], self.pyhsical_domain[1][0], self.nodes[0])
@@ -93,6 +93,7 @@ class Mesh:
         y_spacing = np.zeros((1, self.nodes[1] - 1), dtype="float")
 
         if self.pyhsical_domain[0][0] != self.pyhsical_domain[1][0]:
+            self.xlength = sorted((self.pyhsical_domain[0][0], self.pyhsical_domain[1][0]))
             ##calculate first step sizes 
             L_x = abs((self.pyhsical_domain[1][0] - self.pyhsical_domain[0][0])) #length in x direction
             if g_x == 1:
@@ -117,6 +118,7 @@ class Mesh:
                 x_spacing[:,i-1] = dx * g_x**(i-1)  
             
         elif self.pyhsical_domain[1][0] != self.pyhsical_domain[2][0]:
+            self.xlength = sorted((self.pyhsical_domain[1][0], self.pyhsical_domain[2][0]))
             L_x = abs((self.pyhsical_domain[2][0] - self.pyhsical_domain[1][0])) #length in x direction
             if g_x == 1:
                 dx = L_x / (self.nodes[0] - 1)
@@ -141,6 +143,7 @@ class Mesh:
             
 
         if self.pyhsical_domain[0][1] != self.pyhsical_domain[1][1]:
+            self.ylength = sorted((self.pyhsical_domain[0][1], self.pyhsical_domain[1][1]))
             L_y = abs((self.pyhsical_domain[1][1] - self.pyhsical_domain[0][1])) #length in y direction
             if g_y == 1:
                 dy = L_y / (self.nodes[1] - 1)
@@ -164,6 +167,7 @@ class Mesh:
                 y_spacing[:,i-1] = dy * g_y**(i-1)   
             
         elif self.pyhsical_domain[1][1] != self.pyhsical_domain[2][1]:
+            self.ylength = sorted((self.pyhsical_domain[1][1], self.pyhsical_domain[2][1]))
             L_y = abs((self.pyhsical_domain[1][1] - self.pyhsical_domain[2][1])) #length in y direction
             if g_y == 1:
                 dy = L_y / (self.nodes[1] - 1)
@@ -201,6 +205,9 @@ class Mesh:
             y_MAT[:,i] = y_list
 
         self.matricies = [x_MAT, y_MAT]
+
+        print(self.xlength)
+        print(self.ylength)
 
         return x_spacing, y_spacing
 
@@ -334,6 +341,38 @@ class Mesh:
 
         self.Jacobian = J
 
+    def create_object(self, obj):
+        """
+           self contains physical domain and nodes number for each.
+           
+           obj_coordinate: objects coordinates that should be fitted inside the domain. How would object information save into X and Y matricies?
+           Map matrix or map object is perfect solution for this. Similar what I have done for fish-fisherman. Map can be translated to to 
+           solver class. According to map, it can specify if there is object or not. 
+
+           object coordiante can be list of points. It should enclose itself. Or I can write predefined objects. 
+           The think is as the nodes are given already I should automize the object creating. 
+
+           enclosing will take time to implement. 
+
+           obj_type: circle
+           obj_coor: radius, center
+
+           obj_type: rectengale
+           obj_coor: center, x_length, y_length etc.
+        """
+        if obj.type == "circle":
+            radius = obj.radius
+            center = obj.center
+
+        
+        x1 = self.xlength[0] 
+        x2 = self.xlength[1]
+
+        y1 = self.ylength[0] 
+        y2 = self.ylength[1]
+
+        
+
                         
 
     def plot2D(self):
@@ -351,6 +390,48 @@ class Mesh:
         image = ax.pcolormesh(x_MAT,np.flip(y_MAT), z, vmin=0, vmax=1, edgecolors="black",linewidth=0.1)
         plt.show()
     
+
+
+def column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, i, N_y, N_x, W, E):
+
+    if i == 0:
+        W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
+        C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
+        E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
+        Q = 2 * a_e[y_index[0]:y_index[-1]+1,i] * phi[y_index[0]:y_index[-1]+1,(i+1)] + 2 * a_e[y_index[0]:y_index[-1]+1,i]**2 * BC_values['W']   #conditions are set for neumann BC.                
+        Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
+        Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
+      
+    if i > 0 and i < N_x-1:
+        W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
+        C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
+        E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
+        Q = a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1)] + a_e[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i+1)] #conditions are set for neumann BC.                
+        Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
+        Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
+
+    if i == N_x - 1:
+        W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
+        C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
+        E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
+        Q = 2 * a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1)] + 2 * a_w[y_index[0]:y_index[-1]+1,i-1]**2 * BC_values['E']             
+        Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
+        Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
+    
+
+        Q = np.flip(Q)                     #The reason of reversing Q is, existing Q is inconsistent with the W and E and C list.
+
+        W[-1] += -a_s[y_index[-1], i] * (y_index[0] == 0)             #Neumann of N-S boundaries. implemented here. 
+        E[0] += -a_n[y_index[0], i] * (y_index[-1] == N_y - 1)        #probabaly for different spacing matrixies the east and west should fliped
+
+        if y_index[0] == 0:
+            phi[y_index[-1]::-1,i] = TDMA(W,C,E,Q) 
+        else:
+            phi[y_index[-1]:y_index[0] - 1:-1,i] = TDMA(W,C,E,Q) 
+
+
+    return phi
+
 
 class PDE_2D_Solver:
     """
@@ -372,7 +453,7 @@ class PDE_2D_Solver:
         self.velocity = None
         self.mesh = mesh
 
-    def solver(self, BC_values):
+    def solver(self, BC_values, itteration_type  = "column"):
         """
         Construct unknown matrix with its boundary condiations
         
@@ -409,7 +490,7 @@ class PDE_2D_Solver:
         x_index = list(range(N_x))
         y_index = list(range(N_y))
 
-
+        #this spacing updates should be more explainable. 
         if self.BC['W'] == "D":
             phi[:,0] = BC_values['W']
             x_index = x_index[1:] 
@@ -428,21 +509,12 @@ class PDE_2D_Solver:
             pass
         if self.BC['S'] == "N":
             a_s =  np.concatenate((a_s, np.array([a_s[-1,:]])), axis=0)
-            print("anan")
         if self.BC['E'] == "N":
             # a_e[:,-1] += 1 * a_w[:,0]
             pass
         if self.BC['N'] == "N":
-            a_n =  np.concatenate((a_n, np.array([a_n[-1,:]])), axis=0)
+            a_n =  np.concatenate((a_n, np.array([a_n[1,:]])), axis=0)
             
-            
-        # print(a_e)
-        # print(a_w)
-        # print(a_s)
-        # print(a_n)
-        # print(" ")
-        print(phi)
-        
         #Column by Column TDMA
         """
             Starting from first column that is unknown. Thus, 
@@ -453,15 +525,15 @@ class PDE_2D_Solver:
         """
         W = np.zeros(len(y_index), dtype="float")
         E = np.zeros(len(y_index), dtype="float")
-        # i = 2
-        # print(y_index)
-        # print(a_s)
-        # print(a_s[y_index[0]:, i])
-        # print(a_w[y_index[0]:y_index[-1]+1, i - 1])
 
-        for t in range(150):
+        for t in range(30):
+
+            # W = np.zeros(len(y_index), dtype="float")
+            # E = np.zeros(len(y_index), dtype="float")
 
             for i in x_index:
+
+                # phi = column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, i, N_y, N_x, W, E)
 
                 if i == 0:
                     W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
@@ -488,7 +560,6 @@ class PDE_2D_Solver:
                     Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
                 
                 
-                
                 Q = np.flip(Q)                     #The reason of reversing Q is, existing Q is inconsistent with the W and E and C list.
 
                 W[-1] += -a_s[y_index[-1], i] * (y_index[0] == 0)             #Neumann of N-S boundaries. implemented here. 
@@ -500,8 +571,10 @@ class PDE_2D_Solver:
                     phi[y_index[-1]:y_index[0] - 1:-1,i] = TDMA(W,C,E,Q) 
 
 
-
         self.solution = phi
+
+
+
 
 
     def velocityfield(self):
@@ -510,10 +583,8 @@ class PDE_2D_Solver:
             Continiutiy in fluids. 
 
             Thus:
-
             u = d (phi) / dx
             v = d (phi) / dy
-
 
         """
 
