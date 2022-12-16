@@ -5,6 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import cm
 from object import object
+from visiual import *
 
 
 
@@ -44,8 +45,9 @@ class Mesh:
 
         self.pyhsical_domain = pyhsical_domain  
         self.nodes = nodes             
-        self.matricies = None         
-
+        self.matricies = None     
+        self.map = Map(np.zeros((self.nodes[1], self.nodes[0])))        
+        
     def uniform_block_mesh_2D(self):
 
         if self.pyhsical_domain[0][0] != self.pyhsical_domain[1][0]:
@@ -423,20 +425,19 @@ class Mesh:
 
         #finding points lies inside the circle
 
-        circle_matrix = ((self.matricies[0][c_y1_index:c_y2_index, c_x1_index:c_x2_index] - center[0])**2 + (self.matricies[1][c_y1_index:c_y2_index, c_x1_index:c_x2_index] - center[1])**2 <= radius**2)
+        circle_matrix = ((self.matricies[0][c_y1_index:c_y2_index, c_x1_index:c_x2_index] - center[0])**2 + (self.matricies[1][c_y1_index:c_y2_index, c_x1_index:c_x2_index] - center[1])**2 <= radius**2) * -1
 
-        print(circle_matrix)
+        self.map()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] = self.map()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] + circle_matrix
 
-
+        print(self.map)
+        self.map.show()
         
-
                         
 
     def plot2D(self):
         """
             plot mesh grid. 
         """
-
         fig, ax = plt.subplots()
 
         x_MAT = self.matricies[0]
