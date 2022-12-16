@@ -405,24 +405,28 @@ class Mesh:
         below = (self.matricies[0] <= c_x1)[0,:]      #A row that includes zeros until c_x1 then ones until end. 
         top = (self.matricies[0] <= c_x2)[0,:]        #A row that includes zeros until c_x2 then ones until end. 
 
-        c_x1_index = np.nonzero(below == 1)[0][0]                #index of first one apperas in the list
-        c_x2_index = np.nonzero(top == 1)[0][0]                  #index of first one apperas in the list
+        # print(np.nonzero((below == False)*1)[0][0])
 
-        below = (self.matricies[0] <= c_y1)[:,1]      #A row that includes zeros until c_x1 then ones until end. 
-        top = (self.matricies[0] <= c_y2)[:,1]        #A row that includes zeros until c_x2 then ones until end. 
+        c_x1_index = np.nonzero((below == False)*1)[0][0]                #index of first one apperas in the list
+        c_x2_index = np.nonzero((top == False)*1)[0][0]                    #index of first one apperas in the list
 
-        c_y1_index = np.nonzero(below == 1)[0][0]                #index of first one apperas in the list
-        c_y2_index = np.nonzero(top == 1)[0][0]                  #index of first one apperas in the list
+        below = (self.matricies[1] <= c_y1)[:,1]      #A row that includes zeros until c_x1 then ones until end. 
+        top = (self.matricies[1] <= c_y2)[:,1]        #A row that includes zeros until c_x2 then ones until end. 
+
+        c_y1_index = np.nonzero((below == False)*1)[0][0]               #index of first one apperas in the list
+        c_y2_index = np.nonzero((top == False)*1)[0][0]                  #index of first one apperas in the list
+
+        print(c_y2_index, c_y1_index)
+        print(c_x1_index, c_x2_index)
+        # print(self.matricies[0][c_y1_index:c_y2_index, c_x1_index:c_x2_index])
+        
 
         #finding points lies inside the circle
 
-        circle_matrix = (self.matricies[0][:, c_x1_index:c_x2_index]**2 + self.matricies[1][c_y1_index:c_y2_index, :]**2 <= radius**2)
+        circle_matrix = ((self.matricies[0][c_y1_index:c_y2_index, c_x1_index:c_x2_index] - center[0])**2 + (self.matricies[1][c_y1_index:c_y2_index, c_x1_index:c_x2_index] - center[1])**2 <= radius**2)
 
         print(circle_matrix)
 
-
-
-        
 
         
 
