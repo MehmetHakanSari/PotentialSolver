@@ -424,7 +424,7 @@ class Mesh:
 
         self.map()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] = self.map()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] + circle_matrix
 
-        # self.map.show()
+        self.map.show()
         
                   
 
@@ -519,7 +519,7 @@ class PDE_2D_Solver:
         self.BCvalues = BC_values
         mesh = self.mesh
         property_map = self.mesh.map()
-        print(property_map)
+        # print(property_map)
 
         (N_y, N_x) = np.shape(mesh.matricies[0])
 
@@ -601,6 +601,11 @@ class PDE_2D_Solver:
 
                     for j in y_index:
                         
+                        # property_map(j,i)
+                        # property_map(j,i+1)
+                        # property_map(j+1,i)
+                        # property_map(j-1,i)
+
                         if j == 0:   #if the north boundary is given neumann
 
                             dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
@@ -629,50 +634,80 @@ class PDE_2D_Solver:
                         
                         if j == 0:   #if the north boundary is given neumann
 
-                            dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
-                            dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
-                            
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
+                            C_pro = (not(property_map[j,i] == -1)) * 1
+                            W_pro = (not(property_map[j,i-1] == -1)) * 1
+                            E_pro = (not(property_map[j,i+1] == -1)) * 1
+                            S_pro = (not(property_map[j+1,i] == -1)) * 1
+
+                            if C_pro == 0:
+                                phi[j,i] = 0
+                            else:
+                                dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
+                                dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
+                                
+                                phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] * E_pro + phi[j, i-1] * W_pro) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i] * S_pro) 
 
                         if j > 0 and j < N_y - 1:
 
-                            dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
-                            dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
+                            C_pro = (not(property_map[j,i] == -1)) * 1
+                            W_pro = (not(property_map[j,i-1] == -1)) * 1
+                            E_pro = (not(property_map[j,i+1] == -1)) * 1
+                            S_pro = (not(property_map[j+1,i] == -1)) * 1
+                            N_pro = (not(property_map[j-1,i] == -1)) * 1
 
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+                            if C_pro == 0:
+                                phi[j,i] = 0
+                            else:
+                                dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
+                                dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
+
+                                phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] * E_pro + phi[j, i-1] * W_pro) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] * S_pro + phi[j-1, i] * N_pro) 
 
                         if j == N_y - 1:
 
-                            dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
-                            dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2
+                            C_pro = (not(property_map[j,i] == -1)) * 1
+                            W_pro = (not(property_map[j,i-1] == -1)) * 1
+                            E_pro = (not(property_map[j,i+1] == -1)) * 1
+                            N_pro = (not(property_map[j-1,i] == -1)) * 1
 
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
+                            if C_pro == 0:
+                                phi[j,i] = 0
+                            else:
+                                dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
+                                dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2
+
+                                phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] * E_pro + phi[j, i-1] * W_pro) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i] * N_pro) 
 
 
                 elif i == N_x - 1:
 
                     for j in y_index:
+
+                        # property_map(j,i)
+                        # property_map(j,i-1)
+                        # property_map(j+1,i)
+                        # property_map(j-1,i)
                         
                         if j == 0:   #if the north boundary is given neumann
                             
                             dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
                             dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
 
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * self.BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
 
                         if j > 0 and j < N_y - 1:
 
                             dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
                             dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
 
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * self.BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
 
                         if j == N_y - 1:
 
                             dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
                             dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
 
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i])
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * self.BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i])
         
 
             # phi_new = column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, W, E)
@@ -755,7 +790,7 @@ class PDE_2D_Solver:
 
         self.velocity = W
 
-    def plot2D(self, colormap = "hot"):
+    def plot2D(self, type ="potensial", colormap = "hot"):
         """
             plot Z for domain of the X and Y. 
         """
@@ -774,25 +809,47 @@ class PDE_2D_Solver:
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="6%", pad="2%")
 
-        if self.BC["S"] == "D":
-            ax.set_xlabel(('$\phi$ = ' + str(self.BCvalues["S"])) , fontsize=20)
-        else:
-            ax.set_xlabel(('${\partial \phi}{\partial y}$ = '+ str(self.BCvalues["S"])) , fontsize=20)
-        if self.BC["W"] == "D":
-            ax.set_ylabel(('$\phi$ = '+ str(self.BCvalues["W"])) , fontsize=20)
-        else:
-            ax.set_ylabel(('${\partial \phi}{\partial x}$ = ' + str(self.BCvalues["W"])) , fontsize=20)
-        if self.BC["N"] == "D":
-            ax.set_title(('$\phi$ = ' + str(self.BCvalues["N"])) , fontsize=20)
-        else:
-            ax.set_title(('$\partial \phi \partial y$ = ' + str(self.BCvalues["N"])) , fontsize=20)
- 
-# secondary y-axis label
-        
-        if self.BC["E"] == "D":
-            twin2.set_ylabel(('$\phi$ = ' + str(self.BCvalues["E"])) , fontsize=20)
-        else:
-            twin2.set_ylabel(('$\partial \phi}{\partial y}$ = ' +  str(self.BCvalues["E"])) , fontsize=20)
+        if type == "potensial":
+            if self.BC["S"] == "D":
+                ax.set_xlabel(('$\phi$ = ' + str(self.BCvalues["S"])) , fontsize=20)
+            else:
+                ax.set_xlabel(('${\partial \phi}{\partial y}$ = '+ str(self.BCvalues["S"])) , fontsize=20)
+            if self.BC["W"] == "D":
+                ax.set_ylabel(('$\phi$ = '+ str(self.BCvalues["W"])) , fontsize=20)
+            else:
+                ax.set_ylabel(('${\partial \phi}{\partial x}$ = ' + str(self.BCvalues["W"])) , fontsize=20)
+            if self.BC["N"] == "D":
+                ax.set_title(('$\phi$ = ' + str(self.BCvalues["N"])) , fontsize=20)
+            else:
+                ax.set_title(('$\partial \phi \partial y$ = ' + str(self.BCvalues["N"])) , fontsize=20)
+    
+    # secondary y-axis label
+            
+            if self.BC["E"] == "D":
+                twin2.set_ylabel(('$\phi$ = ' + str(self.BCvalues["E"])) , fontsize=20)
+            else:
+                twin2.set_ylabel(('$\partial \phi}{\partial y}$ = ' +  str(self.BCvalues["E"])) , fontsize=20)
+
+        elif type == "stream":
+            if self.BC["S"] == "D":
+                ax.set_xlabel(('$\psi$ = ' + str(self.BCvalues["S"])) , fontsize=20)
+            else:
+                ax.set_xlabel(('$\partial \psi \partial y$ = '+ str(self.BCvalues["S"])) , fontsize=20)
+            if self.BC["W"] == "D":
+                ax.set_ylabel(('$\psi$ = '+ str(self.BCvalues["W"])) , fontsize=20)
+            else:
+                ax.set_ylabel(('$\partial \psi \partial x}$ = ' + str(self.BCvalues["W"])) , fontsize=20)
+            if self.BC["N"] == "D":
+                ax.set_title(('$\psi$ = ' + str(self.BCvalues["N"])) , fontsize=20)
+            else:
+                ax.set_title(('$\partial \psi \partial y$ = ' + str(self.BCvalues["N"])) , fontsize=20)
+    
+    # secondary y-axis label
+            
+            if self.BC["E"] == "D":
+                twin2.set_ylabel(('$\psi$ = ' + str(self.BCvalues["E"])) , fontsize=20)
+            else:
+                twin2.set_ylabel(('$\partial \psi \partial y}$ = ' +  str(self.BCvalues["E"])) , fontsize=20)
         
 
         plt.colorbar(image, cax=cax)
