@@ -46,7 +46,8 @@ class Mesh:
         self.pyhsical_domain = pyhsical_domain  
         self.nodes = nodes             
         self.matricies = None     
-        self.map = Map(np.zeros((self.nodes[1], self.nodes[0])))        
+        self.map = Map(np.zeros((self.nodes[1], self.nodes[0])))     
+           
         
     def uniform_block_mesh_2D(self):
 
@@ -207,6 +208,8 @@ class Mesh:
             y_MAT[:,i] = y_list
 
         self.matricies = [x_MAT, y_MAT]
+        self.xspacing = x_spacing
+        self.yspacing = y_spacing
 
         return x_spacing, y_spacing
 
@@ -401,13 +404,10 @@ class Mesh:
         if c_y1 < y1 or c_y2 > y2:
             ValueError("Circle should be inside the given domain")
 
-        
         #finding vicinity of the circle:
 
         below = (self.matricies[0] <= c_x1)[0,:]      #A row that includes zeros until c_x1 then ones until end. 
         top = (self.matricies[0] <= c_x2)[0,:]        #A row that includes zeros until c_x2 then ones until end. 
-
-        # print(np.nonzero((below == False)*1)[0][0])
 
         c_x1_index = np.nonzero((below == False)*1)[0][0]                #index of first one apperas in the list
         c_x2_index = np.nonzero((top == False)*1)[0][0]                    #index of first one apperas in the list
@@ -418,18 +418,12 @@ class Mesh:
         c_y1_index = np.nonzero((below == False)*1)[0][0]               #index of first one apperas in the list
         c_y2_index = np.nonzero((top == False)*1)[0][0]                  #index of first one apperas in the list
 
-        print(c_y2_index, c_y1_index)
-        print(c_x1_index, c_x2_index)
-        # print(self.matricies[0][c_y1_index:c_y2_index, c_x1_index:c_x2_index])
-        
-
         #finding points lies inside the circle
 
         circle_matrix = ((self.matricies[0][c_y1_index:c_y2_index, c_x1_index:c_x2_index] - center[0])**2 + (self.matricies[1][c_y1_index:c_y2_index, c_x1_index:c_x2_index] - center[1])**2 <= radius**2) * -1
 
         self.map()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] = self.map()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] + circle_matrix
 
-        print(self.map)
         self.map.show()
         
                         
@@ -525,8 +519,16 @@ class PDE_2D_Solver:
 
         self.BCvalues = BC_values
         mesh = self.mesh
-
         (N_y, N_x) = np.shape(mesh.matricies[0])
+
+        x_spacing = np.zeros((N_y, N_x - 1),dtype="float")
+        y_spacing = np.zeros((N_y - 1, N_x),dtype="float")
+
+        for i in range(N_y):
+            x_spacing[i,:] = mesh.xspacing
+        for i in range(N_x):
+            y_spacing[:,i] = mesh.yspacing.reshape(N_y-1, )
+
         
         phi = np.zeros((N_y, N_x))       #unknown
         phi_new = np.zeros((N_y, N_x))   #unknown for storing new values
@@ -584,49 +586,133 @@ class PDE_2D_Solver:
         W = np.zeros(len(y_index), dtype="float")
         E = np.zeros(len(y_index), dtype="float")
 
-        for t in range(30):
+        # print(y_spacing)
+        # print(x_spacing)
 
-            # W = np.zeros(len(y_index), dtype="float")
-            # E = np.zeros(len(y_index), dtype="float")
+        for t in range(150):
 
             for i in x_index:
 
-                # phi = column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, i, N_y, N_x, W, E)
+                if i == 0:  #if the west boundary is given neumann
 
-                if i == 0:
-                    W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
-                    C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
-                    E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
-                    Q = 2 * a_e[y_index[0]:y_index[-1]+1,i] * phi[y_index[0]:y_index[-1]+1,(i+1)] + 2 * a_e[y_index[0]:y_index[-1]+1,i]**2 * BC_values['W']   #conditions are set for neumann BC.                
-                    Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
-                    Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
-                
-                if i > 0 and i < N_x-1:
-                    W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
-                    C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
-                    E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
-                    Q = a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1)] + a_e[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i+1)] #conditions are set for neumann BC.                
-                    Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
-                    Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
-                
-                if i == N_x - 1:
-                    W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
-                    C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
-                    E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
-                    Q = 2 * a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1)] + 2 * a_w[y_index[0]:y_index[-1]+1,i-1]**2 * BC_values['E']             
-                    Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
-                    Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
-                
-                
-                Q = np.flip(Q)                     #The reason of reversing Q is, existing Q is inconsistent with the W and E and C list.
+                    for j in y_index:
+                        
+                        if j == 0:   #if the north boundary is given neumann
 
-                W[-1] += -a_s[y_index[-1], i] * (y_index[0] == 0)             #Neumann of N-S boundaries. implemented here. 
-                E[0] += -a_n[y_index[0], i] * (y_index[-1] == N_y - 1)        #probabaly for different spacing matrixies the east and west should fliped
+                            dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2
+                            
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
 
-                if y_index[0] == 0:
-                    phi[y_index[-1]::-1,i] = TDMA(W,C,E,Q) 
-                else:
-                    phi[y_index[-1]:y_index[0] - 1:-1,i] = TDMA(W,C,E,Q) 
+                        if j > 0 and j < N_y - 2:
+                            
+                            dy2 = ((y_spacing[j,i] + y_spacing[j+1,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2  
+
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * 2 * phi[j, i+1] + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+
+                        if j == N_y - 1:   #if the south boundary is given neumann
+
+                            dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2
+
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
+
+
+                elif i > 0 and i < N_x - 2:  #if the west boundary is given neumann
+
+                    for j in y_index:
+                        
+                        if j == 0:   #if the north boundary is given neumann
+
+                            dy2 = ((y_spacing[j,i] + y_spacing[j+1,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i] + x_spacing[j,i+1]) / 2)**2  
+                            
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
+
+                        if j > 0 and j < N_y - 2:
+
+                            dy2 = ((y_spacing[j,i] + y_spacing[j+1,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i] + x_spacing[j,i+1]) / 2)**2  
+
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+
+                        if j == N_y - 1:
+
+                            dy2 = ((y_spacing[j,i] + y_spacing[j+1,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i] + x_spacing[j,i+1]) / 2)**2
+
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
+
+
+                elif i == N_x -1:
+
+                    for j in y_index:
+                        
+                        if j == 0:   #if the north boundary is given neumann
+                            
+                            dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2  
+
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+
+                        if j > 0 and j < N_y - 2:
+
+                            dy2 = ((y_spacing[j,i] + y_spacing[j+1,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2  
+
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+
+                        if j == N_y - 1:
+
+                            dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2  
+
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i])
+
+            # phi = phi_new
+
+
+                    
+
+            # for i in x_index:
+
+            #     # phi = column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, i, N_y, N_x, W, E)
+
+            #     if i == 0:
+            #         W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
+            #         C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
+            #         E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
+            #         Q = 2 * a_e[y_index[0]:y_index[-1]+1,i] * phi[y_index[0]:y_index[-1]+1,(i+1)] + 2 * a_e[y_index[0]:y_index[-1]+1,i]**2 * BC_values['W']   #conditions are set for neumann BC.                
+            #         Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
+            #         Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
+                
+            #     if i > 0 and i < N_x-1:  #is it Nx-1 or Nx
+            #         W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
+            #         C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
+            #         E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
+            #         Q = a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1)] + a_e[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i+1)] #conditions are set for neumann BC.                
+            #         Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
+            #         Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
+                
+            #     if i == N_x - 1:
+            #         W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
+            #         C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
+            #         E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
+            #         Q = 2 * a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1)] + 2 * a_w[y_index[0]:y_index[-1]+1,i-1]**2 * BC_values['E']             
+            #         Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
+            #         Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
+                
+                
+            #     Q = np.flip(Q)                     #The reason of reversing Q is, existing Q is inconsistent with the W and E and C list.
+
+            #     W[-1] += -a_s[y_index[-1], i] * (y_index[0] == 0)             #Neumann of N-S boundaries. implemented here. 
+            #     E[0] += -a_n[y_index[0], i] * (y_index[-1] == N_y - 1)        #probabaly for different spacing matrixies the east and west should fliped
+
+            #     if y_index[0] == 0:
+            #         phi[y_index[-1]::-1,i] = TDMA(W,C,E,Q) 
+            #     else:
+            #         phi[y_index[-1]:y_index[0] - 1:-1,i] = TDMA(W,C,E,Q) 
 
 
         self.solution = phi

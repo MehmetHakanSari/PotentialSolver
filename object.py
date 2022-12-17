@@ -17,8 +17,6 @@ class object:
             center: tuple, containing (x, y)
         """
 
-
-
         self.type = "circle"
         self.radius = radius
         self.center = center
