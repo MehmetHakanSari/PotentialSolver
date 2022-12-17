@@ -588,8 +588,10 @@ class PDE_2D_Solver:
 
         # print(y_spacing)
         # print(x_spacing)
+        print(y_index)
+        print(x_index)
 
-        for t in range(150):
+        for t in range(1000):
 
             for i in x_index:
 
@@ -604,73 +606,72 @@ class PDE_2D_Solver:
                             
                             phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
 
-                        if j > 0 and j < N_y - 2:
+                        if j > 0 and j < N_y - 1:
                             
-                            dy2 = ((y_spacing[j,i] + y_spacing[j+1,i]) / 2)**2
+                            dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
                             dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2  
 
                             phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * 2 * phi[j, i+1] + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
 
                         if j == N_y - 1:   #if the south boundary is given neumann
 
-                            dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
+                            dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
                             dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2
 
                             phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
 
 
-                elif i > 0 and i < N_x - 2:  #if the west boundary is given neumann
+                elif i > 0 and i < N_x - 1:  #if the west boundary is given neumann
 
                     for j in y_index:
                         
                         if j == 0:   #if the north boundary is given neumann
 
-                            dy2 = ((y_spacing[j,i] + y_spacing[j+1,i]) / 2)**2
-                            dx2 = ((x_spacing[j,i] + x_spacing[j,i+1]) / 2)**2  
+                            dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
                             
                             phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
 
-                        if j > 0 and j < N_y - 2:
+                        if j > 0 and j < N_y - 1:
 
-                            dy2 = ((y_spacing[j,i] + y_spacing[j+1,i]) / 2)**2
-                            dx2 = ((x_spacing[j,i] + x_spacing[j,i+1]) / 2)**2  
+                            dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
 
                             phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
 
                         if j == N_y - 1:
 
-                            dy2 = ((y_spacing[j,i] + y_spacing[j+1,i]) / 2)**2
-                            dx2 = ((x_spacing[j,i] + x_spacing[j,i+1]) / 2)**2
+                            dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2
 
                             phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
 
 
-                elif i == N_x -1:
+                elif i == N_x - 1:
 
                     for j in y_index:
                         
                         if j == 0:   #if the north boundary is given neumann
                             
                             dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
-                            dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2  
+                            dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
 
                             phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
 
-                        if j > 0 and j < N_y - 2:
+                        if j > 0 and j < N_y - 1:
 
-                            dy2 = ((y_spacing[j,i] + y_spacing[j+1,i]) / 2)**2
-                            dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2  
+                            dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
 
                             phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
 
                         if j == N_y - 1:
 
-                            dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
-                            dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2  
+                            dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
 
                             phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i])
 
-            # phi = phi_new
 
 
                     
