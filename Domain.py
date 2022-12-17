@@ -426,8 +426,6 @@ class Mesh:
 
         self.map.show()
         
-                  
-
     def plot2D(self):
         """
             plot mesh grid. 
@@ -443,6 +441,122 @@ class Mesh:
         plt.show()
     
 
+def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_map, N_x, N_y, type = "stream"):
+    if type == "stream":
+        for i in x_index:
+
+            if i == 0:  #if the west boundary is given neumann
+
+                for j in y_index:
+                    
+                    # property_map(j,i)
+                    # property_map(j,i+1)
+                    # property_map(j+1,i)
+                    # property_map(j-1,i)
+
+                    if j == 0:   #if the north boundary is given neumann
+
+                        dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
+                        dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2
+                        
+                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
+
+                    if j > 0 and j < N_y - 1:
+                        
+                        dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
+                        dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2  
+
+                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+
+                    if j == N_y - 1:   #if the south boundary is given neumann
+
+                        dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
+                        dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2
+
+                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
+
+
+            elif i > 0 and i < N_x - 1:  #if the west boundary is given neumann
+
+                for j in y_index:
+                    
+                    if j == 0:   #if the north boundary is given neumann
+
+                        C_pro = (not(property_map[j,i] == -1)) * 1
+                        W_pro = (not(property_map[j,i-1] == -1)) * 1
+                        E_pro = (not(property_map[j,i+1] == -1)) * 1
+                        S_pro = (not(property_map[j+1,i] == -1)) * 1
+
+                        if C_pro == 0:
+                            phi[j,i] = 0
+                        else:
+                            dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
+                            
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] * E_pro + phi[j, i-1] * W_pro) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i] * S_pro) 
+
+                    if j > 0 and j < N_y - 1:
+
+                        C_pro = (not(property_map[j,i] == -1)) * 1
+                        W_pro = (not(property_map[j,i-1] == -1)) * 1
+                        E_pro = (not(property_map[j,i+1] == -1)) * 1
+                        S_pro = (not(property_map[j+1,i] == -1)) * 1
+                        N_pro = (not(property_map[j-1,i] == -1)) * 1
+
+                        if C_pro == 0:
+                            phi[j,i] = 0
+                        else:
+                            dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
+
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] * E_pro + phi[j, i-1] * W_pro) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] * S_pro + phi[j-1, i] * N_pro) 
+
+                    if j == N_y - 1:
+
+                        C_pro = (not(property_map[j,i] == -1)) * 1
+                        W_pro = (not(property_map[j,i-1] == -1)) * 1
+                        E_pro = (not(property_map[j,i+1] == -1)) * 1
+                        N_pro = (not(property_map[j-1,i] == -1)) * 1
+
+                        if C_pro == 0:
+                            phi[j,i] = 0
+                        else:
+                            dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2
+
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] * E_pro + phi[j, i-1] * W_pro) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i] * N_pro) 
+
+
+            elif i == N_x - 1:
+
+                for j in y_index:
+
+                    # property_map(j,i)
+                    # property_map(j,i-1)
+                    # property_map(j+1,i)
+                    # property_map(j-1,i)
+                    
+                    if j == 0:   #if the north boundary is given neumann
+                        
+                        dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
+                        dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
+
+                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+
+                    if j > 0 and j < N_y - 1:
+
+                        dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
+                        dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
+
+                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+
+                    if j == N_y - 1:
+
+                        dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
+                        dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
+
+                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i])
+    return phi 
 
 def column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, W, E):
     for i in x_index:
@@ -595,119 +709,120 @@ class PDE_2D_Solver:
 
         for t in range(2200):
 
-            for i in x_index:
+            phi = nodebynode(x_index, y_index, x_spacing, y_spacing, self.BCvalues, phi, property_map, N_x, N_y)
+            # for i in x_index:
 
-                if i == 0:  #if the west boundary is given neumann
+            #     if i == 0:  #if the west boundary is given neumann
 
-                    for j in y_index:
+            #         for j in y_index:
                         
-                        # property_map(j,i)
-                        # property_map(j,i+1)
-                        # property_map(j+1,i)
-                        # property_map(j-1,i)
+            #             # property_map(j,i)
+            #             # property_map(j,i+1)
+            #             # property_map(j+1,i)
+            #             # property_map(j-1,i)
 
-                        if j == 0:   #if the north boundary is given neumann
+            #             if j == 0:   #if the north boundary is given neumann
 
-                            dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
-                            dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2
+            #                 dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
+            #                 dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2
                             
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * self.BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
+            #                 phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * self.BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
 
-                        if j > 0 and j < N_y - 1:
+            #             if j > 0 and j < N_y - 1:
                             
-                            dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
-                            dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2  
+            #                 dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
+            #                 dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2  
 
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * self.BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+            #                 phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * self.BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
 
-                        if j == N_y - 1:   #if the south boundary is given neumann
+            #             if j == N_y - 1:   #if the south boundary is given neumann
 
-                            dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
-                            dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2
+            #                 dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
+            #                 dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2
 
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * self.BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
+            #                 phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * self.BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
 
 
-                elif i > 0 and i < N_x - 1:  #if the west boundary is given neumann
+            #     elif i > 0 and i < N_x - 1:  #if the west boundary is given neumann
 
-                    for j in y_index:
+            #         for j in y_index:
                         
-                        if j == 0:   #if the north boundary is given neumann
+            #             if j == 0:   #if the north boundary is given neumann
 
-                            C_pro = (not(property_map[j,i] == -1)) * 1
-                            W_pro = (not(property_map[j,i-1] == -1)) * 1
-                            E_pro = (not(property_map[j,i+1] == -1)) * 1
-                            S_pro = (not(property_map[j+1,i] == -1)) * 1
+            #                 C_pro = (not(property_map[j,i] == -1)) * 1
+            #                 W_pro = (not(property_map[j,i-1] == -1)) * 1
+            #                 E_pro = (not(property_map[j,i+1] == -1)) * 1
+            #                 S_pro = (not(property_map[j+1,i] == -1)) * 1
 
-                            if C_pro == 0:
-                                phi[j,i] = 0
-                            else:
-                                dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
-                                dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
+            #                 if C_pro == 0:
+            #                     phi[j,i] = 0
+            #                 else:
+            #                     dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
+            #                     dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
                                 
-                                phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] * E_pro + phi[j, i-1] * W_pro) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i] * S_pro) 
+            #                     phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] * E_pro + phi[j, i-1] * W_pro) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i] * S_pro) 
 
-                        if j > 0 and j < N_y - 1:
+            #             if j > 0 and j < N_y - 1:
 
-                            C_pro = (not(property_map[j,i] == -1)) * 1
-                            W_pro = (not(property_map[j,i-1] == -1)) * 1
-                            E_pro = (not(property_map[j,i+1] == -1)) * 1
-                            S_pro = (not(property_map[j+1,i] == -1)) * 1
-                            N_pro = (not(property_map[j-1,i] == -1)) * 1
+            #                 C_pro = (not(property_map[j,i] == -1)) * 1
+            #                 W_pro = (not(property_map[j,i-1] == -1)) * 1
+            #                 E_pro = (not(property_map[j,i+1] == -1)) * 1
+            #                 S_pro = (not(property_map[j+1,i] == -1)) * 1
+            #                 N_pro = (not(property_map[j-1,i] == -1)) * 1
 
-                            if C_pro == 0:
-                                phi[j,i] = 0
-                            else:
-                                dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
-                                dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
+            #                 if C_pro == 0:
+            #                     phi[j,i] = 0
+            #                 else:
+            #                     dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
+            #                     dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
 
-                                phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] * E_pro + phi[j, i-1] * W_pro) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] * S_pro + phi[j-1, i] * N_pro) 
+            #                     phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] * E_pro + phi[j, i-1] * W_pro) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] * S_pro + phi[j-1, i] * N_pro) 
 
-                        if j == N_y - 1:
+            #             if j == N_y - 1:
 
-                            C_pro = (not(property_map[j,i] == -1)) * 1
-                            W_pro = (not(property_map[j,i-1] == -1)) * 1
-                            E_pro = (not(property_map[j,i+1] == -1)) * 1
-                            N_pro = (not(property_map[j-1,i] == -1)) * 1
+            #                 C_pro = (not(property_map[j,i] == -1)) * 1
+            #                 W_pro = (not(property_map[j,i-1] == -1)) * 1
+            #                 E_pro = (not(property_map[j,i+1] == -1)) * 1
+            #                 N_pro = (not(property_map[j-1,i] == -1)) * 1
 
-                            if C_pro == 0:
-                                phi[j,i] = 0
-                            else:
-                                dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
-                                dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2
+            #                 if C_pro == 0:
+            #                     phi[j,i] = 0
+            #                 else:
+            #                     dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
+            #                     dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2
 
-                                phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] * E_pro + phi[j, i-1] * W_pro) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i] * N_pro) 
+            #                     phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] * E_pro + phi[j, i-1] * W_pro) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i] * N_pro) 
 
 
-                elif i == N_x - 1:
+            #     elif i == N_x - 1:
 
-                    for j in y_index:
+            #         for j in y_index:
 
-                        # property_map(j,i)
-                        # property_map(j,i-1)
-                        # property_map(j+1,i)
-                        # property_map(j-1,i)
+            #             # property_map(j,i)
+            #             # property_map(j,i-1)
+            #             # property_map(j+1,i)
+            #             # property_map(j-1,i)
                         
-                        if j == 0:   #if the north boundary is given neumann
+            #             if j == 0:   #if the north boundary is given neumann
                             
-                            dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
-                            dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
+            #                 dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
+            #                 dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
 
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * self.BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+            #                 phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * self.BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
 
-                        if j > 0 and j < N_y - 1:
+            #             if j > 0 and j < N_y - 1:
 
-                            dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
-                            dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
+            #                 dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
+            #                 dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
 
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * self.BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+            #                 phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * self.BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
 
-                        if j == N_y - 1:
+            #             if j == N_y - 1:
 
-                            dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
-                            dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
+            #                 dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
+            #                 dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
 
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * self.BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i])
+            #                 phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * self.BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i])
         
 
             # phi_new = column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, W, E)
