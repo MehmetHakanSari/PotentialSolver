@@ -23,5 +23,5 @@ class Map():
 
         # z = np.ones((self.nodes[1], self.nodes[0])) * 0.5
 
-        image = ax.pcolormesh(self.area, vmin=-1, vmax=1, edgecolors="black",linewidth=0.1)
+        image = ax.pcolormesh(np.flip(self.area), vmin=-1, vmax=1, edgecolors="black",linewidth=0.1)
         plt.show()

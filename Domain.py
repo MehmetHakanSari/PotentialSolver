@@ -424,7 +424,6 @@ class Mesh:
 
         self.map()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] = self.map()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] + circle_matrix
 
-        self.map.show()
         
     def plot2D(self):
         """
@@ -440,6 +439,46 @@ class Mesh:
         image = ax.pcolormesh(x_MAT,np.flip(y_MAT), z, vmin=0, vmax=1, edgecolors="black",linewidth=0.1)
         plt.show()
     
+def getnormal(local_map, ObjValue = "-1"):
+    """
+        gets 3x3 matrix containing two different values (kinda 0's and 1's) and returns normal directions accordingly.
+        ObjValue default is -1 as object wall value.
+        example
+        lacal_map = [[ 0 -1 -1
+                       0 -1 -1
+                       0 -1 -1]]
+        normal for center: n_x = -1, n_y = 0
+    """
+    
+    x_direction = local_map[1,:] 
+    east_boundary = (x_direction[1] == x_direction[2])   #if it is true, right side is wall
+    west_boundary = (x_direction[0] == x_direction[1])   #if it is true, left side is wall
+    n_x = 0                                              #if both are true we are inside of the object. 
+                                                       
+    if east_boundary:
+        n_x = -1
+    if west_boundary:
+        n_x = 1
+    if east_boundary and west_boundary:
+        n_x = 0  #meaning that we are inside
+                    
+    y_direction = local_map[:,1] 
+    south_boundary = (y_direction[1] == y_direction[2])  #if it is true, right side is wall
+    north_boundary = (y_direction[0] == y_direction[1])  #if it is true, left side is wall
+    n_y = 0                                              #if both are true we are inside of the object. 
+
+    if south_boundary:
+        n_y = -1
+    if north_boundary:
+        n_y = 1
+    if south_boundary and north_boundary:
+        n_y = 0  #meaning that we are inside
+
+    if n_x != 0 and n_y != 0:
+        n_x = (n_x < 0) * -2**(1/2) / 2 + (n_x > 0) * 2**(1/2) / 2
+        n_y = (n_y < 0) * -2**(1/2) / 2 + (n_y > 0) * 2**(1/2) / 2
+
+    return n_x, n_y
 
 def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_map, N_x, N_y, type = "stream"):
     if type == "stream":
@@ -449,11 +488,6 @@ def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_m
 
                 for j in y_index:
                     
-                    # property_map(j,i)
-                    # property_map(j,i+1)
-                    # property_map(j+1,i)
-                    # property_map(j-1,i)
-
                     if j == 0:   #if the north boundary is given neumann
 
                         dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
@@ -556,7 +590,122 @@ def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_m
                         dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
 
                         phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i])
+    
+    elif type == "potensial":
+        for i in x_index:
+
+            if i == 0:  #if the west boundary is given neumann
+
+                for j in y_index:
+
+                    if j == 0:   #if the north boundary is given neumann
+
+                        dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
+                        dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2
+                        
+                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
+
+                    if j > 0 and j < N_y - 1:
+                        
+                        dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
+                        dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2  
+
+                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+
+                    if j == N_y - 1:   #if the south boundary is given neumann
+
+                        dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
+                        dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2
+
+                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
+
+
+            elif i > 0 and i < N_x - 1:  #if the west boundary is given neumann
+
+                for j in y_index:
+                    
+                    if j == 0:   #if the north boundary is given neumann
+
+                        C_pro = (property_map[j,i] != -1) * 1   #center property
+
+                        if C_pro == 0:
+                            phi[j,i] = 0
+                        else:
+                            dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
+                            
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
+
+                    if j > 0 and j < N_y - 1:
+
+                        dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
+                        dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
+
+                        C_pro = (property_map[j,i] != -1) * 1
+
+                        if C_pro == 0:    
+                            # n_x, n_y = getnormal(property_map[j-1:j+2,i-1:i+2])
+
+                            E_pro = property_map[j,i+1] 
+                            W_pro = property_map[j,i-1]  
+                            S_pro = property_map[j-1,i] 
+                            N_pro = property_map[j+1,i] 
+
+                            if E_pro == -1 and W_pro == -1 and S_pro == -1 and N_pro == -1:
+                                phi[j,i] = 0
+
+                            # if n_x == 0 and n_y == 0: 
+                            #     phi[j,i] = 0
+                            # elif n_x != 0 and n_y != 0:
+                            #     phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1] * (n_x > 0) + 2 * phi[j, i-1] * (n_x < 0)) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i] * (n_y < 0) + 2 * phi[j-1, i] * (n_y > 0)) 
+                            # elif n_x != 0:
+                            #     phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1] * (n_x > 0) + 2 * phi[j, i-1] * (n_x < 0)) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+                            # elif n_y != 0:
+                            #     phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1]  + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i] * (n_y < 0) + 2 * phi[j-1, i] * (n_y > 0)) 
+                             
+                        else:
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+
+                    if j == N_y - 1:
+
+                        C_pro = (not(property_map[j,i] == -1)) * 1
+
+                        if C_pro == 0:
+                            phi[j,i] = 0
+                        else:
+                            dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
+                            dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2
+
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
+
+
+            elif i == N_x - 1:
+
+                for j in y_index:
+                    
+                    if j == 0:   #if the north boundary is given neumann
+                        
+                        dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
+                        dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
+
+                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+
+                    if j > 0 and j < N_y - 1:
+
+                        dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
+                        dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
+
+                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+
+                    if j == N_y - 1:
+
+                        dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
+                        dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
+
+                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i])
+    
     return phi 
+    
 
 def column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, W, E):
     for i in x_index:
@@ -632,7 +781,8 @@ class PDE_2D_Solver:
 
         self.BCvalues = BC_values
         mesh = self.mesh
-        property_map = self.mesh.map()
+        property_map = mesh.map()
+        mesh.map.show()
         # print(property_map)
 
         (N_y, N_x) = np.shape(mesh.matricies[0])
@@ -707,12 +857,13 @@ class PDE_2D_Solver:
         # print(y_index)
         # print(x_index)
 
-        for t in range(2200):
+        for t in range(200):
 
             if itteration_type == "column":
                 phi = column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, W, E)
             elif itteration_type == "nodebynode":
-                phi = nodebynode(x_index, y_index, x_spacing, y_spacing, self.BCvalues, phi, property_map, N_x, N_y)
+                phi = nodebynode(x_index, y_index, x_spacing, y_spacing, self.BCvalues, phi, property_map, N_x, N_y, type = "stream")
+                
             
         self.solution = phi
 
@@ -829,7 +980,7 @@ class PDE_2D_Solver:
         u = self.velocity[:,:,0]
         v = self.velocity[:,:,1]
 
-        plt.streamplot(x_MAT, y_MAT, u, v, color=streamcolor, linewidth=2, cmap='autumn')
+        plt.streamplot(x_MAT, y_MAT, -u, v, color=streamcolor, linewidth=2, cmap='autumn')
         plt.show()
 
     def countour(self):
@@ -845,7 +996,7 @@ class PDE_2D_Solver:
         u = self.velocity[:,:,0]
         v = self.velocity[:,:,1]
 
-        plt.quiver(x_MAT, y_MAT, u, v)
+        plt.quiver(x_MAT, y_MAT, -u, v)
         plt.show()
 
 
