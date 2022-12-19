@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import cm
-from object import create_circle
+from object import create_circle, create_rectangle
+
 
 
 class Map:
@@ -78,6 +79,8 @@ class Map:
 
         if obj.type == "circle":
             self.area = create_circle(mesh, obj ,self)
+        if obj.type == "rectangle":
+            self.area = create_rectangle(mesh, obj ,self)
 
         # self.area()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] = self.area()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] + circle_matrix
 
