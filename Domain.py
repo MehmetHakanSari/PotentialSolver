@@ -480,7 +480,7 @@ def getnormal(local_map, ObjValue = "-1"):
 
     return n_x, n_y
 
-def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_map, N_x, N_y, type = "stream"):
+def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_map, N_x, N_y, type = "stream"):    
     if type == "stream":
         for i in x_index:
 
@@ -653,6 +653,9 @@ def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_m
 
                             if E_pro == -1 and W_pro == -1 and S_pro == -1 and N_pro == -1:
                                 phi[j,i] = 0
+                            if E_pro != -1 and W_pro == -1 and S_pro == -1 and N_pro == -1:
+                                phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i]  + phi[j-1, i]) 
+                                
 
                             # if n_x == 0 and n_y == 0: 
                             #     phi[j,i] = 0
@@ -767,7 +770,7 @@ class PDE_2D_Solver:
         self.velocity = None
         self.mesh = mesh
 
-    def solver(self, BC_values, itteration_type  = "column"):
+    def solver(self, BC_values, variable, itteration_type  = "column"):
         """
         Construct unknown matrix with its boundary condiations
         
@@ -779,6 +782,7 @@ class PDE_2D_Solver:
 
         """
 
+        self.variable = variable
         self.BCvalues = BC_values
         mesh = self.mesh
         property_map = mesh.map()
@@ -862,7 +866,7 @@ class PDE_2D_Solver:
             if itteration_type == "column":
                 phi = column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, W, E)
             elif itteration_type == "nodebynode":
-                phi = nodebynode(x_index, y_index, x_spacing, y_spacing, self.BCvalues, phi, property_map, N_x, N_y, type = "stream")
+                phi = nodebynode(x_index, y_index, x_spacing, y_spacing, self.BCvalues, phi, property_map, N_x, N_y, type = variable)
                 
             
         self.solution = phi
