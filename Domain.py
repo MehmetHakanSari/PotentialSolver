@@ -341,88 +341,6 @@ class Mesh:
                 J[j,i,:,:] = J_page
 
         self.Jacobian = J
-
-    def create_object(self, obj):
-        """
-           self contains physical domain and nodes number for each.
-           
-           obj_coordinate: objects coordinates that should be fitted inside the domain. How would object information save into X and Y matricies?
-           Map matrix or map object is perfect solution for this. Similar what I have done for fish-fisherman. Map can be translated to to 
-           solver class. According to map, it can specify if there is object or not. 
-
-           object coordiante can be list of points. It should enclose itself. Or I can write predefined objects. 
-           The think is as the nodes are given already I should automize the object creating. 
-
-           enclosing will take time to implement. 
-
-           obj_type: circle
-           obj_coor: radius, center
-
-           obj_type: rectengale
-           obj_coor: center, x_length, y_length etc.
-        """
-        if obj.type == "circle":
-            radius = obj.radius
-            center = obj.center
-
-        x1 = self.xlength[0] 
-        x2 = self.xlength[1]
-
-        y1 = self.ylength[0] 
-        y2 = self.ylength[1]
-
-        if center[0] < x1 or center[0] > x2:
-            ValueError("Circle x position of center should be inside the given domain")
-        if center[1] < x1 or center[1] > x2:
-            ValueError("Circle y position of center should be inside the given domain")
-
-        
-        """
-                c_y2
-                ****
-               ******
-              *********
-             ************
-       c_x1 ************** c_x2
-             ************
-              **********
-               *******
-                *****
-                c_y1
-
-                for any x,y that (x - x0)^2 - (y-y0)^2 <= r^2 lay inside the circle. you can start this in the vicinity of the circle.
-        """
-
-        c_x1 = center[0] - radius
-        c_x2 = center[0] + radius
-        c_y1 = center[1] - radius
-        c_y2 = center[1] + radius
-
-        if c_x1 < x1 or c_x2 > x2:
-            ValueError("Circle should be inside the given domain")
-        if c_y1 < y1 or c_y2 > y2:
-            ValueError("Circle should be inside the given domain")
-
-        #finding vicinity of the circle:
-
-        below = (self.matricies[0] <= c_x1)[0,:]      #A row that includes zeros until c_x1 then ones until end. 
-        top = (self.matricies[0] <= c_x2)[0,:]        #A row that includes zeros until c_x2 then ones until end. 
-
-        c_x1_index = np.nonzero((below == False)*1)[0][0]                #index of first one apperas in the list
-        c_x2_index = np.nonzero((top == False)*1)[0][0]                    #index of first one apperas in the list
-
-        below = (self.matricies[1] <= c_y1)[:,1]      #A row that includes zeros until c_x1 then ones until end. 
-        top = (self.matricies[1] <= c_y2)[:,1]        #A row that includes zeros until c_x2 then ones until end. 
-
-        c_y1_index = np.nonzero((below == False)*1)[0][0]               #index of first one apperas in the list
-        c_y2_index = np.nonzero((top == False)*1)[0][0]                  #index of first one apperas in the list
-
-        #finding points lies inside the circle
-
-        circle_matrix = ((self.matricies[0][c_y1_index:c_y2_index, c_x1_index:c_x2_index] - center[0])**2 + (self.matricies[1][c_y1_index:c_y2_index, c_x1_index:c_x2_index] - center[1])**2 <= radius**2) * -1
-
-        self.map()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] = self.map()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] + circle_matrix
-
         
     def plot2D(self):
         """
@@ -515,10 +433,10 @@ def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_m
                     
                     if j == 0:   #if the north boundary is given neumann
 
-                        C_pro = (not(property_map[j,i] == -1)) * 1
-                        W_pro = (not(property_map[j,i-1] == -1)) * 1
-                        E_pro = (not(property_map[j,i+1] == -1)) * 1
-                        S_pro = (not(property_map[j+1,i] == -1)) * 1
+                        C_pro = (not(property_map[j,i] == -2)) * 1
+                        W_pro = (not(property_map[j,i-1] == -2)) * 1
+                        E_pro = (not(property_map[j,i+1] == -2)) * 1
+                        S_pro = (not(property_map[j+1,i] == -2)) * 1
 
                         if C_pro == 0:
                             phi[j,i] = 0
@@ -530,11 +448,11 @@ def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_m
 
                     if j > 0 and j < N_y - 1:
 
-                        C_pro = (not(property_map[j,i] == -1)) * 1
-                        W_pro = (not(property_map[j,i-1] == -1)) * 1
-                        E_pro = (not(property_map[j,i+1] == -1)) * 1
-                        S_pro = (not(property_map[j+1,i] == -1)) * 1
-                        N_pro = (not(property_map[j-1,i] == -1)) * 1
+                        C_pro = (not(property_map[j,i] == -2)) * 1
+                        W_pro = (not(property_map[j,i-1] == -2)) * 1
+                        E_pro = (not(property_map[j,i+1] == -2)) * 1
+                        S_pro = (not(property_map[j+1,i] == -2)) * 1
+                        N_pro = (not(property_map[j-1,i] == -2)) * 1
 
                         if C_pro == 0:
                             phi[j,i] = 0
@@ -546,10 +464,10 @@ def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_m
 
                     if j == N_y - 1:
 
-                        C_pro = (not(property_map[j,i] == -1)) * 1
-                        W_pro = (not(property_map[j,i-1] == -1)) * 1
-                        E_pro = (not(property_map[j,i+1] == -1)) * 1
-                        N_pro = (not(property_map[j-1,i] == -1)) * 1
+                        C_pro = (not(property_map[j,i] == -2)) * 1
+                        W_pro = (not(property_map[j,i-1] == -2)) * 1
+                        E_pro = (not(property_map[j,i+1] == -2)) * 1
+                        N_pro = (not(property_map[j-1,i] == -2)) * 1
 
                         if C_pro == 0:
                             phi[j,i] = 0
@@ -625,7 +543,8 @@ def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_m
                     
                     if j == 0:   #if the north boundary is given neumann
 
-                        C_pro = (property_map[j,i] != -1) * 1   #center property
+                        C_pro = (property_map[j,i] != -2) * 1   #if it is wall check its sides. If the interior is in north or south 
+                        #j will be approximated. If interior is west or east i will be approximated
 
                         if C_pro == 0:
                             phi[j,i] = 0
@@ -642,35 +561,42 @@ def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_m
 
                         C_pro = (property_map[j,i] != -1) * 1
 
-                        if C_pro == 0:    
-                            # n_x, n_y = getnormal(property_map[j-1:j+2,i-1:i+2])
+                        if ((property_map[j,i] == -2) * 1) == 1:    
 
-                            E_pro = property_map[j,i+1] 
-                            W_pro = property_map[j,i-1]  
-                            S_pro = property_map[j-1,i] 
-                            N_pro = property_map[j+1,i] 
+                            E_pro = (property_map[j,i+1] == -1)
+                            W_pro = (property_map[j,i-1] == -1)  
+                            S_pro = (property_map[j-1,i] == -1) 
+                            N_pro = (property_map[j+1,i] == -1) 
 
-                            if E_pro == -1 and W_pro == -1 and S_pro == -1 and N_pro == -1:
-                                phi[j,i] = 0
-                            if E_pro != -1 and W_pro == -1 and S_pro == -1 and N_pro == -1:
-                                phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i]  + phi[j-1, i]) 
-                                
-
-                            # if n_x == 0 and n_y == 0: 
-                            #     phi[j,i] = 0
-                            # elif n_x != 0 and n_y != 0:
-                            #     phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1] * (n_x > 0) + 2 * phi[j, i-1] * (n_x < 0)) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i] * (n_y < 0) + 2 * phi[j-1, i] * (n_y > 0)) 
-                            # elif n_x != 0:
-                            #     phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1] * (n_x > 0) + 2 * phi[j, i-1] * (n_x < 0)) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
-                            # elif n_y != 0:
-                            #     phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1]  + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i] * (n_y < 0) + 2 * phi[j-1, i] * (n_y > 0)) 
-                             
-                        else:
+                            if E_pro:
+                                if S_pro:
+                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
+                                elif N_pro:
+                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
+                                else:
+                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+                            elif W_pro:
+                                if S_pro:
+                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
+                                elif N_pro:
+                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
+                                else:
+                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+                            else:
+                                if S_pro:
+                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
+                                elif N_pro:
+                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
+                                else:
+                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+                        elif ((property_map[j,i] == 0) * 1) == 1:
                             phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+                        else:
+                            phi[j,i] = 0
 
                     if j == N_y - 1:
 
-                        C_pro = (not(property_map[j,i] == -1)) * 1
+                        C_pro = (not(property_map[j,i] == -2)) * 1
 
                         if C_pro == 0:
                             phi[j,i] = 0

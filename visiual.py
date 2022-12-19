@@ -86,6 +86,8 @@ class Map:
         fig, ax = plt.subplots()
 
         # z = np.ones((self.nodes[1], self.nodes[0])) * 0.5
+        minvalue = np.min(self.area)
+        maxvalue = np.max(self.area)
 
-        image = ax.pcolormesh(self.area, vmin=-1, vmax=1, edgecolors="black",linewidth=0.1)
+        image = ax.pcolormesh(self.area, vmin=minvalue, vmax=maxvalue, edgecolors="black",linewidth=0.1)
         plt.show()

@@ -10,6 +10,9 @@ class object:
 
     def __init__(self):
         self.type = None
+        self.wall = -2
+        self.inter = -1
+        self.outer = 0
 
     def circle(self, radius, center):
         """
@@ -23,6 +26,11 @@ class object:
 
 
 def create_circle(mesh, obj, map):
+    """
+        Mesh: mesh class
+        obj: object class
+        Map: Map class
+    """
 
     center = obj.center 
     radius = obj.radius
@@ -65,7 +73,20 @@ def create_circle(mesh, obj, map):
     #finding points lies inside the circle
 
     circle_matrix = ((mesh.matricies[0][c_y1_index:c_y2_index, c_x1_index:c_x2_index] - center[0])**2 + (mesh.matricies[1][c_y1_index:c_y2_index, c_x1_index:c_x2_index] - center[1])**2 <= radius**2) * -1
+    # print(circle_matrix)
+
+    #defining wall
+    circle_matrix[:,0] = (circle_matrix[:,0] == obj.inter) * obj.wall
+    circle_matrix[:,-1] = (circle_matrix[:,-1] == obj.inter) * obj.wall
+    circle_matrix[0,:] = (circle_matrix[0,:] == obj.inter) * obj.wall
+    circle_matrix[-1,:] = (circle_matrix[-1,:] == obj.inter) * obj.wall
+
+    for j in range(1, len(circle_matrix[:,-2])):
+        for i in range(1, len(circle_matrix[:,-2])):
+            if circle_matrix[j, i] == obj.inter:
+                if circle_matrix[j+1, i] == obj.outer or circle_matrix[j-1, i] == obj.outer or  circle_matrix[j, i+1] == obj.outer or circle_matrix[j, i-1] == obj.outer:
+                    circle_matrix[j, i] = obj.wall
+
     map.area[c_y1_index:c_y2_index, c_x1_index:c_x2_index] += circle_matrix
-    # map.area()[c_y1_index:c_y2_index, c_x1_index:c_x2_index]
     
     return map.area
