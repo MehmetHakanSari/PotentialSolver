@@ -8,7 +8,6 @@ from object import object
 from visiual import *
 
 
-
 class Mesh:
     """
         Domain is the phsical domain that problem will be solved. (Formal)
@@ -16,8 +15,7 @@ class Mesh:
         In my mind I think to do Block type mesh. However For an airfoil which kind of mesh is used I am unaware of that. 
         C mesh for instance is one way to mesh it right? But could we seperate object boundaries while doing C-mesh. 
         First thing to do is 2D simple 1 block mesh. 
-
-        
+   
         Cartasiean:
 
         Blocks Physical boundaries:
@@ -34,8 +32,7 @@ class Mesh:
         Mesh Properties:
 
         [N_x, N_y, N_z] = Total node numbers in x, y, z direction. 
-
-        
+   
     """
 
     def __init__(self, pyhsical_domain, nodes):
@@ -356,46 +353,6 @@ class Mesh:
         image = ax.pcolormesh(x_MAT,np.flip(y_MAT), z, vmin=0, vmax=1, edgecolors="black",linewidth=0.1)
         plt.show()
     
-def getnormal(local_map, ObjValue = "-1"):
-    """
-        gets 3x3 matrix containing two different values (kinda 0's and 1's) and returns normal directions accordingly.
-        ObjValue default is -1 as object wall value.
-        example
-        lacal_map = [[ 0 -1 -1
-                       0 -1 -1
-                       0 -1 -1]]
-        normal for center: n_x = -1, n_y = 0
-    """
-    
-    x_direction = local_map[1,:] 
-    east_boundary = (x_direction[1] == x_direction[2])   #if it is true, right side is wall
-    west_boundary = (x_direction[0] == x_direction[1])   #if it is true, left side is wall
-    n_x = 0                                              #if both are true we are inside of the object. 
-                                                       
-    if east_boundary:
-        n_x = -1
-    if west_boundary:
-        n_x = 1
-    if east_boundary and west_boundary:
-        n_x = 0  #meaning that we are inside
-                    
-    y_direction = local_map[:,1] 
-    south_boundary = (y_direction[1] == y_direction[2])  #if it is true, right side is wall
-    north_boundary = (y_direction[0] == y_direction[1])  #if it is true, left side is wall
-    n_y = 0                                              #if both are true we are inside of the object. 
-
-    if south_boundary:
-        n_y = -1
-    if north_boundary:
-        n_y = 1
-    if south_boundary and north_boundary:
-        n_y = 0  #meaning that we are inside
-
-    if n_x != 0 and n_y != 0:
-        n_x = (n_x < 0) * -2**(1/2) / 2 + (n_x > 0) * 2**(1/2) / 2
-        n_y = (n_y < 0) * -2**(1/2) / 2 + (n_y > 0) * 2**(1/2) / 2
-
-    return n_x, n_y
 
 def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_map, N_x, N_y, type = "stream"):    
     if type == "stream":
