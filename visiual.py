@@ -4,20 +4,53 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import cm
+from object import create_circle
 
 
-class Map():
+class Map:
+    """
+        Creates the map of the given physical domain with its meshed surface. Updates itself by creating object inside the given matrix. 
+    """
     
-    def __init__(self, area):
+    def __init__(self, physical_domain):
         """
             Area is one matrix that you can show object of different kinds.
+
+            pysical_domain is mesh.
         """
-        self.area = area
+        self.mesh = physical_domain
+        self.area = np.zeros((self.mesh.nodes[1], self.mesh.nodes[0]))
+        self.interior = -1
+        self.wall = -2
+        self.outer = 0
 
     def __call__(self):
         return self.area
 
-    def create_object(self, physical_domain ,obj):
+    def geometry_guide(self):
+
+        
+        """    
+                CIRCLE
+
+                c_y2
+                ****
+               ******
+              *********
+             ************
+       c_x1 ************** c_x2
+             ************
+              **********
+               *******
+                *****
+                c_y1
+
+                for any x,y that (x - x0)^2 - (y-y0)^2 <= r^2 lay inside the circle. you can start this in the vicinity of the circle.
+        """
+        
+        pass
+
+    def create_object(self, obj):
         """
            self contains the map and the area is updated accordingly. 
            
@@ -40,67 +73,13 @@ class Map():
            obj_type: rectengale
            obj_coor: center, x_length, y_length etc.
         """
+
+        mesh = self.mesh
+
         if obj.type == "circle":
-            radius = obj.radius
-            center = obj.center
+            self.area = create_circle(mesh, obj ,self)
 
-        x1 = self.xlength[0] 
-        x2 = self.xlength[1]
-
-        y1 = self.ylength[0] 
-        y2 = self.ylength[1]
-
-        if center[0] < x1 or center[0] > x2:
-            ValueError("Circle x position of center should be inside the given domain")
-        if center[1] < x1 or center[1] > x2:
-            ValueError("Circle y position of center should be inside the given domain")
-
-        
-        """
-                c_y2
-                ****
-               ******
-              *********
-             ************
-       c_x1 ************** c_x2
-             ************
-              **********
-               *******
-                *****
-                c_y1
-
-                for any x,y that (x - x0)^2 - (y-y0)^2 <= r^2 lay inside the circle. you can start this in the vicinity of the circle.
-        """
-
-        c_x1 = center[0] - radius
-        c_x2 = center[0] + radius
-        c_y1 = center[1] - radius
-        c_y2 = center[1] + radius
-
-        if c_x1 < x1 or c_x2 > x2:
-            ValueError("Circle should be inside the given domain")
-        if c_y1 < y1 or c_y2 > y2:
-            ValueError("Circle should be inside the given domain")
-
-        #finding vicinity of the circle:
-
-        below = (self.matricies[0] <= c_x1)[0,:]      #A row that includes zeros until c_x1 then ones until end. 
-        top = (self.matricies[0] <= c_x2)[0,:]        #A row that includes zeros until c_x2 then ones until end. 
-
-        c_x1_index = np.nonzero((below == False)*1)[0][0]                #index of first one apperas in the list
-        c_x2_index = np.nonzero((top == False)*1)[0][0]                    #index of first one apperas in the list
-
-        below = (self.matricies[1] <= c_y1)[:,1]      #A row that includes zeros until c_x1 then ones until end. 
-        top = (self.matricies[1] <= c_y2)[:,1]        #A row that includes zeros until c_x2 then ones until end. 
-
-        c_y1_index = np.nonzero((below == False)*1)[0][0]               #index of first one apperas in the list
-        c_y2_index = np.nonzero((top == False)*1)[0][0]                  #index of first one apperas in the list
-
-        #finding points lies inside the circle
-
-        circle_matrix = ((self.matricies[0][c_y1_index:c_y2_index, c_x1_index:c_x2_index] - center[0])**2 + (self.matricies[1][c_y1_index:c_y2_index, c_x1_index:c_x2_index] - center[1])**2 <= radius**2) * -1
-
-        self.map()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] = self.map()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] + circle_matrix
+        # self.area()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] = self.area()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] + circle_matrix
 
     def show(self):
         

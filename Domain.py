@@ -46,9 +46,8 @@ class Mesh:
         self.pyhsical_domain = pyhsical_domain  
         self.nodes = nodes             
         self.matricies = None     
-        self.map = Map(np.zeros((self.nodes[1], self.nodes[0])))     
-           
         
+             
     def uniform_block_mesh_2D(self):
 
         if self.pyhsical_domain[0][0] != self.pyhsical_domain[1][0]:
@@ -770,7 +769,7 @@ class PDE_2D_Solver:
         self.velocity = None
         self.mesh = mesh
 
-    def solver(self, BC_values, variable, itteration_type  = "column"):
+    def solver(self, BC_values, variable, map, itteration_type  = "column"):
         """
         Construct unknown matrix with its boundary condiations
         
@@ -780,13 +779,18 @@ class PDE_2D_Solver:
 
         BC's are: float or ndarray
 
+        variable: Solve according to stream or potensial. Change it after defining wall BC.
+
+        map: map is the properties of the physical domain. It should be called in main script as map.area() 
+
         """
 
         self.variable = variable
         self.BCvalues = BC_values
         mesh = self.mesh
-        property_map = mesh.map()
-        mesh.map.show()
+        # property_map = mesh.map()
+        property_map = map    #name of the given input can be change like this afterwards 
+        property_map.show()
         # print(property_map)
 
         (N_y, N_x) = np.shape(mesh.matricies[0])
@@ -866,7 +870,7 @@ class PDE_2D_Solver:
             if itteration_type == "column":
                 phi = column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, W, E)
             elif itteration_type == "nodebynode":
-                phi = nodebynode(x_index, y_index, x_spacing, y_spacing, self.BCvalues, phi, property_map, N_x, N_y, type = variable)
+                phi = nodebynode(x_index, y_index, x_spacing, y_spacing, self.BCvalues, phi, property_map.area, N_x, N_y, type = variable)
                 
             
         self.solution = phi
