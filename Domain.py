@@ -684,13 +684,17 @@ class PDE_2D_Solver:
 
         (N_y, N_x) = np.shape(mesh.matricies[0])
 
-        x_spacing = np.zeros((N_y, N_x - 1),dtype="float")
-        y_spacing = np.zeros((N_y - 1, N_x),dtype="float")
+        if type(mesh.xspacing) == float:
+            x_spacing = np.ones((N_y, N_x - 1),dtype="float") * mesh.xspacing
+            y_spacing = np.ones((N_y - 1, N_x),dtype="float") * mesh.yspacing
+        else:
+            x_spacing = np.zeros((N_y, N_x - 1),dtype="float")
+            y_spacing = np.zeros((N_y - 1, N_x),dtype="float")
 
-        for i in range(N_y):
-            x_spacing[i,:] = mesh.xspacing
-        for i in range(N_x):
-            y_spacing[:,i] = mesh.yspacing.reshape(N_y-1, )
+            for i in range(N_y):
+                x_spacing[i,:] = mesh.xspacing
+            for i in range(N_x):
+                y_spacing[:,i] = mesh.yspacing.reshape(N_y-1, )
 
         
         phi = np.zeros((N_y, N_x))       #unknown

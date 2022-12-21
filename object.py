@@ -44,8 +44,9 @@ class object:
             points: list of list, containing (x, y)
         """
         self.type = "airfoil"
-        self.points = points
         self.scale = scale
+        self.points = points * scale
+        
 
 
 #rotate function will rotate airfoil coordinates by given angle
@@ -146,11 +147,18 @@ def create_airfoil(mesh, obj, map):
     # It is a closed shape but I just have the walls of it.
     # I need to fill the inner part of it.
 
+
     x_fill = np.linspace(c_x1, c_x2, c_x2_index - c_x1_index)
     y_fill = np.linspace(c_y1, c_y2, c_y2_index - c_y1_index)
 
-    fill_x_index = range(c_x1_index, c_x2_index + 3)
-    fill_y_index = range(c_y1_index, c_y2_index + 3)
+    print(x_fill)
+    print(y_fill)
+
+    fill_x_index = range(c_x1_index+1, c_x2_index+1)
+    fill_y_index = range(c_y1_index+1, c_y2_index+1)
+
+    print(fill_x_index)
+    print(fill_y_index)
 
     for i in range(len(x_fill)):
         for j in range(len(y_fill)):
@@ -159,13 +167,17 @@ def create_airfoil(mesh, obj, map):
 
             # i and j should be the index coming from c_x1_index and c_y1_index and c_x2_index and c_y2_index
 
-            ii = fill_x_index[i]  
-            jj = fill_y_index[j] 
-
-            # if the point is inside the airfoil, then fill it.
-            if map.area[jj, ii] == 0:
+            if map.area[j+c_y1_index+1, i + c_x1_index+1] == 0:
                 if point_inside_polygon(x, y, obj.points):
-                    map.area[jj, ii] = obj.inter
+                    map.area[j+c_y1_index+1, i + c_x1_index+1] = obj.inter
+
+    #it does not fill every point inside the airfoil, some points are missing.
+
+    for i in fill_x_index:
+        for j in fill_y_index:
+            if map.area[j, i] == 0:
+                if (map.area[j-1, i] != 0 and map.area[j+1, i] != 0) or (map.area[j, i-1] != 0 and map.area[j, i+1] != 0):
+                    map.area[j, i] = obj.inter
 
     return map.area
 

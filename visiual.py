@@ -96,5 +96,5 @@ class Map:
         minvalue = np.min(self.area)
         maxvalue = np.max(self.area)
 
-        image = ax.pcolormesh(self.area, vmin=minvalue, vmax=maxvalue, edgecolors="black",linewidth=0.1)
+        image = ax.pcolormesh(self.area, vmin=minvalue, vmax=maxvalue, edgecolors="none")
         plt.show()
