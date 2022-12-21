@@ -49,14 +49,18 @@ class Mesh:
 
         if self.pyhsical_domain[0][0] != self.pyhsical_domain[1][0]:
             #if the given coordinates are in same line for y coordinate pass other coordinate
+            self.xlength = sorted((self.pyhsical_domain[0][0], self.pyhsical_domain[1][0]))
             x_list = np.linspace(self.pyhsical_domain[0][0], self.pyhsical_domain[1][0], self.nodes[0])
         elif self.pyhsical_domain[1][0] != self.pyhsical_domain[2][0]:
+            self.xlength = sorted((self.pyhsical_domain[1][0], self.pyhsical_domain[2][0]))
             x_list = np.linspace(self.pyhsical_domain[1][0], self.pyhsical_domain[2][0], self.nodes[0])
 
         if self.pyhsical_domain[0][1] != self.pyhsical_domain[1][1]:
             #if the given coordinates are in same line for x coordinate pass other coordinate
+            self.ylength = sorted((self.pyhsical_domain[0][1], self.pyhsical_domain[1][1]))
             y_list = np.linspace(self.pyhsical_domain[0][1], self.pyhsical_domain[1][1], self.nodes[1])
         elif self.pyhsical_domain[1][1] != self.pyhsical_domain[2][1]:
+            self.ylength = sorted((self.pyhsical_domain[1][1], self.pyhsical_domain[2][1]))
             y_list = np.linspace(self.pyhsical_domain[1][1], self.pyhsical_domain[2][1], self.nodes[1])
 
         if x_list[-1] < x_list[0]:      #Small value to large value to be consistent for physiscs
@@ -77,6 +81,8 @@ class Mesh:
             y_MAT[:,i] = y_list
 
         self.matricies = [x_MAT, y_MAT]
+        self.xspacing = x_spacing
+        self.yspacing = y_spacing
 
         return x_spacing, y_spacing
 
