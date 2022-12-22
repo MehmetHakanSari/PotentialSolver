@@ -770,7 +770,7 @@ class PDE_2D_Solver:
         # print(y_index)
         # print(x_index)
 
-        for t in range(4000):
+        for t in range(1500):
 
             if itteration_type == "column":
                 phi = column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, W, E)
@@ -833,7 +833,7 @@ class PDE_2D_Solver:
         z_max = self.solution.max()
 
         fig.set_size_inches(15, 15)
-        image = ax.pcolormesh(x_MAT,np.flip(y_MAT), self.solution, vmin=z_min, vmax=z_max, edgecolors="none", cmap=colormap)
+        image = ax.pcolormesh(x_MAT, y_MAT, self.solution, vmin=z_min, vmax=z_max, edgecolors="none", cmap=colormap)
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="6%", pad="2%")
 
