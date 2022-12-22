@@ -95,6 +95,6 @@ class Map:
         # z = np.ones((self.nodes[1], self.nodes[0])) * 0.5
         minvalue = np.min(self.area)
         maxvalue = np.max(self.area)
-
+        fig.set_size_inches(15, 15)
         image = ax.pcolormesh(self.area, vmin=minvalue, vmax=maxvalue, edgecolors="none")
         plt.show()

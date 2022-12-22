@@ -151,15 +151,10 @@ def create_airfoil(mesh, obj, map):
     x_fill = np.linspace(c_x1, c_x2, c_x2_index - c_x1_index)
     y_fill = np.linspace(c_y1, c_y2, c_y2_index - c_y1_index)
 
-    print(x_fill)
-    print(y_fill)
 
     fill_x_index = range(c_x1_index+1, c_x2_index+1)
     fill_y_index = range(c_y1_index+1, c_y2_index+1)
-
-    print(fill_x_index)
-    print(fill_y_index)
-
+    
     for i in range(len(x_fill)):
         for j in range(len(y_fill)):
             x = x_fill[i]

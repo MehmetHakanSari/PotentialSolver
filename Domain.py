@@ -500,7 +500,7 @@ def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_m
                         phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
 
 
-            elif i > 0 and i < N_x - 1:  #if the west boundary is given neumann
+            elif i > 0 and i < N_x - 1:  #interior points   
 
                 for j in y_index:
                     
@@ -522,40 +522,48 @@ def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_m
                         dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
                         dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
 
-                        C_pro = (property_map[j,i] != -1) * 1
+                        # if (j == 66) and (i == 36):
+                            # print(property_map[j,i])
+                        if (property_map[j,i] == -2):    #if it is a wall
 
-                        if ((property_map[j,i] == -2) * 1) == 1:    
+                            #determine which sides are in the interior
+                            
+                            east = (property_map[j,i+1] == -1)
+                            west = (property_map[j,i-1] == -1)  
+                            south = (property_map[j+1,i] == -1) 
+                            north = (property_map[j-1,i] == -1) 
 
-                            E_pro = (property_map[j,i+1] == -1)
-                            W_pro = (property_map[j,i-1] == -1)  
-                            S_pro = (property_map[j-1,i] == -1) 
-                            N_pro = (property_map[j+1,i] == -1) 
+                            # if (j == 66) and (i == 36):
+                                # print(east, west, south, north)
 
-                            if E_pro:
-                                if S_pro:
-                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
-                                elif N_pro:
+                            if east:
+                                if south:
                                     phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
+                                elif north:
+                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
                                 else:
                                     phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
-                            elif W_pro:
-                                if S_pro:
-                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
-                                elif N_pro:
+                            elif west:
+                                if south:
                                     phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
+                                elif north:
+                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
                                 else:
                                     phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
                             else:
-                                if S_pro:
-                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
-                                elif N_pro:
+                                if south:
                                     phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
+                                    # if (j == 66) and (i == 36):
+                                        # print(phi[j,i])
+                                elif north:
+                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
                                 else:
                                     phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
-                        elif ((property_map[j,i] == 0) * 1) == 1:
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
-                        else:
+                        elif (property_map[j,i] == -1):
                             phi[j,i] = 0
+                        else:
+                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+                            
 
                     if j == N_y - 1:
 
@@ -594,7 +602,10 @@ def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_m
                         dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
 
                         phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i])
-    
+
+        phi = ((property_map != -1) * 1) * phi 
+
+                    
     return phi 
     
 
@@ -679,7 +690,7 @@ class PDE_2D_Solver:
         mesh = self.mesh
         # property_map = mesh.map()
         property_map = map    #name of the given input can be change like this afterwards 
-        property_map.show()
+
         # print(property_map)
 
         (N_y, N_x) = np.shape(mesh.matricies[0])
@@ -697,7 +708,8 @@ class PDE_2D_Solver:
                 y_spacing[:,i] = mesh.yspacing.reshape(N_y-1, )
 
         
-        phi = np.zeros((N_y, N_x))       #unknown
+        # phi = np.zeros((N_y, N_x))       #unknown
+        phi = np.ones((N_y, N_x)) * 0.2      #unknown
         phi_new = np.zeros((N_y, N_x))   #unknown for storing new values
         source = np.zeros((N_y, N_x))
 
@@ -758,7 +770,7 @@ class PDE_2D_Solver:
         # print(y_index)
         # print(x_index)
 
-        for t in range(200):
+        for t in range(4000):
 
             if itteration_type == "column":
                 phi = column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, W, E)
@@ -820,7 +832,8 @@ class PDE_2D_Solver:
         z_min = self.solution.min()
         z_max = self.solution.max()
 
-        image = ax.pcolormesh(x_MAT,np.flip(y_MAT), self.solution, vmin=z_min, vmax=z_max, edgecolors="black", cmap=colormap, linewidth=0.1)
+        fig.set_size_inches(15, 15)
+        image = ax.pcolormesh(x_MAT,np.flip(y_MAT), self.solution, vmin=z_min, vmax=z_max, edgecolors="none", cmap=colormap)
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="6%", pad="2%")
 
@@ -897,6 +910,9 @@ class PDE_2D_Solver:
         u = self.velocity[:,:,0]
         v = self.velocity[:,:,1]
 
+        fig, ax = plt.subplots()
+
+        fig.set_size_inches(15, 15)
         plt.quiver(x_MAT, y_MAT, -u, v)
         plt.show()
 
