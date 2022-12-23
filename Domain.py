@@ -687,6 +687,7 @@ class PDE_2D_Solver:
 
         self.variable = variable
         self.BCvalues = BC_values
+        self.map = map
         mesh = self.mesh
         # property_map = mesh.map()
         property_map = map    #name of the given input can be change like this afterwards 
@@ -800,14 +801,15 @@ class PDE_2D_Solver:
 
         (N_y, N_x) = np.shape(X)
 
-        dx = X[0,1] - X[0,0]
+        dx = X[0,1] - X[0,0]   #normally dx should be taken from the spacing matrix. 
         dy = Y[0,0] - Y[1,0]
 
         if type == "potensial":
-            (u, v) = TwoDcentraldiff_simple(self.solution, dx, dy)
+            # (u, v) = TwoDcentraldiff_simple(self.solution, dx, dy)
+            u, v  = TwoDcentral_diff_velocity(self)
+
         elif type == "stream":
             (v, u) = TwoDcentraldiff_simple(self.solution, dx, dy)
-            v = -v
 
 
         W = np.zeros((N_y, N_x, 3))
