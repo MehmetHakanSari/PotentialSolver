@@ -125,7 +125,7 @@ def TDMA(W,C,E,Q):
 
 def TwoDcentral_diff_velocity(solution):
     
-    n, m = np.shape(solution.solution)
+    n, m = np.shape(solution.mesh.matricies[0])
     dfuncdx = np.zeros((n,m), dtype="float")
     dfuncdy = np.zeros((n,m), dtype="float")
     func = solution.solution
@@ -139,9 +139,6 @@ def TwoDcentral_diff_velocity(solution):
     else:
         dy = solution.mesh.yspacing[0,0]
 
-    print(dx)
-    print(dy)
-     
     dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (2 * dx) #Forward 
     dfuncdx[:,-1] = (func[:,-3] - 4 * func[:,-2] + 3 * func[:, -1]) / (2 * dx) #Backward
 

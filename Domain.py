@@ -360,7 +360,7 @@ class Mesh:
         plt.show()
     
 
-def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_map, N_x, N_y, type = "stream"):    
+def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, phi_old, property_map, N_x, N_y, omega,type = "stream"):    
     if type == "stream":
         for i in x_index:
 
@@ -472,6 +472,7 @@ def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_m
                         phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i])
     
     elif type == "potensial":
+
         for i in x_index:
 
             if i == 0:  #if the west boundary is given neumann
@@ -483,21 +484,21 @@ def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_m
                         dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
                         dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2
                         
-                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
+                        phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
 
                     if j > 0 and j < N_y - 1:
                         
                         dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
                         dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2  
 
-                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+                        phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
 
                     if j == N_y - 1:   #if the south boundary is given neumann
 
                         dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
                         dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2
 
-                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
+                        phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
 
 
             elif i > 0 and i < N_x - 1:  #interior points   
@@ -515,7 +516,7 @@ def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_m
                             dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
                             dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
                             
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
+                            phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
 
                     if j > 0 and j < N_y - 1:
 
@@ -538,31 +539,31 @@ def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_m
 
                             if east:
                                 if south:
-                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
+                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
                                 elif north:
-                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
+                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
                                 else:
-                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
                             elif west:
                                 if south:
-                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
+                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
                                 elif north:
-                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
+                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
                                 else:
-                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
                             else:
                                 if south:
-                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
+                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
                                     # if (j == 66) and (i == 36):
                                         # print(phi[j,i])
                                 elif north:
-                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
+                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
                                 else:
-                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
                         elif (property_map[j,i] == -1):
                             phi[j,i] = 0
                         else:
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
+                            phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
                             
 
                     if j == N_y - 1:
@@ -575,7 +576,7 @@ def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_m
                             dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
                             dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2
 
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
+                            phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
 
 
             elif i == N_x - 1:
@@ -604,7 +605,7 @@ def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, property_m
                         phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i])
 
         phi = ((property_map != -1) * 1) * phi 
-
+        phi = (1 - omega) * phi_old + omega * phi
                     
     return phi 
     
@@ -669,7 +670,7 @@ class PDE_2D_Solver:
         self.velocity = None
         self.mesh = mesh
 
-    def solver(self, BC_values, variable, map, itteration_type  = "column"):
+    def solver(self, BC_values, variable, map, omega, toll, itteration_type  = "column"):
         """
         Construct unknown matrix with its boundary condiations
         
@@ -710,8 +711,8 @@ class PDE_2D_Solver:
 
         
         # phi = np.zeros((N_y, N_x))       #unknown
-        phi = np.ones((N_y, N_x)) * 0.2      #unknown
-        phi_new = np.zeros((N_y, N_x))   #unknown for storing new values
+        phi = np.ones((N_y, N_x)) * np.linspace(BC_values['W'], BC_values['E'], N_x)     #unknown
+        phi_old = np.zeros((N_y, N_x))   #unknown for storing new values
         source = np.zeros((N_y, N_x))
 
         #Coefficient Matricies 
@@ -770,16 +771,44 @@ class PDE_2D_Solver:
         # print(x_spacing)
         # print(y_index)
         # print(x_index)
+        
 
-        for t in range(1500):
+        message = 100
+
+        for t in range(1, 5001):
 
             if itteration_type == "column":
                 phi = column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, W, E)
             elif itteration_type == "nodebynode":
-                phi = nodebynode(x_index, y_index, x_spacing, y_spacing, self.BCvalues, phi, property_map.area, N_x, N_y, type = variable)
-                
+                phi = nodebynode(x_index, y_index, x_spacing, y_spacing, self.BCvalues, phi, phi_old, property_map.area, N_x, N_y, omega, type = variable)
+
+            #calculate the error
+            residual = np.sum(np.abs(phi - phi_old))
+
+            if (t) % message == 0:
+                print("Residual: ", residual, "Mass:", self.mass_conservation(),  " at ", t, "th iteration")
             
-        self.solution = phi
+            if residual < toll:
+                print("Residual: ", residual)
+                print("Solution converged at ", t, "th iteration")
+                break
+
+            phi_old = phi.copy()
+            self.solution = phi.copy()
+ 
+
+    def mass_conservation(self):
+        """
+            This function is for checking the mass conservation. 
+            It is not necessary for the solver. 
+        """
+        self.velocityfield("potensial")
+        u = self.velocity[:,:,0]
+        v = self.velocity[:,:,1]
+
+        mass = np.sum(u[:,0]) - np.sum(u[:,-1]) + np.sum(u[0,:]) - np.sum(u[-1,:]) + np.sum(v[:,0]) - np.sum(v[:,-1]) + np.sum(v[0,:]) - np.sum(v[-1,:])
+
+        return mass
 
 
     def velocityfield(self, type = "potensial"):
@@ -809,7 +838,7 @@ class PDE_2D_Solver:
             u, v  = TwoDcentral_diff_velocity(self)
 
         elif type == "stream":
-            (v, u) = TwoDcentraldiff_simple(self.solution, dx, dy)
+            (v, u) = TwoDcentral_diff_velocity(self.solution, dx, dy)
 
 
         W = np.zeros((N_y, N_x, 3))
@@ -819,7 +848,7 @@ class PDE_2D_Solver:
 
         self.velocity = W
 
-    def plot2D(self, type ="potensial", colormap = "hot"):
+    def plot2D(self, type ="potensial", colormap = "copper"):
         """
             plot Z for domain of the X and Y. 
         """
@@ -896,7 +925,10 @@ class PDE_2D_Solver:
         u = self.velocity[:,:,0]
         v = self.velocity[:,:,1]
 
-        plt.streamplot(x_MAT, y_MAT, -u, v, color=streamcolor, linewidth=2, cmap='autumn')
+        speed = np.sqrt(u*u + v*v)
+        lw = 2.2*speed/speed.max()
+
+        plt.streamplot(x_MAT, y_MAT, -u, v, color=u, density=0.9, linewidth=lw, cmap='winter')
         plt.show()
 
     def countour(self):
