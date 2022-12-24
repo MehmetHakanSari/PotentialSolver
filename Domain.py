@@ -774,8 +774,9 @@ class PDE_2D_Solver:
         
 
         message = 100
+        mass = 1
 
-        for t in range(1, 5001):
+        for t in range(1, 3001):
 
             if itteration_type == "column":
                 phi = column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, W, E)
@@ -786,10 +787,11 @@ class PDE_2D_Solver:
             residual = np.sum(np.abs(phi - phi_old))
 
             if (t) % message == 0:
-                print("Residual: ", residual, "Mass:", self.mass_conservation(),  " at ", t, "th iteration")
+                mass = self.mass_conservation()
+                print("Residual: ", residual, "Mass:", mass, " at ", t, "th iteration")
             
-            if residual < toll:
-                print("Residual: ", residual)
+            if residual < toll or abs(mass) < 5e-4:
+                print("Residual: ", residual, "Mass:", mass)
                 print("Solution converged at ", t, "th iteration")
                 break
 
