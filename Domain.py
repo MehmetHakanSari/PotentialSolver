@@ -773,30 +773,35 @@ class PDE_2D_Solver:
         # print(x_index)
         
 
-        message = 100
-        mass = 1
+        message = 500
+        mass_old = 1
 
-        for t in range(1, 3001):
+        for t in range(1, 500001):
 
             if itteration_type == "column":
                 phi = column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, W, E)
             elif itteration_type == "nodebynode":
                 phi = nodebynode(x_index, y_index, x_spacing, y_spacing, self.BCvalues, phi, phi_old, property_map.area, N_x, N_y, omega, type = variable)
 
+            self.solution = phi.copy()
+
             #calculate the error
+            mass = self.mass_conservation()
             residual = np.sum(np.abs(phi - phi_old))
+            mass_residaul = abs(mass - mass_old) / mass_old
 
             if (t) % message == 0:
-                mass = self.mass_conservation()
-                print("Residual: ", residual, "Mass:", mass, " at ", t, "th iteration")
+                # mass = self.mass_conservation()
+                print("Residual: ", residual,"Mass Residual:", mass_residaul ,"Mass:", mass, " at ", t, "th iteration")
             
-            if residual < toll or abs(mass) < 5e-4:
+            if residual < toll or abs(mass_residaul) < 5e-12:
                 print("Residual: ", residual, "Mass:", mass)
                 print("Solution converged at ", t, "th iteration")
                 break
 
             phi_old = phi.copy()
-            self.solution = phi.copy()
+            mass_old = mass
+            
  
 
     def mass_conservation(self):
