@@ -5,6 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import cm
 import math
+import scipy as sp
 
 
 class object:
@@ -47,22 +48,6 @@ class object:
         self.scale = scale
         self.points = points * scale
         
-
-
-#rotate function will rotate airfoil coordinates by given angle
-def rotate(x, y, angle):
-    """
-        x: x coordinates of airfoil
-        y: y coordinates of airfoil
-        angle: angle to rotate airfoil
-    """
-    x_rotated = []
-    y_rotated = []
-    for i in range(len(x)):
-        x_rotated.append(x[i] * math.cos(angle) - y[i] * math.sin(angle))
-        y_rotated.append(x[i] * math.sin(angle) + y[i] * math.cos(angle))
-    return x_rotated, y_rotated
-
 
 def create_airfoil(mesh, obj, map):
     """
@@ -193,13 +178,6 @@ def point_inside_polygon(x, y, poly):
         p1x, p1y = p2x, p2y
 
     return inside
-
-    # #creating airfoil matrix. 
-    # for j in range(c_y1_index,c_y2_index): 
-    #     for i in range(c_x1_index,c_x2_index):
-    #         mesh.matricies[0][j,i]  #x_MAT
-    #         mesh.matricies[1][j,i]  #y_MAT 
-
 
 def create_circle(mesh, obj, map):
     """
@@ -358,3 +336,29 @@ def create_rectangle(mesh, obj, map):
 
     return map.area
 
+#rotate function will rotate airfoil coordinates by given angle
+def rotate(x, y, angle):
+    """
+        x: x coordinates of airfoil
+        y: y coordinates of airfoil
+        angle: angle to rotate airfoil
+    """
+    x_rotated = []
+    y_rotated = []
+    for i in range(len(x)):
+        x_rotated.append(x[i] * math.cos(angle) - y[i] * math.sin(angle))
+        y_rotated.append(x[i] * math.sin(angle) + y[i] * math.cos(angle))
+    return x_rotated, y_rotated
+
+
+def closeshape_interpolation(contour, length = int):
+    #contour: 2D array containing x and y coordinates of the closed curve. 
+    #length: int. Interpolated close shape counter matrix length. 
+
+    tck, u = sp.interpolate.splprep([contour[:,0], contour[:,1]], s=0)
+    u_new = np.linspace(u.min(), u.max(), length)
+    x_new, y_new = sp.interpolate.splev(u_new, tck, der=0)
+
+    contour = np.array([x_new, y_new]).T
+
+    return contour
