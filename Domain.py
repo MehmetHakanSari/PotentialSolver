@@ -121,7 +121,7 @@ class Mesh:
                         x_list[0] = self.pyhsical_domain[1][0]
             for i in range(1,self.nodes[0]):
                 x_list[i] = x_list[i-1] + dx * g_x**(i-1)  
-                x_spacing[:,i-1] = dx * g_x**(i-1)  
+                x_spacing[:,0:i-1] = dx * g_x**(i-1)  
             
         elif self.pyhsical_domain[1][0] != self.pyhsical_domain[2][0]:
             self.xlength = sorted((self.pyhsical_domain[1][0], self.pyhsical_domain[2][0]))
@@ -361,7 +361,6 @@ class Mesh:
         plt.show()
     
 
-
 class ElippticMesh:
 
     def __init__(self, nodes, GAMA1, GAMA2):
@@ -371,6 +370,8 @@ class ElippticMesh:
             GAMA2: 2D ndarray. GAMA2 matrix contains x and y coordinates of the physical domain curve. Row length equals N_zeta. It is outer boundary.
         """
         self.nodes = nodes
+        self.GAMA1 = GAMA1
+        self.GAMA2 = GAMA2
         
         
     def create_elipticmesh(self):
@@ -399,44 +400,46 @@ class ElippticMesh:
         beta = np.zeros((self.nodes[1], self.nodes[0]))
         gamma = np.zeros((self.nodes[1], self.nodes[0]))
 
-        #create X and Y matrixes and give boundaryt conditions from GAMA1, GAMA2, GAMA3 and GAMA4
+        #create X and Y matrixes and give boundary conditions from GAMA1, GAMA2, GAMA3 and GAMA4
 
         X = np.zeros((self.nodes[1], self.nodes[0]))
         Y = np.zeros((self.nodes[1], self.nodes[0]))
 
         X[0,:] = GAMA1[:,0]
         X[-1,:] = GAMA2[:,0]
-        X[:,0] = GAMA3[:,0]
-        X[:,-1] = GAMA4[:,0]
+        X[:,0] = np.flip(GAMA3[:,0])
+        X[:,-1] = np.flip(GAMA4[:,0])
 
         Y[0,:] = GAMA1[:,1]
         Y[-1,:] = GAMA2[:,1]
-        Y[:,0] = GAMA3[:,1]
-        Y[:,-1] = GAMA4[:,1]
+        Y[:,0] = np.flip(GAMA3[:,1])
+        Y[:,-1] = np.flip(GAMA4[:,1])
 
         X_new, Y_new = X, Y
         error_x, error_y = 1, 1
 
         maxiteration = 5000
-        message = 100
+        message = 1000
+
+        N_z = self.nodes[0]
+        N_e = self.nodes[1]
 
         for iteration in range(maxiteration):
 
-            i = range(1, self.nodes[0] - 1)
-            j = range(1, self.nodes[1] - 1)
+            alpha[1:N_e-1, 1: N_z-1] = (1/4) * ((X[2:N_e, 1:N_z-1] - X[0:N_e-2, 1:N_z-1])**2 + (Y[2:N_e, 1: N_z-1] - Y[0:N_e-2, 1: N_z-1])**2)
+            beta[1:N_e-1, 1: N_z-1] = (1/16) * ((X[2:N_e, 1:N_z-1] - X[0:N_e-2, 1:N_z-1]) * (X[1: N_e-1, 2: N_z] - X[1: N_e-1, 0:N_z-2]) + (Y[2:N_e, 1: N_z-1] - Y[0:N_e-2, 1: N_z-1]) * (Y[1: N_e-1, 2: N_z] - Y[1: N_e-1, 0:N_z-2]))
+            gamma[1:N_e-1, 1: N_z-1] = (1/4) * ((X[1: N_e-1, 2: N_z] - X[1: N_e-1, 0:N_z-2])**2 + (Y[1: N_e-1, 2: N_z] - Y[1: N_e-1, 0:N_z-2])**2)
 
-            alpha[j, i] = (1/4) * ((X[j+1, i] - X[j-1, i])**2 + (Y[j+1, i] - Y[j-1, i])**2)
-            beta[j, i] = (1/16) * ((X[j+1, i] - X[j-1, i]) * (X[j, i+1] - X[j, i-1]) + (Y[j+1, i] - Y[j-1, i]) * (Y[j, i+1] - Y[j, i-1]))
-            gamma[j, i] = (1/4) * ((X[j, i+1] - X[j, i-1])**2 + (Y[j, i+1] - Y[j, i-1])**2)
-
-            X_new[j, i] = ((-0.5) / (alpha[j, i] + gamma[j, i] + 1e-9)) * (2 * beta[j, i] * (X[j+1, i+1] - X[j+1, i-1] - X[j-1, i+1] + X[i-1, j-1]) - alpha[j, i] * (X[j, i+1] + X[j , i-1]) - gamma[j, i] * (X[j+1, i] + X[j-1, i]))
-            Y_new[j, i] = ((-0.5) / (alpha[j, i] + gamma[j, i] + 1e-9)) * (2 * beta[j, i] * (Y[j+1, i+1] - Y[j+1, i-1] - Y[j-1, i+1] + Y[i-1, j-1]) - alpha[j, i] * (Y[j, i+1] + Y[j , i-1]) - gamma[j, i] * (Y[j+1, i] + Y[j-1, i]))
+            X_new[1:N_e-1, 1:N_z-1] = ((-0.5) / (alpha[1:N_e-1, 1:N_z-1] + gamma[1:N_e-1, 1:N_z-1] + 1e-9)) * (2 * beta[1:N_e-1, 1:N_z-1] * (X[2:N_e, 2:N_z] - X[2:N_e, 0:N_z-2] - X[0:N_e-2, 2:N_z] + X[0:N_e-2, 0:N_z-2]) - alpha[1:N_e-1, 1:N_z-1] * (X[1:N_e-1, 2: N_z] + X[1:N_e-1 , 0:N_z-2]) - gamma[1:N_e-1, 1:N_z-1] * (X[2:N_e, 1:N_z-1] + X[0:N_e-2, 1:N_z-1]))
+            Y_new[1:N_e-1, 1:N_z-1] = ((-0.5) / (alpha[1:N_e-1, 1:N_z-1] + gamma[1:N_e-1, 1:N_z-1] + 1e-9)) * (2 * beta[1:N_e-1, 1:N_z-1] * (Y[2:N_e, 2: N_z] - Y[2:N_e, 0:N_z-2] - Y[0:N_e-2, 2: N_z] + Y[0:N_e-2, 0:N_z-2]) - alpha[1:N_e-1, 1:N_z-1] * (Y[1:N_e-1, 2: N_z] + Y[1:N_e-1 , 0:N_z-2]) - gamma[1:N_e-1, 1:N_z-1] * (Y[2:N_e, 1:N_z-1] + Y[0:N_e-2, 1:N_z-1]))
 
             error_x = np.max(np.abs(X_new - X))
             error_y = np.max(np.abs(Y_new - Y))
+            # print(alpha[1:N_e-1, 1:N_z-1])
+            # print(error_x, error_y)
 
-            if error_x < 1e-6 and error_y < 1e-6:
-                break
+            # if error_x < 1e-6 and error_y < 1e-6:
+            #     break
 
             #give message with some interval 
             if iteration % message == 0:
@@ -445,19 +448,24 @@ class ElippticMesh:
             if iteration == maxiteration - 1:
                 print("Max iteration reached. Error is: ", error_x, error_y)
 
-            X = X_new
-            Y = Y_new
+            X = X_new.copy()
+            Y = Y_new.copy()
 
         self.X = X
         self.Y = Y
+
 
 
     def plot_mesh(self):
         """
             Plot mesh
         """
-        plt.figure()
-        plt.plot(self.X, self.Y, 'k')
+        plt.figure(figsize=(15,15))
+        
+        for i in range(self.nodes[0]):
+            plt.plot(self.X[:,i], self.Y[:,i], 'k')
+        for i in range(self.nodes[1]):
+            plt.plot(self.X[i,:], self.Y[i,:], 'k')
         plt.show()
 
 
