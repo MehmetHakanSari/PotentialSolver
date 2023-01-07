@@ -444,7 +444,7 @@ class PDE_2D_Solver:
                 # mass = self.mass_conservation()
                 print("Residual: ", residual,"Mass Residual:", mass_residaul ,"Mass:", mass, " at ", t, "th iteration", "  Time: ", perf_counter() - start)
 
-            if residual < toll or abs(mass_residaul) < 5e-12:
+            if residual < toll or abs(mass_residaul) < toll or abs(mass) < toll:
                 print("Residual: ", residual, "Mass:", mass)
                 print("Solution converged at ", t, "th iteration")
                 break
@@ -521,7 +521,7 @@ class PDE_2D_Solver:
         z_max = self.solution.max()
 
         fig.set_size_inches(15, 15)
-        image = ax.pcolormesh(x_MAT, y_MAT, self.solution, vmin=z_min, vmax=z_max, edgecolors="none", cmap=colormap)
+        image = ax.pcolormesh(x_MAT, np.flip(y_MAT), self.solution, vmin=z_min, vmax=z_max, edgecolors="none", cmap=colormap)
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="6%", pad="2%")
 
@@ -583,9 +583,10 @@ class PDE_2D_Solver:
         v = self.velocity[:,:,1]
 
         speed = np.sqrt(u*u + v*v)
-        lw = 2.2*speed/speed.max()
+        lw = 1.2*speed/speed.max()
+        lw = 1;
 
-        plt.streamplot(x_MAT, y_MAT, -u, v, color=u, density=0.9, linewidth=lw, cmap='winter')
+        plt.streamplot(x_MAT, y_MAT, -u, v, color=streamcolor, density=0.9, linewidth=lw, cmap='winter')
         plt.show()
 
     def countour(self):

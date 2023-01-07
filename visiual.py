@@ -84,8 +84,6 @@ class Map:
         if obj.type == "airfoil":
             self.area = create_airfoil(mesh, obj ,self)
         
-                
-
         # self.area()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] = self.area()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] + circle_matrix
 
     def show(self):

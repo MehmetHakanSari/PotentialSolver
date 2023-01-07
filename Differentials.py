@@ -145,7 +145,7 @@ def TwoDcentral_diff_velocity(solution):
     dfuncdy[0,:] = -(-func[2,:] + 4 * func[1,:] - 3 * func[0,:]) / (2 * dy) #Forward 
     dfuncdy[-1,:] = -(func[-3,:] - 4 * func[-2,:] + 3 * func[-1, :]) / (2 * dy) #Backward
 
-    for j in range(1, n-1):
+    for j in range(n):
          for i in range(1, m-1):
             if solution.map.area[j,i] == -2:
                 #check where is the boundary on the east or west side of the wall
@@ -164,7 +164,7 @@ def TwoDcentral_diff_velocity(solution):
                 #central difference
                 dfuncdx[j,i] = (func[j,i+1] - func[j,i-1]) / (2 * dx)
 
-    for i in range(1, m-1):
+    for i in range(m):
         for j in range(1, n-1):  #If (y(0)) != (y = 0). the case when matrix index is not coordinate. 
             if solution.map.area[j,i] == -2:
                 #check where is the boundary on the north or south side of the wall
