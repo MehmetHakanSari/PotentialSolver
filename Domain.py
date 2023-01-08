@@ -435,11 +435,12 @@ class ElippticMesh:
 
             error_x = np.max(np.abs(X_new - X))
             error_y = np.max(np.abs(Y_new - Y))
+            
             # print(alpha[1:N_e-1, 1:N_z-1])
             # print(error_x, error_y)
 
             # if error_x < 1e-6 and error_y < 1e-6:
-            #     break
+                # break
 
             #give message with some interval 
             if iteration % message == 0:
@@ -453,6 +454,9 @@ class ElippticMesh:
 
         self.X = X
         self.Y = Y
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
 
 
 

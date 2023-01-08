@@ -298,6 +298,87 @@ def column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, 
 
     return phi
 
+class eliptic_PDE_solver:
+
+
+    def __init__(self, mesh, BC_values, BC_type = None):
+
+        self.mesh = mesh
+        self.BCvalues = BC_values
+        self.BC_type = BC_type
+
+    def solver(self):
+
+        N_z = self.mesh.nodes[0]
+        N_e = self.mesh.nodes[1]
+        alpha = self.mesh.alpha
+        beta = self.mesh.beta
+        gamma = self.mesh.gamma
+
+        psi = np.zeros((N_e, N_z))  # initial guess for psi
+        psi_old = np.zeros((N_e, N_z))  # initial guess for psi
+
+        psi[0,:] = np.ones((1, N_z)) * self.BCvalues['In']
+        psi[-1,:] = np.ones((1, N_z)) * self.BCvalues['Out']
+        psi[:,0] = np.zeros((N_e)) * self.BCvalues['Cut1']
+        psi[:,-1] = np.zeros((N_e)) * self.BCvalues['Cut2']
+
+        maxiteration = 5000
+        tolerance = 1e-6
+        message = 1000
+
+        for iteration in range(maxiteration):
+
+            psi[1:N_e-1, 1:N_z-1] = ((-0.5) / (alpha[1:N_e-1, 1:N_z-1] + gamma[1:N_e-1, 1:N_z-1] + 1e-9)) * (2 * beta[1:N_e-1, 1:N_z-1] * (psi[2:N_e, 2:N_z] - psi[2:N_e, 0:N_z-2] - psi[0:N_e-2, 2:N_z] + psi[0:N_e-2, 0:N_z-2]) - alpha[1:N_e-1, 1:N_z-1] * (psi[1:N_e-1, 2: N_z] + psi[1:N_e-1 , 0:N_z-2]) - gamma[1:N_e-1, 1:N_z-1] * (psi[2:N_e, 1:N_z-1] + psi[0:N_e-2, 1:N_z-1]))
+        
+            residual_psi = np.max(np.abs(psi - psi_old))
+
+            if residual_psi < tolerance:
+                print("Psi is calculated with residual: ", residual_psi)
+                break
+
+            #give message with some interval 
+            if iteration % message == 0:
+                print("Iteration: ", iteration, "Error is: ", residual_psi)
+
+            if iteration == maxiteration - 1:
+                print("Max iteration reached. Error is: ", residual_psi)
+
+            psi_old = psi.copy()
+
+        self.solution = psi
+
+    def velocity_field(self):
+        
+
+    def plot2D(self):
+            
+        fig = plt.figure()
+
+        X, Y = self.mesh.X, self.mesh.Y
+        #use pcolormesh for better visualization
+        plt.pcolormesh(X, Y, self.solution, cmap = 'jet')
+        plt.colorbar()
+        plt.show()
+
+    def streamplot(self):
+        """
+            Plots streamplot for velocity of the solution
+        """
+
+        x_MAT = self.mesh.X
+        y_MAT = self.mesh.Y
+
+        u = self.velocity[:,:,0]
+        v = self.velocity[:,:,1]
+
+        speed = np.sqrt(u*u + v*v)
+        lw = 1.2*speed/speed.max()
+        lw = 1
+
+        plt.streamplot(x_MAT, y_MAT, -u, v, color=streamcolor, density=0.9, linewidth=lw, cmap='winter')
+        plt.show()
+
 
 class PDE_2D_Solver:
     """
@@ -571,7 +652,7 @@ class PDE_2D_Solver:
         plt.colorbar(image, cax=cax)
         plt.show()
 
-    def stream(self, streamcolor = "blue"):
+    def streamplot(self, streamcolor = "blue"):
         """
             Plots streamplot for velocity of the solution
         """
@@ -584,7 +665,7 @@ class PDE_2D_Solver:
 
         speed = np.sqrt(u*u + v*v)
         lw = 1.2*speed/speed.max()
-        lw = 1;
+        lw = 1
 
         plt.streamplot(x_MAT, y_MAT, -u, v, color=streamcolor, density=0.9, linewidth=lw, cmap='winter')
         plt.show()
