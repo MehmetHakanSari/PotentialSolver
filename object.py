@@ -46,8 +46,16 @@ class object:
         self.type = "airfoil"
         self.scale = scale
         self.points = points * scale
+
+    def boundary_layer(self, thickness):
+        """
+            thickness: float. thickness of the boundary layer
+        """
+        self.type = "boundary_layer"
+        self.thickness_idx = thickness
         
 
+<<<<<<< Updated upstream
 
 #rotate function will rotate airfoil coordinates by given angle
 def rotate(x, y, angle):
@@ -62,6 +70,17 @@ def rotate(x, y, angle):
         x_rotated.append(x[i] * math.cos(angle) - y[i] * math.sin(angle))
         y_rotated.append(x[i] * math.sin(angle) + y[i] * math.cos(angle))
     return x_rotated, y_rotated
+=======
+def flatplane_bl(bl_idx):
+    domain = np.zeros((len(bl_idx), len(bl_idx)))
+
+    for i in range(len(bl_idx)):
+        thickness = int(bl_idx[i])
+        domain[i, 0:thickness] = -2
+        domain[i, 0:thickness-1] = -1
+
+    return domain
+>>>>>>> Stashed changes
 
 
 def create_airfoil(mesh, obj, map):
@@ -363,3 +382,49 @@ def create_rectangle(mesh, obj, map):
 
     return map.area
 
+<<<<<<< Updated upstream
+=======
+def create_boundarylayer(obj, map):
+    """
+        Mesh: mesh class
+        obj: object class
+        Map: Map class
+    """
+    bl_idx = obj.thickness_idx
+
+    for i in range(len(bl_idx)):
+        thickness = int(bl_idx[i])
+
+        map.area[i, 0:thickness] += obj.wall
+        map.area[i, 0:thickness-1] += obj.inter
+
+    return map.area
+
+
+#rotate function will rotate airfoil coordinates by given angle
+def rotate(x, y, angle):
+    """
+        x: x coordinates of airfoil
+        y: y coordinates of airfoil
+        angle: angle to rotate airfoil
+    """
+    x_rotated = []
+    y_rotated = []
+    for i in range(len(x)):
+        x_rotated.append(x[i] * math.cos(angle) - y[i] * math.sin(angle))
+        y_rotated.append(x[i] * math.sin(angle) + y[i] * math.cos(angle))
+    return x_rotated, y_rotated
+
+
+def closeshape_interpolation(contour, length = int):
+    #contour: 2D array containing x and y coordinates of the closed curve. 
+    #length: int. Interpolated close shape counter matrix length. 
+
+    tck, u = sp.interpolate.splprep([contour[:,0], contour[:,1]], s=0)
+    u_new = np.linspace(u.min(), u.max(), length)
+    x_new, y_new = sp.interpolate.splev(u_new, tck, der=0)
+
+    contour = np.array([x_new, y_new]).T
+
+    return contour
+>>>>>>> Stashed changes
