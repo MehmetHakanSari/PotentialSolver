@@ -383,7 +383,11 @@ def create_rectangle(mesh, obj, map):
     return map.area
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+
+>>>>>>> Stashed changes
 def create_boundarylayer(obj, map):
     """
         Mesh: mesh class
@@ -400,7 +404,10 @@ def create_boundarylayer(obj, map):
 
     return map.area
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 #rotate function will rotate airfoil coordinates by given angle
 def rotate(x, y, angle):
     """
