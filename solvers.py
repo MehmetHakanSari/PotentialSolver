@@ -574,10 +574,10 @@ class PDE_2D_Solver:
 
         if type == "potensial":
             # (u, v) = TwoDcentraldiff_simple(self.solution, dx, dy)
-            u, v  = TwoDcentral_diff_velocity(self)
+            u, v  = TwoDcentraldiff_simple(self.solution, dx, dy)
 
         elif type == "stream":
-            (v, u) = TwoDcentral_diff_velocity(self.solution, dx, dy)
+            (v, u) = TwoDcentraldiff_simple(self.solution, dx, dy)
 
 
         W = np.zeros((N_y, N_x, 3))
