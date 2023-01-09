@@ -47,6 +47,13 @@ class object:
         self.type = "airfoil"
         self.scale = scale
         self.points = points * scale
+
+    def boundary_layer(self, thickness):
+        """
+            thickness: float. thickness of the boundary layer
+        """
+        self.type = "boundary_layer"
+        self.thickness_idx = thickness
         
 
 def create_airfoil(mesh, obj, map):
@@ -333,6 +340,23 @@ def create_rectangle(mesh, obj, map):
                     rectangle_matrix[j, i] = obj.wall
 
     map.area[c_y1_index:c_y2_index, c_x1_index:c_x2_index] += rectangle_matrix
+
+    return map.area
+
+
+def create_boundarylayer(obj, map):
+    """
+        Mesh: mesh class
+        obj: object class
+        Map: Map class
+    """
+    bl_idx = obj.thickness_idx
+
+    for i in range(len(bl_idx)):
+        thickness = int(bl_idx[i])
+
+        map.area[i, 0:thickness] += obj.wall
+        map.area[i, 0:thickness-1] += obj.inter
 
     return map.area
 

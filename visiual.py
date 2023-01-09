@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import cm
-from object import create_circle, create_rectangle, create_airfoil
+from object import create_circle, create_rectangle, create_airfoil, create_boundarylayer
 
 
 
@@ -83,6 +83,9 @@ class Map:
             self.area = create_rectangle(mesh, obj ,self)
         if obj.type == "airfoil":
             self.area = create_airfoil(mesh, obj ,self)
+        if obj.type == "boundary_layer":
+            print('anan')
+            self.area = create_boundarylayer(obj, self)
         
         # self.area()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] = self.area()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] + circle_matrix
 
