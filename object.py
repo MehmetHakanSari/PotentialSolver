@@ -55,22 +55,6 @@ class object:
         self.thickness_idx = thickness
         
 
-<<<<<<< Updated upstream
-
-#rotate function will rotate airfoil coordinates by given angle
-def rotate(x, y, angle):
-    """
-        x: x coordinates of airfoil
-        y: y coordinates of airfoil
-        angle: angle to rotate airfoil
-    """
-    x_rotated = []
-    y_rotated = []
-    for i in range(len(x)):
-        x_rotated.append(x[i] * math.cos(angle) - y[i] * math.sin(angle))
-        y_rotated.append(x[i] * math.sin(angle) + y[i] * math.cos(angle))
-    return x_rotated, y_rotated
-=======
 def flatplane_bl(bl_idx):
     domain = np.zeros((len(bl_idx), len(bl_idx)))
 
@@ -80,7 +64,6 @@ def flatplane_bl(bl_idx):
         domain[i, 0:thickness-1] = -1
 
     return domain
->>>>>>> Stashed changes
 
 
 def create_airfoil(mesh, obj, map):
@@ -381,13 +364,6 @@ def create_rectangle(mesh, obj, map):
     map.area[c_y1_index:c_y2_index, c_x1_index:c_x2_index] += rectangle_matrix
 
     return map.area
-
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-=======
-
->>>>>>> Stashed changes
 def create_boundarylayer(obj, map):
     """
         Mesh: mesh class
@@ -397,17 +373,22 @@ def create_boundarylayer(obj, map):
     bl_idx = obj.thickness_idx
 
     for i in range(len(bl_idx)):
+
         thickness = int(bl_idx[i])
 
-        map.area[i, 0:thickness] += obj.wall
-        map.area[i, 0:thickness-1] += obj.inter
+        if i > 0 and bl_idx[i] - 1 > bl_idx[i-1]:
+
+            prior_thickness = int(bl_idx[i-1])
+            map.area[0:thickness, i] += obj.wall
+            map.area[0:prior_thickness-1, i] += obj.inter
+
+        else:
+            map.area[0:thickness, i] += obj.wall
+            map.area[0:thickness-1, i] += obj.inter
+        
 
     return map.area
 
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
 #rotate function will rotate airfoil coordinates by given angle
 def rotate(x, y, angle):
     """
@@ -434,4 +415,3 @@ def closeshape_interpolation(contour, length = int):
     contour = np.array([x_new, y_new]).T
 
     return contour
->>>>>>> Stashed changes
