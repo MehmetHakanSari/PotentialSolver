@@ -7,6 +7,7 @@ from matplotlib import cm
 from object import object
 from visiual import *
 from time import perf_counter
+from time import sleep
 
 
 def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, phi_old, property_map, N_x, N_y, omega,type = "stream"):    
@@ -349,6 +350,7 @@ class eliptic_PDE_solver:
         self.solution = psi
 
     def velocity_field(self):
+        pass
         
 
     def plot2D(self):
@@ -361,7 +363,7 @@ class eliptic_PDE_solver:
         plt.colorbar()
         plt.show()
 
-    def streamplot(self):
+    def streamplot(self, streamcolor):
         """
             Plots streamplot for velocity of the solution
         """
@@ -399,6 +401,7 @@ class PDE_2D_Solver:
         self.solution = None
         self.velocity = None
         self.mesh = mesh
+        self.continuity = None
 
     def solver(self, BC_values, variable, map, omega, toll, itteration_type  = "column"):
         """
@@ -517,21 +520,27 @@ class PDE_2D_Solver:
             self.solution = phi.copy()
 
             #calculate the error
-            mass = self.mass_conservation()
+            mass, continuity = self.mass_conservation()
             residual = np.sum(np.abs(phi - phi_old))
             mass_residaul = abs(mass - mass_old) / mass_old
 
             if (t) % message == 0:
                 # mass = self.mass_conservation()
-                print("Residual: ", residual,"Mass Residual:", mass_residaul ,"Mass:", mass, " at ", t, "th iteration", "  Time: ", perf_counter() - start)
+                print("Residual: ", residual,"Mass Residual:", mass_residaul ,"Mass:", mass, " Continuity: ", np.sum(continuity) ," at ", t, "th iteration", "  Time: ", perf_counter() - start)
+
+                
+                # sleep(1)
 
             if residual < toll or abs(mass_residaul) < toll or abs(mass) < toll:
-                print("Residual: ", residual, "Mass:", mass)
+                print("Residual: ", residual,"Mass Residual:", mass_residaul, "Mass:", mass)
                 print("Solution converged at ", t, "th iteration")
                 break
 
             phi_old = phi.copy()
             mass_old = mass
+
+        plt.pcolormesh(mesh.matricies[0], mesh.matricies[1], continuity)
+        self.continuity = continuity.copy()
             
  
 
@@ -544,9 +553,19 @@ class PDE_2D_Solver:
         u = self.velocity[:,:,0]
         v = self.velocity[:,:,1]
 
+        X, Y = self.mesh.matricies[0], self.mesh.matricies[1] 
+
+        dx = float(X[0,1] - X[0,0])   #normally dx should be taken from the spacing matrix. 
+        dy = float(Y[0,0] - Y[1,0])
+
+        dudx = OneDcentraldiff(u, dx, 0)
+        dvdy = OneDcentraldiff(v, dy, 1)
+
+        continuity = dudx + dvdy
+
         mass = np.sum(u[:,0]) - np.sum(u[:,-1]) + np.sum(u[0,:]) - np.sum(u[-1,:]) + np.sum(v[:,0]) - np.sum(v[:,-1]) + np.sum(v[0,:]) - np.sum(v[-1,:])
 
-        return mass
+        return mass, continuity
 
 
     def velocityfield(self, type = "potensial"):
@@ -664,10 +683,13 @@ class PDE_2D_Solver:
         v = self.velocity[:,:,1]
 
         speed = np.sqrt(u*u + v*v)
-        lw = 1.2*speed/speed.max()
-        lw = 1
+        lw = 10.2*speed/speed.max()
+        # lw = 1
 
-        plt.streamplot(x_MAT, y_MAT, -u, v, color=streamcolor, density=0.9, linewidth=lw, cmap='winter')
+        fig, (axs1, axs2) = plt.subplots(1,2)
+        fig.set_size_inches(12, 5)
+        axs1.streamplot(x_MAT, y_MAT, -u, v, color=streamcolor, density=0.9, linewidth=lw, cmap='winter')
+        axs2.streamplot(x_MAT, y_MAT, -u, v, color=streamcolor, density=0.9, linewidth=1, cmap='winter')
         plt.show()
 
     def countour(self):

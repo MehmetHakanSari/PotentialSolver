@@ -84,9 +84,10 @@ def OneDcentraldiff(func, dx, axis = 0):
         if m < 3:
             IndexError("array size is too small")
 
-        (k,l) = np.shape(dx)
-        if l > k:           #but dx is given as column vector
-            dx = dx.T
+        if type(dx) != float:
+            (k,l) = np.shape(dx)
+            if l > k:           #but dx is given as column vector
+                dx = dx.T   
 
         if divflag:
             dy = dx    #last elements should be 0 for y axis.
