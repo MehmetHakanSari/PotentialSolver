@@ -184,5 +184,5 @@ def TwoDcentral_diff_velocity(solution):
                 #central difference
                 dfuncdy[j,i] = -(func[j+1,i] - func[j-1,i]) / (2 * dy)
 
-    return dfuncdx, dfuncdy
+    return -dfuncdx, dfuncdy
              
