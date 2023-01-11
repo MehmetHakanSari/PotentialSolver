@@ -187,7 +187,7 @@ def TwoDcentral_diff_velocity(solution):
     return dfuncdx, dfuncdy
              
 
-def Solve_a_b_c(x, y):
+def Solve_Coeff(x, y):
     '''
     input:
         x: the x coordinate of x_{i=i-1~i+1, j=j-1~j+1}, at least 3x3 array
@@ -205,7 +205,7 @@ def Solve_a_b_c(x, y):
                 ((y[2:, 1:-1] - y[:-2, 1:-1])**2))
     return a, b, c
 
-def SolveEq(a, b, c, U):
+def SolveEliptic(a, b, c, U):
     '''
     input:
         a, b, c: as described in the content

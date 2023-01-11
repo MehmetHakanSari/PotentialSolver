@@ -431,61 +431,33 @@ class ElippticMesh:
             X[1:-1, i] = np.linspace(X[0, i], X[-1, i], N_e)[1:-1]
             Y[1:-1, i] = np.linspace(Y[0, i], Y[-1, i], N_e)[1:-1]
 
-        
-        self.X = X
-        self.Y = Y
-        # self.plot_mesh()
+        # self.X = X
+        # self.Y = Y
+        # # self.plot_mesh()
 
         for iteration in range(maxiteration):
-
-            # X_temp = np.concatenate((np.reshape([X[:, -2]], (X.shape[0], 1)), X[:, :2]), 1)
-            # Y_temp = np.concatenate((np.reshape([Y[:, -2]], (Y.shape[0], 1)), Y[:, :2]), 1)
-            # alpha_temp, beta_temp, gamma_temp = Solve_a_b_c(X_temp, Y_temp)
-
-            # # print(alpha_temp.shape, beta_temp.shape, gamma_temp.shape, X_temp.shape)
-
-            # GAMA3_x = SolveEq(alpha_temp, beta_temp, gamma_temp, X_temp)
-            # GAMA3_y = SolveEq(alpha_temp, beta_temp, gamma_temp, Y_temp)
-
-            # print(GAMA3_x.shape, GAMA3_y.shape)
-
-            # X[1:-1, 0] = np.flip(np.reshape(GAMA3_x, len(GAMA3_x)))
-            # Y[1:-1, 0] = np.flip(np.reshape(GAMA3_y, len(GAMA3_y)))
-
-            # X[1:-1, -1] = X[1:-1, 0].copy()
-            # Y[1:-1, -1] = Y[1:-1, 0].copy()
 
             X = X.T
             Y = Y.T
 
             X_temp = np.append([X[-2, :].copy()], X[0:2, :].copy(), 0) 
             Y_temp = np.append([X[-2, :].copy()], Y[0:2, :].copy(), 0)
-            alpha, beta, gamma = Solve_a_b_c(X_temp , Y_temp)
-            X[0, 1:-1] = SolveEq(alpha, beta, gamma, X_temp )
-            Y[0, 1:-1] = SolveEq(alpha, beta, gamma, Y_temp)
+            alpha, beta, gamma = Solve_Coeff(X_temp , Y_temp)
+            X[0, 1:-1] = SolveEliptic(alpha, beta, gamma, X_temp )
+            Y[0, 1:-1] = SolveEliptic(alpha, beta, gamma, Y_temp)
 
             X[-1, 1:-1] = X[0, 1:-1].copy()
             Y[-1, 1:-1] = Y[0, 1:-1].copy()
 
-            alpha, beta, gamma = Solve_a_b_c(X, Y)
-            X_new[1:-1, 1:-1] = SolveEq(alpha,beta, gamma, X)
-            Y_new[1:-1, 1:-1] = SolveEq(alpha,beta, gamma, Y)
-
-            # alpha[1:N_e-1, 1: N_z-1] = (1/4) * ((X[2:N_e, 1:N_z-1] - X[0:N_e-2, 1:N_z-1])**2 + (Y[2:N_e, 1: N_z-1] - Y[0:N_e-2, 1: N_z-1])**2)
-            # beta[1:N_e-1, 1: N_z-1] = (1/16) * ((X[2:N_e, 1:N_z-1] - X[0:N_e-2, 1:N_z-1]) * (X[1: N_e-1, 2: N_z] - X[1: N_e-1, 0:N_z-2]) + (Y[2:N_e, 1: N_z-1] - Y[0:N_e-2, 1: N_z-1]) * (Y[1: N_e-1, 2: N_z] - Y[1: N_e-1, 0:N_z-2]))
-            # gamma[1:N_e-1, 1: N_z-1] = (1/4) * ((X[1: N_e-1, 2: N_z] - X[1: N_e-1, 0:N_z-2])**2 + (Y[1: N_e-1, 2: N_z] - Y[1: N_e-1, 0:N_z-2])**2)
-
-            # X_new[1:N_e-1, 1:N_z-1] = ((-0.5) / (alpha[1:N_e-1, 1:N_z-1] + gamma[1:N_e-1, 1:N_z-1] + 1e-9)) * (2 * beta[1:N_e-1, 1:N_z-1] * (X[2:N_e, 2:N_z] - X[2:N_e, 0:N_z-2] - X[0:N_e-2, 2:N_z] + X[0:N_e-2, 0:N_z-2]) - alpha[1:N_e-1, 1:N_z-1] * (X[1:N_e-1, 2: N_z] + X[1:N_e-1 , 0:N_z-2]) - gamma[1:N_e-1, 1:N_z-1] * (X[2:N_e, 1:N_z-1] + X[0:N_e-2, 1:N_z-1]))
-            # Y_new[1:N_e-1, 1:N_z-1] = ((-0.5) / (alpha[1:N_e-1, 1:N_z-1] + gamma[1:N_e-1, 1:N_z-1] + 1e-9)) * (2 * beta[1:N_e-1, 1:N_z-1] * (Y[2:N_e, 2: N_z] - Y[2:N_e, 0:N_z-2] - Y[0:N_e-2, 2: N_z] + Y[0:N_e-2, 0:N_z-2]) - alpha[1:N_e-1, 1:N_z-1] * (Y[1:N_e-1, 2: N_z] + Y[1:N_e-1 , 0:N_z-2]) - gamma[1:N_e-1, 1:N_z-1] * (Y[2:N_e, 1:N_z-1] + Y[0:N_e-2, 1:N_z-1]))
+            alpha, beta, gamma = Solve_Coeff(X, Y)
+            X_new[1:-1, 1:-1] = SolveEliptic(alpha,beta, gamma, X)
+            Y_new[1:-1, 1:-1] = SolveEliptic(alpha,beta, gamma, Y)
 
             error_x = np.max(np.abs(X_new - X))
             error_y = np.max(np.abs(Y_new - Y))
             
-            # print(alpha[1:N_e-1, 1:N_z-1])
-            # print(error_x, error_y)
-
-            # if error_x < 1e-6 and error_y < 1e-6:
-                # break
+            if error_x < 1e-6 and error_y < 1e-6:
+                break
 
             #give message with some interval 
             if iteration % message == 0:
@@ -497,16 +469,11 @@ class ElippticMesh:
             X = X_new.T.copy()
             Y = Y_new.T.copy()
 
-            # X = X_new.copy()
-            # Y = Y_new.copy()
- 
-
-        self.X = X
-        self.Y = Y
+        self.X = X.T
+        self.Y = Y.T
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
-
 
 
     def plot_mesh(self):

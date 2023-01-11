@@ -566,26 +566,49 @@ class eliptic_PDE_solver:
         maxiteration = 50000
         tolerance = 1e-11
         message = 1000
+#######################
+        X = X.T
+        Y = Y.T
 
-        X_temp = np.concatenate((np.reshape([X[:, -2]], (X.shape[0], 1)), X[:, :2]), 1)
-        Y_temp = np.concatenate((np.reshape([Y[:, -2]], (Y.shape[0], 1)), Y[:, :2]), 1)
-        alpha_temp, beta_temp, gamma_temp = Periodic_a_b_c(X_temp, Y_temp)
+        X_temp = np.append([X[-2, :].copy()], X[0:2, :].copy(), 0) 
+        Y_temp = np.append([X[-2, :].copy()], Y[0:2, :].copy(), 0)
+        
+        alpha_temp, beta_temp, gamma_temp = Solve_a_b_c(X_temp , Y_temp)
+
+#######################
+
+        # X_temp = np.concatenate((np.reshape([X[:, -2]], (X.shape[0], 1)), X[:, :2]), 1)
+        # Y_temp = np.concatenate((np.reshape([Y[:, -2]], (Y.shape[0], 1)), Y[:, :2]), 1)
+        # alpha_temp, beta_temp, gamma_temp = Periodic_a_b_c(X_temp, Y_temp)
 
         # alpha, beta, gamma = Periodic_a_b_c(X, Y)
 
+        psi = psi.T
+
         for iteration in range(maxiteration):
 
-            psi_temp = np.concatenate((np.reshape([psi[:, -2]], (psi.shape[0], 1)), psi[:, :2]), 1)
+            psi_old = psi.copy()
 
-            Cut_psi = PeriodicBC(alpha_temp, beta_temp, gamma_temp, psi_temp)
-            psi[1:-1,0] = Cut_psi[1:-1,1]
-            psi[1:-1,-1] = psi[1:-1,0]
+            psi_temp = np.append([psi[-2, :].copy()], psi[0:2, :].copy(), 0)
 
-            psi[1:N_e-1, 1:N_z-1] = ((-0.5) / (alpha[1:N_e-1, 1:N_z-1] + gamma[1:N_e-1, 1:N_z-1] + 1e-9)) * (2 * beta[1:N_e-1, 1:N_z-1] * (psi[2:N_e, 2:N_z] - psi[2:N_e, 0:N_z-2] - psi[0:N_e-2, 2:N_z] + psi[0:N_e-2, 0:N_z-2]) - alpha[1:N_e-1, 1:N_z-1] * (psi[1:N_e-1, 2: N_z] + psi[1:N_e-1 , 0:N_z-2]) - gamma[1:N_e-1, 1:N_z-1] * (psi[2:N_e, 1:N_z-1] + psi[0:N_e-2, 1:N_z-1]))
+            psi[0, 1:-1] = Solve_Coeff(alpha_temp, beta_temp, gamma_temp, psi_temp)
+            psi[-1, :] = psi[0, :].copy()
+
+            psi[:, 0] = psi[0, 1] #Kutta Condiation
+
+            psi[1:-1, 1:-1] = SolveEliptic(alpha, beta, gamma, psi)
+
+            # psi_temp = np.concatenate((np.reshape([psi[:, -2]], (psi.shape[0], 1)), psi[:, :2]), 1)
+
+            # Cut_psi = PeriodicBC(alpha_temp, beta_temp, gamma_temp, psi_temp)
+            # psi[1:-1,0] = Cut_psi[1:-1,1]
+            # psi[1:-1,-1] = psi[1:-1,0]
+
+            # psi[0, :] = psi[1, :] #Kutta Condiation
+
+            # psi[1:N_e-1, 1:N_z-1] = ((-0.5) / (alpha[1:N_e-1, 1:N_z-1] + gamma[1:N_e-1, 1:N_z-1] + 1e-9)) * (2 * beta[1:N_e-1, 1:N_z-1] * (psi[2:N_e, 2:N_z] - psi[2:N_e, 0:N_z-2] - psi[0:N_e-2, 2:N_z] + psi[0:N_e-2, 0:N_z-2]) - alpha[1:N_e-1, 1:N_z-1] * (psi[1:N_e-1, 2: N_z] + psi[1:N_e-1 , 0:N_z-2]) - gamma[1:N_e-1, 1:N_z-1] * (psi[2:N_e, 1:N_z-1] + psi[0:N_e-2, 1:N_z-1]))
             # psi = PeriodicBC(alpha, beta, gamma, psi)
-
-            psi[0, :] = psi[1, :] #Kutta Condiation
-
+  
             residual_psi = np.max(np.abs(psi - psi_old))
 
             if residual_psi < tolerance:
@@ -599,12 +622,10 @@ class eliptic_PDE_solver:
             if iteration == maxiteration - 1:
                 print("Max iteration reached. Error is: ", residual_psi)
 
-            psi_old = psi.copy()
+            
+        self.solution = psi.T
 
-        
-        self.solution = psi
-
-        return Cut_psi
+        # return Cut_psi
 
     def velocity_field(self):
         pass
