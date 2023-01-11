@@ -7,6 +7,7 @@ class ODEs():
         self.tspan = tspan
 
     def eu_solve(self, y0):
+        tspan = self.tspan
         order = len(y0)
         t_length = len(self.tspan)
         dt = self.tspan[1] - self.tspan[0]
@@ -22,6 +23,7 @@ class ODEs():
         return tspan, y
     
     def rk4_solve(self, y0):
+        tspan = self.tspan
         order = len(y0)
         t_length = len(self.tspan)
         dt = self.tspan[1] - self.tspan[0]
@@ -46,6 +48,7 @@ class ODEs():
         return tspan, y
     
     def plotter(self):
+        tspan = self.tspan
         fig, ax = plt.subplots()
         ax.plot(tspan, y)
         plt.show()
@@ -56,10 +59,10 @@ def f(x, y):
     """ODE-system for the Blasius-equation"""
     return [y[1],y[2], -y[0]*y[2]]
 
-if __name__ == "__main__":
+def BL_solver():
 
     target = 1.0
-    tspan = np.linspace(0, 10, 10000)
+    tspan = np.linspace(0, 20, 10000)
     blp = ODEs(f, tspan)
 
 
@@ -95,9 +98,9 @@ if __name__ == "__main__":
         sol_old = sol
         
 
-    plt.plot(y[:,2], t)
-    plt.xlim([0, 1])
-    plt.ylim([0, 5])
-    plt.show()
+    return t, y[:, 1]
+
+def mu_calc(x, y, Uinf, nu):
+    return y*np.sqrt(Uinf/(nu*x))
 
 
