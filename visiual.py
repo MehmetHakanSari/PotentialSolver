@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import cm
-from object import create_circle, create_rectangle, create_airfoil, create_boundarylayer
+from object import create_circle, create_rectangle, create_airfoil, create_boundarylayer, create_boundarylayer
 
 
 
@@ -84,11 +84,8 @@ class Map:
         if obj.type == "airfoil":
             self.area = create_airfoil(mesh, obj ,self)
         if obj.type == "boundary_layer":
-            print('anan')
             self.area = create_boundarylayer(obj, self)
         
-                
-
         # self.area()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] = self.area()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] + circle_matrix
 
     def show(self):
@@ -98,6 +95,6 @@ class Map:
         # z = np.ones((self.nodes[1], self.nodes[0])) * 0.5
         minvalue = np.min(self.area)
         maxvalue = np.max(self.area)
-
+        fig.set_size_inches(10, 10)
         image = ax.pcolormesh(self.area, vmin=minvalue, vmax=maxvalue, edgecolors="none")
         plt.show()
