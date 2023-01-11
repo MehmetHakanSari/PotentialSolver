@@ -418,7 +418,7 @@ class ElippticMesh:
         X_new, Y_new = X, Y
         error_x, error_y = 1, 1
 
-        maxiteration = 5000
+        maxiteration = 10000
         message = 1000
 
         N_z = self.nodes[0]

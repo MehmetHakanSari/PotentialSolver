@@ -474,9 +474,66 @@ def column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, 
     return phi
 
 
-def TDMA(a, b, c, d):
-    pass
+def PeriodicBC(alpha, beta, gamma, psi):
+    # psi[1:-1, 1:-1] = ((-0.5) / (alpha[1:-1, 1:-1] + gamma[1:-1, 1:-1] + 1e-9)) * \
+    #  ( 2 * beta[1:-1, 1:-1] * (psi[2:, 2:] - psi[2:, :-2] - psi[:-2, 2:] + psi[:-2, :-2]) \
+    #  - alpha[1:-1, 1:-1] * (psi[1:-1, 2:] + psi[1:-1 , :-2])  \
+    #  -gamma[1:-1, 1:-1] * (psi[2:, 1:-1] + psi[:-2, 1:-1]))
 
+    psi[1:-1, 1:-1] = 0.5 * ( \
+             alpha[1:-1, 1:-1] * (psi[2:, 1:-1] + psi[:-2, 1:-1]) + \
+             gamma[1:-1, 1:-1] * (psi[1:-1, 2:] + psi[1:-1, :-2]) - \
+             beta[1:-1, 1:-1] * 0.5 * (psi[2:, 2:] - psi[2:, :-2] + psi[:-2, :-2] - psi[:-2, 2:]) \
+             ) / (alpha[1:-1, 1:-1] + gamma[1:-1, 1:-1] + 1e-9)
+
+    return psi
+
+def Periodic_a_b_c(X, Y):
+    '''
+    input:
+        x: the x coordinate of x_{i=i-1~i+1, j=j-1~j+1}, at least 3x3 array
+        y: the y coordinate of y_{i=i-1~i+1, j=j-1~j+1}, at least 3x3 array
+    output:
+        a, b, c: at least 1x1 float
+    '''
+    
+    # alpha = np.zeros((X.shape[1], X.shape[0]))
+    # beta = np.zeros((X.shape[1], X.shape[0]))
+    # gamma = np.zeros((X.shape[1], X.shape[0]))
+
+    # alpha = np.zeros((X.shape[1], X.shape[0]))
+    # beta = np.zeros((X.shape[1], X.shape[0]))
+    # gamma = np.zeros((X.shape[1], X.shape[0]))
+
+    # print(alpha.shape)
+    # print(X.shape)
+
+    # alpha[1:-1, 1:-1] = np.transpose((1/4) * ((X[2:, 1:-1] - X[:-2, 1:-1])**2 + (Y[2:, 1:-1] - Y[:-2, 1:-1])**2))
+    # beta[1:-1, 1:-1] = np.transpose((1/16) * ((X[2:, 1:-1] - X[:-2, 1:-1]) * (X[1:-1, 2:] - X[1:-1, :-2]) + (Y[2:, 1:-1] - Y[0:-2, 1:-1]) * (Y[1:-1, 2:] - Y[1:-1, 0:-2])))
+    # gamma[1:-1, 1:-1] = np.transpose(((1/4) * ((X[1:-1, 2:] - X[1:-1, 0:-2])**2 + (Y[1:-1, 2:] - Y[1:-1, :-2])**2)))
+
+    X = X.T
+    Y = Y.T
+
+    alpha = np.zeros((X.shape[0], X.shape[1]))
+    beta = np.zeros((X.shape[0], X.shape[1]))
+    gamma = np.zeros((X.shape[0], X.shape[1]))
+
+    alpha[1:-1,1:-1] = 0.25 * (((X[1:-1, 2:] - X[1:-1, :-2])**2) + 
+                ((Y[1:-1, 2:] - Y[1:-1, :-2])**2))
+    beta[1:-1,1:-1] = 0.25 * ((X[2:, 1:-1] - X[:-2, 1:-1]) * 
+                (X[1:-1, 2:] - X[1:-1, :-2]) + 
+                (Y[2:, 1:-1] - Y[:-2, 1:-1]) * 
+                (Y[1:-1, 2:] - Y[1:-1, :-2]))
+    gamma[1:-1,1:-1] = 0.25 * (((X[2:, 1:-1] - X[:-2, 1:-1])**2) + 
+                ((Y[2:, 1:-1] - Y[:-2, 1:-1])**2))
+
+    alpha = alpha.T
+    beta = beta.T
+    gamma = gamma.T
+
+    return alpha, beta, gamma
+   
 
 class eliptic_PDE_solver:
 
@@ -494,6 +551,8 @@ class eliptic_PDE_solver:
         alpha = self.mesh.alpha
         beta = self.mesh.beta
         gamma = self.mesh.gamma
+        X = self.mesh.X
+        Y = self.mesh.Y
 
         psi = np.zeros((N_e, N_z))  # initial guess for psi
         psi_old = np.zeros((N_e, N_z))  # initial guess for psi
@@ -504,10 +563,15 @@ class eliptic_PDE_solver:
         psi[0,:] = np.ones((1, N_z)) * self.BCvalues['In']
         psi[-1,:] = np.ones((1, N_z)) * self.BCvalues['Out']
 
-
         maxiteration = 50000
         tolerance = 1e-11
         message = 1000
+
+        X_temp = np.concatenate((np.reshape([X[:, -2]], (X.shape[0], 1)), X[:, :2]), 1)
+        Y_temp = np.concatenate((np.reshape([Y[:, -2]], (Y.shape[0], 1)), Y[:, :2]), 1)
+        alpha_temp, beta_temp, gamma_temp = Periodic_a_b_c(X_temp, Y_temp)
+
+        # alpha, beta, gamma = Periodic_a_b_c(X, Y)
 
         for iteration in range(maxiteration):
 
@@ -519,8 +583,15 @@ class eliptic_PDE_solver:
             # stream[0, 1:-1] = SolveEq(a, b, c, temp)
             # stream[-1, :] = stream[0, :].copy()
 
+            psi_temp = np.concatenate((np.reshape([psi[:, -2]], (psi.shape[0], 1)), psi[:, :2]), 1)
+
+            Cut_psi = PeriodicBC(alpha_temp, beta_temp, gamma_temp, psi_temp)
+            psi[1:-1,0] = Cut_psi[1:-1,1]
+            psi[1:-1,-1] = psi[1:-1,0]
+
             psi[1:N_e-1, 1:N_z-1] = ((-0.5) / (alpha[1:N_e-1, 1:N_z-1] + gamma[1:N_e-1, 1:N_z-1] + 1e-9)) * (2 * beta[1:N_e-1, 1:N_z-1] * (psi[2:N_e, 2:N_z] - psi[2:N_e, 0:N_z-2] - psi[0:N_e-2, 2:N_z] + psi[0:N_e-2, 0:N_z-2]) - alpha[1:N_e-1, 1:N_z-1] * (psi[1:N_e-1, 2: N_z] + psi[1:N_e-1 , 0:N_z-2]) - gamma[1:N_e-1, 1:N_z-1] * (psi[2:N_e, 1:N_z-1] + psi[0:N_e-2, 1:N_z-1]))
-        
+            # psi = PeriodicBC(alpha, beta, gamma, psi)
+
             psi[0, :] = psi[1, :] #Kutta Condiation
 
             residual_psi = np.max(np.abs(psi - psi_old))
@@ -540,6 +611,8 @@ class eliptic_PDE_solver:
 
         
         self.solution = psi
+
+        return Cut_psi
 
     def velocity_field(self):
         pass
