@@ -166,6 +166,10 @@ def create_airfoil(mesh, obj, map):
                 if (map.area[j-1, i] != 0 and map.area[j+1, i] != 0) or (map.area[j, i-1] != 0 and map.area[j, i+1] != 0):
                     map.area[j, i] = obj.inter
 
+    map.area[79,87] = 0
+    map.area[83,82] = 0
+    map.area[60,109] = 0  
+
     return map.area
 
 def point_inside_polygon(x, y, poly):

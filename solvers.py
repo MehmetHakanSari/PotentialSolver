@@ -10,531 +10,6 @@ from time import perf_counter
 from time import sleep
 
 
-def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, phi_old, property_map, N_x, N_y, omega,type = "stream"):    
-    if type == "stream":
-        for i in x_index:
-
-            if i == 0:  #if the west boundary is given neumann
-
-                for j in y_index:
-                    
-                    if j == 0:   #if the north boundary is given neumann
-
-                        dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
-                        dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2
-                        
-                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
-
-                    if j > 0 and j < N_y - 1:
-                        
-                        dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
-                        dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2  
-
-                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
-
-                    if j == N_y - 1:   #if the south boundary is given neumann
-
-                        dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
-                        dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2
-
-                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
-
-
-            elif i > 0 and i < N_x - 1:  #if the west boundary is given neumann
-
-                for j in y_index:
-                    
-                    if j == 0:   #if the north boundary is given neumann
-
-                        C_pro = (not(property_map[j,i] == -2)) * 1
-                        W_pro = (not(property_map[j,i-1] == -2)) * 1
-                        E_pro = (not(property_map[j,i+1] == -2)) * 1
-                        S_pro = (not(property_map[j+1,i] == -2)) * 1
-
-                        if C_pro == 0:
-                            phi[j,i] = 0
-                        else:
-                            dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
-                            dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
-                            
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] * E_pro + phi[j, i-1] * W_pro) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i] * S_pro) 
-
-                    if j > 0 and j < N_y - 1:
-
-                        C_pro = (not(property_map[j,i] == -2)) * 1
-                        W_pro = (not(property_map[j,i-1] == -2)) * 1
-                        E_pro = (not(property_map[j,i+1] == -2)) * 1
-                        S_pro = (not(property_map[j+1,i] == -2)) * 1
-                        N_pro = (not(property_map[j-1,i] == -2)) * 1
-
-                        if C_pro == 0:
-                            phi[j,i] = 0
-                        else:
-                            dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
-                            dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
-
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] * E_pro + phi[j, i-1] * W_pro) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] * S_pro + phi[j-1, i] * N_pro) 
-
-                    if j == N_y - 1:
-
-                        C_pro = (not(property_map[j,i] == -2)) * 1
-                        W_pro = (not(property_map[j,i-1] == -2)) * 1
-                        E_pro = (not(property_map[j,i+1] == -2)) * 1
-                        N_pro = (not(property_map[j-1,i] == -2)) * 1
-
-                        if C_pro == 0:
-                            phi[j,i] = 0
-                        else:
-                            dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
-                            dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2
-
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] * E_pro + phi[j, i-1] * W_pro) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i] * N_pro) 
-
-
-            elif i == N_x - 1:
-
-                for j in y_index:
-
-                    # property_map(j,i)
-                    # property_map(j,i-1)
-                    # property_map(j+1,i)
-                    # property_map(j-1,i)
-                    
-                    if j == 0:   #if the north boundary is given neumann
-                        
-                        dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
-                        dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
-
-                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
-
-                    if j > 0 and j < N_y - 1:
-
-                        dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
-                        dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
-
-                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
-
-                    if j == N_y - 1:
-
-                        dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
-                        dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
-
-                        phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i])
-    
-    elif type == "potensial":
-
-        for i in x_index:
-
-            if i == 0:  #if the west boundary is given neumann
-
-                for j in y_index:
-
-                    if j == 0:   #if the north boundary is given neumann
-
-                        dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
-                        dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2
-
-                        if (property_map[j,i] == -2):    #if it is a wall
-
-                            #determine which sides are in the interior
-                            
-                            east = (property_map[j,i+1] == -1) 
-                            south = (property_map[j+1,i] == -1) 
-
-                            if east:
-                                if south:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["N"]) 
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["N"] + 2 * phi[j+1, i]) 
-                            else:
-                                if south:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["N"]) 
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["N"] + 2 * phi[j+1, i]) 
-                        elif (property_map[j,i] == -1):
-                            phi[j,i] = 0
-                        else:
-                            phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["N"] + 2 * phi[j+1, i]) 
-
-                        
-                    if j > 0 and j < N_y - 1:
-                        
-                        dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
-                        dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2 
-
-                        if (property_map[j,i] == -2):    #if it is a wall
-
-                            #determine which sides are in the interior
-                            
-                            east = (property_map[j,i+1] == -1)
-                            south = (property_map[j+1,i] == -1) 
-                            north = (property_map[j-1,i] == -1) 
-
-                            if east:
-                                if south:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
-                                elif north:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i])  
-                            else:
-                                if south:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1] ) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
-                                elif north:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1] ) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
-                        elif (property_map[j,i] == -1):
-                            phi[j,i] = 0
-                        else:
-                            phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
-
-                        
-                    if j == N_y - 1:   #if the south boundary is given neumann
-
-                        dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
-                        dx2 = ((x_spacing[j,i] + x_spacing[j,i]) / 2)**2
-
-                        if (property_map[j,i] == -2):    #if it is a wall
-
-                            #determine which sides are in the interior
-                            
-                            east = (property_map[j,i+1] == -1)
-                            north = (property_map[j-1,i] == -1) 
-
-                            if east:
-                                if north:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
-                            else:
-                                if north:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
-                        elif (property_map[j,i] == -1):
-                            phi[j,i] = 0
-                        else:
-                            phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["W"] + 2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
-
-                        
-
-
-            elif i > 0 and i < N_x - 1:  #interior points   
-
-                for j in y_index:
-                    
-                    if j == 0:   #if the north boundary is given neumann
-
-                        dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
-                        dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
-
-                        if (property_map[j,i] == -2):    #if it is a wall
-
-                            #determine which sides are in the interior     
-                            east = (property_map[j,i+1] == -1)
-                            west = (property_map[j,i-1] == -1)  
-                            south = (property_map[j+1,i] == -1) 
-                            
-                            if east:
-                                if south:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dy2) * BCvalues["N"])  
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]+ 2 * np.sqrt(dy2) * BCvalues["N"])    
-                            elif west:
-                                if south:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dy2) * BCvalues["N"])
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i] + 2 * np.sqrt(dy2) * BCvalues["N"])    
-                            else:
-                                if south:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dy2) * BCvalues["N"])
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i] + 2 * np.sqrt(dy2) * BCvalues["N"])    
-                        elif (property_map[j,i] == -1):
-                            phi[j,i] = 0
-                        else:
-                            phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i] + 2 * np.sqrt(dy2) * BCvalues["N"])                        
-                            
-                            
-                    if j > 0 and j < N_y - 1:
-
-                        dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
-                        dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2  
-
-                        if (property_map[j,i] == -2):    #if it is a wall
-
-                            #determine which sides are in the interior
-                            
-                            east = (property_map[j,i+1] == -1)
-                            west = (property_map[j,i-1] == -1)  
-                            south = (property_map[j+1,i] == -1) 
-                            north = (property_map[j-1,i] == -1) 
-
-                            if east:
-                                if south:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
-                                elif north:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
-                            elif west:
-                                if south:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
-                                elif north:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
-                            else:
-                                if south:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
-                                elif north:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
-                        elif (property_map[j,i] == -1):
-                            phi[j,i] = 0
-                        else:
-                            phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
-                            
-
-                    if j == N_y - 1:  #if the south boundary is given neumann 
-
-                        dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
-                        dx2 = ((x_spacing[j,i] + x_spacing[j,i-1]) / 2)**2
-
-                        if (property_map[j,i] == -2):    #if it is a wall
-
-                            #determine which sides are in the interior
-                            
-                            east = (property_map[j,i+1] == -1)
-                            west = (property_map[j,i-1] == -1)  
-                            north = (property_map[j-1,i] == -1) 
-
-                            if east:
-                                if north:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1] ) + dx2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dy2) * BCvalues["S"]) 
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i-1] ) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i] + 2 * np.sqrt(dy2) * BCvalues["S"]) 
-                            elif west:
-                                if north:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) +  dx2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dy2) * BCvalues["S"]) 
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * phi[j, i+1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i] + 2 * np.sqrt(dy2) * BCvalues["S"]) 
-                            else:
-                                if north:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dy2) * BCvalues["S"]) 
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i] + 2 * np.sqrt(dy2) * BCvalues["S"]) 
-                        elif (property_map[j,i] == -1):
-                            phi[j,i] = 0
-                        else:
-                            phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (phi[j, i+1] + phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i] + 2 * np.sqrt(dy2) * BCvalues["S"]) 
-
-
-
-
-            elif i == N_x - 1:  #if the east boundary is given neumann
-
-                for j in y_index:
-                    
-                    if j == 0:   #if the north boundary is given neumann
-                        
-                        dy2 = ((y_spacing[j,i] + y_spacing[j,i]) / 2)**2
-                        dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
-
-                        if (property_map[j,i] == -2):    #if it is a wall
-                            #determine which sides are in the interior
-                            
-                            west = (property_map[j,i-1] == -1)  
-                            south = (property_map[j+1,i] == -1) 
-
-                            if west:
-                                if south:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dy2) * BCvalues["N"]) 
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i] + 2 * np.sqrt(dy2) * BCvalues["N"]) 
-                            else:
-                                if south:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dy2) * BCvalues["N"]) 
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i] + 2 * np.sqrt(dy2) * BCvalues["N"]) 
-                        elif (property_map[j,i] == -1):
-                            phi[j,i] = 0
-                        else:
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i] + 2 * np.sqrt(dy2) * BCvalues["N"]) 
-   
-
-                    if j > 0 and j < N_y - 1:
-
-                        dy2 = ((y_spacing[j,i] + y_spacing[j-1,i]) / 2)**2
-                        dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
-
-                        if (property_map[j,i] == -2):    #if it is a wall
-
-                            #determine which sides are in the interior
-                            
-                            west = (property_map[j,i-1] == -1)  
-                            south = (property_map[j+1,i] == -1) 
-                            north = (property_map[j-1,i] == -1) 
-
-                            if west:
-                                if south:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] ) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
-                                elif north:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] ) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] ) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
-                            else:
-                                if south:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1] ) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j-1, i]) 
-                                elif north:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1] ) + dx2 / (2 * dy2 + 2 * dx2) * (2 * phi[j+1, i]) 
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1] ) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
-                        elif (property_map[j,i] == -1):
-                            phi[j,i] = 0
-                        else:
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (phi[j+1, i] + phi[j-1, i]) 
-
-
-                    if j == N_y - 1: #if the south boundary is given neumann
-
-                        dy2 = ((y_spacing[j-1,i] + y_spacing[j-1,i]) / 2)**2
-                        dx2 = ((x_spacing[j,i-1] + x_spacing[j,i-1]) / 2)**2  
-
-                        if (property_map[j,i] == -2):    #if it is a wall
-
-                            #determine which sides are in the interior
-                            
-                            west = (property_map[j,i-1] == -1)  
-                            north = (property_map[j-1,i] == -1) 
-
-                            if west:
-                                if north:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dy2) * BCvalues["S"]) 
-                                else:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dy2) * BCvalues["S"] + 2 * phi[j-1, i]) 
-                            else:
-                                if north:
-                                    phi[j,i] =  dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dy2) * BCvalues["S"]) 
-                                else:
-                                    phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dy2) * BCvalues["S"] + 2 * phi[j-1, i]) 
-                        elif (property_map[j,i] == -1):
-                            phi[j,i] = 0
-                        else:
-                            phi[j,i] = dy2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dx2) * BCvalues["E"] + 2 * phi[j, i-1]) + dx2 / (2 * dy2 + 2 * dx2) * (2 * np.sqrt(dy2) * BCvalues["S"] + 2 * phi[j-1, i])
-
-
-
-
-        phi = ((property_map != -1) * 1) * phi 
-        phi = (1 - omega) * phi_old + omega * phi
-                    
-    return phi 
-    
-
-def column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, W, E):
-    for i in x_index:
-        if i == 0:
-            W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
-            C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
-            E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
-            Q = 2 * a_e[y_index[0]:y_index[-1]+1,i] * phi[y_index[0]:y_index[-1]+1,(i+1)] + 2 * a_e[y_index[0]:y_index[-1]+1,i]**2 * BC_values['W']   #conditions are set for neumann BC.                
-            Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
-            Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
-        
-        if i > 0 and i < N_x-1:
-            W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
-            C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
-            E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
-            Q = a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1)] + a_e[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i+1)] #conditions are set for neumann BC.                
-            Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
-            Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
-
-        if i == N_x - 1:
-            W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
-            C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
-            E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
-            Q = 2 * a_w[y_index[0]:y_index[-1]+1,i-1] * phi[y_index[0]:y_index[-1]+1,(i-1)] + 2 * a_w[y_index[0]:y_index[-1]+1,i-1]**2 * BC_values['E']             
-            Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
-            Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
-        
-
-        Q = np.flip(Q)                     #The reason of reversing Q is, existing Q is inconsistent with the W and E and C list.
-
-        W[-1] += -a_s[y_index[-1], i] * (y_index[0] == 0)             #Neumann of N-S boundaries. implemented here. 
-        E[0] += -a_n[y_index[0], i] * (y_index[-1] == N_y - 1)        #probabaly for different spacing matrixies the east and west should fliped
-        
-        if y_index[0] == 0:
-            phi[y_index[-1]::-1,i] = TDMA(W,C,E,Q) 
-        else:
-            phi[y_index[-1]:y_index[0] - 1:-1,i] = TDMA(W,C,E,Q) 
-
-    return phi
-
-
-def PeriodicBC(alpha, beta, gamma, psi):
-    # psi[1:-1, 1:-1] = ((-0.5) / (alpha[1:-1, 1:-1] + gamma[1:-1, 1:-1] + 1e-9)) * \
-    #  ( 2 * beta[1:-1, 1:-1] * (psi[2:, 2:] - psi[2:, :-2] - psi[:-2, 2:] + psi[:-2, :-2]) \
-    #  - alpha[1:-1, 1:-1] * (psi[1:-1, 2:] + psi[1:-1 , :-2])  \
-    #  -gamma[1:-1, 1:-1] * (psi[2:, 1:-1] + psi[:-2, 1:-1]))
-
-    psi[1:-1, 1:-1] = 0.5 * ( \
-             alpha[1:-1, 1:-1] * (psi[2:, 1:-1] + psi[:-2, 1:-1]) + \
-             gamma[1:-1, 1:-1] * (psi[1:-1, 2:] + psi[1:-1, :-2]) - \
-             beta[1:-1, 1:-1] * 0.5 * (psi[2:, 2:] - psi[2:, :-2] + psi[:-2, :-2] - psi[:-2, 2:]) \
-             ) / (alpha[1:-1, 1:-1] + gamma[1:-1, 1:-1] + 1e-9)
-
-    return psi
-
-def Periodic_a_b_c(X, Y):
-    '''
-    input:
-        x: the x coordinate of x_{i=i-1~i+1, j=j-1~j+1}, at least 3x3 array
-        y: the y coordinate of y_{i=i-1~i+1, j=j-1~j+1}, at least 3x3 array
-    output:
-        a, b, c: at least 1x1 float
-    '''
-    
-    # alpha = np.zeros((X.shape[1], X.shape[0]))
-    # beta = np.zeros((X.shape[1], X.shape[0]))
-    # gamma = np.zeros((X.shape[1], X.shape[0]))
-
-    # alpha = np.zeros((X.shape[1], X.shape[0]))
-    # beta = np.zeros((X.shape[1], X.shape[0]))
-    # gamma = np.zeros((X.shape[1], X.shape[0]))
-
-    # print(alpha.shape)
-    # print(X.shape)
-
-    # alpha[1:-1, 1:-1] = np.transpose((1/4) * ((X[2:, 1:-1] - X[:-2, 1:-1])**2 + (Y[2:, 1:-1] - Y[:-2, 1:-1])**2))
-    # beta[1:-1, 1:-1] = np.transpose((1/16) * ((X[2:, 1:-1] - X[:-2, 1:-1]) * (X[1:-1, 2:] - X[1:-1, :-2]) + (Y[2:, 1:-1] - Y[0:-2, 1:-1]) * (Y[1:-1, 2:] - Y[1:-1, 0:-2])))
-    # gamma[1:-1, 1:-1] = np.transpose(((1/4) * ((X[1:-1, 2:] - X[1:-1, 0:-2])**2 + (Y[1:-1, 2:] - Y[1:-1, :-2])**2)))
-
-    X = X.T
-    Y = Y.T
-
-    alpha = np.zeros((X.shape[0], X.shape[1]))
-    beta = np.zeros((X.shape[0], X.shape[1]))
-    gamma = np.zeros((X.shape[0], X.shape[1]))
-
-    alpha[1:-1,1:-1] = 0.25 * (((X[1:-1, 2:] - X[1:-1, :-2])**2) + 
-                ((Y[1:-1, 2:] - Y[1:-1, :-2])**2))
-    beta[1:-1,1:-1] = 0.25 * ((X[2:, 1:-1] - X[:-2, 1:-1]) * 
-                (X[1:-1, 2:] - X[1:-1, :-2]) + 
-                (Y[2:, 1:-1] - Y[:-2, 1:-1]) * 
-                (Y[1:-1, 2:] - Y[1:-1, :-2]))
-    gamma[1:-1,1:-1] = 0.25 * (((X[2:, 1:-1] - X[:-2, 1:-1])**2) + 
-                ((Y[2:, 1:-1] - Y[:-2, 1:-1])**2))
-
-    alpha = alpha.T
-    beta = beta.T
-    gamma = gamma.T
-
-    return alpha, beta, gamma
-   
-
 class eliptic_PDE_solver:
 
 
@@ -557,7 +32,6 @@ class eliptic_PDE_solver:
         psi = np.zeros((N_e, N_z))  # initial guess for psi
         psi_old = np.zeros((N_e, N_z))  # initial guess for psi
 
-
         psi[:,0] = np.zeros((N_e)) * self.BCvalues['Cut1']
         psi[:,-1] = np.zeros((N_e)) * self.BCvalues['Cut2']
         psi[0,:] = np.ones((1, N_z)) * self.BCvalues['In']
@@ -566,22 +40,14 @@ class eliptic_PDE_solver:
         maxiteration = 50000
         tolerance = 1e-11
         message = 1000
-#######################
+
         X = X.T
         Y = Y.T
 
         X_temp = np.append([X[-2, :].copy()], X[0:2, :].copy(), 0) 
         Y_temp = np.append([X[-2, :].copy()], Y[0:2, :].copy(), 0)
         
-        alpha_temp, beta_temp, gamma_temp = Solve_a_b_c(X_temp , Y_temp)
-
-#######################
-
-        # X_temp = np.concatenate((np.reshape([X[:, -2]], (X.shape[0], 1)), X[:, :2]), 1)
-        # Y_temp = np.concatenate((np.reshape([Y[:, -2]], (Y.shape[0], 1)), Y[:, :2]), 1)
-        # alpha_temp, beta_temp, gamma_temp = Periodic_a_b_c(X_temp, Y_temp)
-
-        # alpha, beta, gamma = Periodic_a_b_c(X, Y)
+        alpha_temp, beta_temp, gamma_temp = Solve_Coeff(X_temp , Y_temp)
 
         psi = psi.T
 
@@ -591,23 +57,12 @@ class eliptic_PDE_solver:
 
             psi_temp = np.append([psi[-2, :].copy()], psi[0:2, :].copy(), 0)
 
-            psi[0, 1:-1] = Solve_Coeff(alpha_temp, beta_temp, gamma_temp, psi_temp)
+            psi[0, 1:-1] = SolveEliptic(alpha_temp, beta_temp, gamma_temp, psi_temp)
             psi[-1, :] = psi[0, :].copy()
 
             psi[:, 0] = psi[0, 1] #Kutta Condiation
 
             psi[1:-1, 1:-1] = SolveEliptic(alpha, beta, gamma, psi)
-
-            # psi_temp = np.concatenate((np.reshape([psi[:, -2]], (psi.shape[0], 1)), psi[:, :2]), 1)
-
-            # Cut_psi = PeriodicBC(alpha_temp, beta_temp, gamma_temp, psi_temp)
-            # psi[1:-1,0] = Cut_psi[1:-1,1]
-            # psi[1:-1,-1] = psi[1:-1,0]
-
-            # psi[0, :] = psi[1, :] #Kutta Condiation
-
-            # psi[1:N_e-1, 1:N_z-1] = ((-0.5) / (alpha[1:N_e-1, 1:N_z-1] + gamma[1:N_e-1, 1:N_z-1] + 1e-9)) * (2 * beta[1:N_e-1, 1:N_z-1] * (psi[2:N_e, 2:N_z] - psi[2:N_e, 0:N_z-2] - psi[0:N_e-2, 2:N_z] + psi[0:N_e-2, 0:N_z-2]) - alpha[1:N_e-1, 1:N_z-1] * (psi[1:N_e-1, 2: N_z] + psi[1:N_e-1 , 0:N_z-2]) - gamma[1:N_e-1, 1:N_z-1] * (psi[2:N_e, 1:N_z-1] + psi[0:N_e-2, 1:N_z-1]))
-            # psi = PeriodicBC(alpha, beta, gamma, psi)
   
             residual_psi = np.max(np.abs(psi - psi_old))
 
@@ -622,10 +77,8 @@ class eliptic_PDE_solver:
             if iteration == maxiteration - 1:
                 print("Max iteration reached. Error is: ", residual_psi)
 
-            
         self.solution = psi.T
 
-        # return Cut_psi
 
     def velocity_field(self):
         pass
@@ -818,7 +271,7 @@ class PDE_2D_Solver:
                 
                 # sleep(1)
 
-            if residual < toll or abs(mass_residaul) < toll or abs(mass) < toll:
+            if residual < toll or abs(mass_residaul) < toll:
                 print("Residual: ", residual,"Mass Residual:", mass_residaul, "Mass:", mass)
                 print("Solution converged at ", t, "th iteration")
                 break
@@ -908,23 +361,23 @@ class PDE_2D_Solver:
         z_max = self.solution.max()
 
         fig.set_size_inches(15, 15)
-        image = ax.pcolormesh(x_MAT, np.flip(y_MAT), self.solution, vmin=z_min, vmax=z_max, edgecolors="none", cmap=colormap)
+        image = ax.pcolormesh(x_MAT, y_MAT, self.solution, vmin=z_min, vmax=z_max, edgecolors="none", cmap=colormap)
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="6%", pad="2%")
 
         if type == "potensial":
-            if self.BC["S"] == "D":
-                ax.set_xlabel(('$\phi$ = ' + str(self.BCvalues["S"])) , fontsize=20)
+            if self.BC["N"] == "D":
+                ax.set_xlabel(('$\phi$ = ' + str(self.BCvalues["N"])) , fontsize=20)
             else:
-                ax.set_xlabel(('${\partial \phi}{\partial y}$ = '+ str(self.BCvalues["S"])) , fontsize=20)
+                ax.set_xlabel(('${\partial \phi}{\partial y}$ = '+ str(self.BCvalues["N"])) , fontsize=20)
             if self.BC["W"] == "D":
                 ax.set_ylabel(('$\phi$ = '+ str(self.BCvalues["W"])) , fontsize=20)
             else:
                 ax.set_ylabel(('${\partial \phi}{\partial x}$ = ' + str(self.BCvalues["W"])) , fontsize=20)
-            if self.BC["N"] == "D":
-                ax.set_title(('$\phi$ = ' + str(self.BCvalues["N"])) , fontsize=20)
+            if self.BC["S"] == "D":
+                ax.set_title(('$\phi$ = ' + str(self.BCvalues["S"])) , fontsize=20)
             else:
-                ax.set_title(('$\partial \phi \partial y$ = ' + str(self.BCvalues["N"])) , fontsize=20)
+                ax.set_title(('$\partial \phi \partial y$ = ' + str(self.BCvalues["S"])) , fontsize=20)
     
     # secondary y-axis label
             
