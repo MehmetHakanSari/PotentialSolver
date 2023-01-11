@@ -418,27 +418,26 @@ class ElippticMesh:
 
         error_x, error_y = 1, 1
 
-        maxiteration = 10000
+        maxiteration = 15000
         message = 1000
+        omega = 1
 
         N_z = self.nodes[0]
         N_e = self.nodes[1]
 
-        X_new, Y_new = X.T, Y.T
+        X_new, Y_new = X.T.copy(), Y.T.copy()
 
         #interpolate interiour nodes
         for i in range(N_z):
             X[1:-1, i] = np.linspace(X[0, i], X[-1, i], N_e)[1:-1]
             Y[1:-1, i] = np.linspace(Y[0, i], Y[-1, i], N_e)[1:-1]
 
-        # self.X = X
-        # self.Y = Y
-        # # self.plot_mesh()
-
         for iteration in range(maxiteration):
 
-            X = X.T
-            Y = Y.T
+            # X_old = X.copy()
+            # Y_old = Y.copy()
+            X = X.T.copy()
+            Y = Y.T.copy()
 
             X_temp = np.append([X[-2, :].copy()], X[0:2, :].copy(), 0) 
             Y_temp = np.append([X[-2, :].copy()], Y[0:2, :].copy(), 0)
@@ -450,15 +449,21 @@ class ElippticMesh:
             Y[-1, 1:-1] = Y[0, 1:-1].copy()
 
             alpha, beta, gamma = Solve_Coeff(X, Y)
-            X_new[1:-1, 1:-1] = SolveEliptic(alpha,beta, gamma, X)
-            Y_new[1:-1, 1:-1] = SolveEliptic(alpha,beta, gamma, Y)
+            X_new[1:-1, 1:-1] = omega * SolveEliptic(alpha, beta, gamma, X) + (1 - omega) * X[1:-1, 1:-1]
+            Y_new[1:-1, 1:-1] = omega * SolveEliptic(alpha, beta, gamma, Y) + (1 - omega) * Y[1:-1, 1:-1]
 
             error_x = np.max(np.abs(X_new - X))
             error_y = np.max(np.abs(Y_new - Y))
-            
-            if error_x < 1e-6 and error_y < 1e-6:
-                break
 
+            # error_x = np.max(np.abs(X - X_old))
+            # error_y = np.max(np.abs(Y - Y_old))
+            
+            if error_x < 1e-11 and error_y < 1e-11:
+                print("Iteration: ", iteration, "Error is: ", error_x, error_y)
+                X = X.T
+                Y = Y.T
+                break
+            
             #give message with some interval 
             if iteration % message == 0:
                 print("Iteration: ", iteration, "Error is: ", error_x, error_y)
@@ -469,8 +474,8 @@ class ElippticMesh:
             X = X_new.T.copy()
             Y = Y_new.T.copy()
 
-        self.X = X.T
-        self.Y = Y.T
+        self.X = X
+        self.Y = Y
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma

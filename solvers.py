@@ -86,7 +86,7 @@ class eliptic_PDE_solver:
 
     def plot2D(self):
             
-        fig = plt.figure()
+        fig = plt.figure(figsize=(10, 8))
 
         X, Y = self.mesh.X, self.mesh.Y
         #use pcolormesh for better visualization
