@@ -103,4 +103,28 @@ def BL_solver():
 def mu_calc(x, y, Uinf, nu):
     return y*np.sqrt(Uinf/(nu*x))
 
+def BL_domain(Uinf, size = 100):
+
+    mu, vel_ratio = BL_solver()
+    
+    nu = 1.81e-2
+    x = np.linspace(0.001,1,size)
+    Re = Uinf*x/nu
+    delta = 5 * x / np.sqrt(Re)
+    delta_idx = np.round(delta*size)
+
+    solution = np.ones((size, size))*Uinf
+
+    for i in range(len(delta_idx)):
+        for j in range(int(delta_idx[i])):
+            loc = x[i]
+            height = delta_idx[j]/size
+
+            mu_val = mu_calc(loc, height, Uinf, nu)
+
+            vel_ra = np.interp(mu_val, mu, vel_ratio)
+
+            solution[j, i] = Uinf * vel_ra
+    return solution
+
 
