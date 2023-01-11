@@ -84,7 +84,6 @@ class Map:
         if obj.type == "airfoil":
             self.area = create_airfoil(mesh, obj ,self)
         if obj.type == "boundary_layer":
-            print('anan')
             self.area = create_boundarylayer(obj, self)
         
         # self.area()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] = self.area()[c_y1_index:c_y2_index, c_x1_index:c_x2_index] + circle_matrix
@@ -96,6 +95,6 @@ class Map:
         # z = np.ones((self.nodes[1], self.nodes[0])) * 0.5
         minvalue = np.min(self.area)
         maxvalue = np.max(self.area)
-        fig.set_size_inches(15, 15)
+        fig.set_size_inches(10, 10)
         image = ax.pcolormesh(self.area, vmin=minvalue, vmax=maxvalue, edgecolors="none")
         plt.show()

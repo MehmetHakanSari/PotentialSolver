@@ -473,6 +473,11 @@ def column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, 
 
     return phi
 
+
+def TDMA(a, b, c, d):
+    pass
+
+
 class eliptic_PDE_solver:
 
 
@@ -493,19 +498,31 @@ class eliptic_PDE_solver:
         psi = np.zeros((N_e, N_z))  # initial guess for psi
         psi_old = np.zeros((N_e, N_z))  # initial guess for psi
 
-        psi[0,:] = np.ones((1, N_z)) * self.BCvalues['In']
-        psi[-1,:] = np.ones((1, N_z)) * self.BCvalues['Out']
+
         psi[:,0] = np.zeros((N_e)) * self.BCvalues['Cut1']
         psi[:,-1] = np.zeros((N_e)) * self.BCvalues['Cut2']
+        psi[0,:] = np.ones((1, N_z)) * self.BCvalues['In']
+        psi[-1,:] = np.ones((1, N_z)) * self.BCvalues['Out']
 
-        maxiteration = 5000
-        tolerance = 1e-6
+
+        maxiteration = 50000
+        tolerance = 1e-11
         message = 1000
 
         for iteration in range(maxiteration):
 
+            # apply periodic BC on dividing line
+            # temp = np.append([stream[-2, :].copy()], stream[:2, :].copy(), 0)
+            # tempx = np.append([x[-2, :].copy()], x[:2, :].copy(), 0) 
+            # tempy = np.append([y[-2, :].copy()], y[:2, :].copy(), 0)
+            # a, b, c = Solve_a_b_c(tempx, tempy)
+            # stream[0, 1:-1] = SolveEq(a, b, c, temp)
+            # stream[-1, :] = stream[0, :].copy()
+
             psi[1:N_e-1, 1:N_z-1] = ((-0.5) / (alpha[1:N_e-1, 1:N_z-1] + gamma[1:N_e-1, 1:N_z-1] + 1e-9)) * (2 * beta[1:N_e-1, 1:N_z-1] * (psi[2:N_e, 2:N_z] - psi[2:N_e, 0:N_z-2] - psi[0:N_e-2, 2:N_z] + psi[0:N_e-2, 0:N_z-2]) - alpha[1:N_e-1, 1:N_z-1] * (psi[1:N_e-1, 2: N_z] + psi[1:N_e-1 , 0:N_z-2]) - gamma[1:N_e-1, 1:N_z-1] * (psi[2:N_e, 1:N_z-1] + psi[0:N_e-2, 1:N_z-1]))
         
+            psi[0, :] = psi[1, :] #Kutta Condiation
+
             residual_psi = np.max(np.abs(psi - psi_old))
 
             if residual_psi < tolerance:
@@ -521,6 +538,7 @@ class eliptic_PDE_solver:
 
             psi_old = psi.copy()
 
+        
         self.solution = psi
 
     def velocity_field(self):
@@ -535,6 +553,15 @@ class eliptic_PDE_solver:
         #use pcolormesh for better visualization
         plt.pcolormesh(X, Y, self.solution, cmap = 'jet')
         plt.colorbar()
+        plt.show()
+
+    def contour(self):
+        plt.figure(figsize=(10, 8), dpi=100)
+        cs = plt.contour(self.mesh.X, self.mesh.Y, self.solution, 20, colors='k')
+        plt.clabel(cs)
+        plt.plot(self.mesh.X[0, :], self.mesh.Y[0, :], 'b-', lw=2) # plot the airfoil
+        # plt.xlim((-2., 3.))
+        # plt.ylim((-1.5, 1.5))
         plt.show()
 
     def streamplot(self, streamcolor):
@@ -724,7 +751,7 @@ class PDE_2D_Solver:
             It is not necessary for the solver. 
         """
         self.velocityfield("potensial")
-        u = self.velocity[:,:,0]
+        u = -self.velocity[:,:,0]
         v = self.velocity[:,:,1]
 
         X, Y = self.mesh.matricies[0], self.mesh.matricies[1] 
@@ -732,7 +759,7 @@ class PDE_2D_Solver:
         dx = float(X[0,1] - X[0,0])   #normally dx should be taken from the spacing matrix. 
         dy = float(Y[0,0] - Y[1,0])
 
-        dudx = OneDcentraldiff(u, dx, 0)
+        dudx = OneDcentraldiff(-u, dx, 0)
         dvdy = OneDcentraldiff(v, dy, 1)
 
         continuity = dudx + dvdy
@@ -862,8 +889,8 @@ class PDE_2D_Solver:
 
         fig, (axs1, axs2) = plt.subplots(1,2)
         fig.set_size_inches(12, 5)
-        axs1.streamplot(x_MAT, y_MAT, u, v, color=streamcolor, density=0.9, linewidth=lw, cmap='winter')
-        axs2.streamplot(x_MAT, y_MAT, u, v, color=streamcolor, density=0.9, linewidth=1, cmap='winter')
+        axs1.streamplot(x_MAT, y_MAT, -u, v, color=streamcolor, density=0.9, linewidth=lw, cmap='winter')
+        axs2.streamplot(x_MAT, y_MAT, -u, v, color=streamcolor, density=0.9, linewidth=1, cmap='winter')
         plt.show()
 
     def countour(self):
@@ -882,5 +909,5 @@ class PDE_2D_Solver:
         fig, ax = plt.subplots()
 
         fig.set_size_inches(15, 15)
-        plt.quiver(x_MAT, y_MAT, u, v)
+        plt.quiver(x_MAT, y_MAT, -u, v)
         plt.show()

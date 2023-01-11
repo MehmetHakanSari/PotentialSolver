@@ -353,11 +353,19 @@ def create_boundarylayer(obj, map):
     bl_idx = obj.thickness_idx
 
     for i in range(len(bl_idx)):
+
         thickness = int(bl_idx[i])
 
-        map.area[i, 0:thickness] += obj.wall
-        map.area[i, 0:thickness-1] += obj.inter
+        if i > 0 and bl_idx[i] - 1 > bl_idx[i-1]:
 
+            prior_thickness = int(bl_idx[i-1])
+            map.area[0:thickness, i] = obj.wall
+            map.area[0:prior_thickness-1, i] = obj.inter
+
+        else:
+            map.area[0:thickness, i] = obj.wall
+            map.area[0:thickness-1, i] = obj.inter
+        
     return map.area
 
 #rotate function will rotate airfoil coordinates by given angle
