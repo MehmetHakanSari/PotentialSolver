@@ -575,14 +575,6 @@ class eliptic_PDE_solver:
 
         for iteration in range(maxiteration):
 
-            # apply periodic BC on dividing line
-            # temp = np.append([stream[-2, :].copy()], stream[:2, :].copy(), 0)
-            # tempx = np.append([x[-2, :].copy()], x[:2, :].copy(), 0) 
-            # tempy = np.append([y[-2, :].copy()], y[:2, :].copy(), 0)
-            # a, b, c = Solve_a_b_c(tempx, tempy)
-            # stream[0, 1:-1] = SolveEq(a, b, c, temp)
-            # stream[-1, :] = stream[0, :].copy()
-
             psi_temp = np.concatenate((np.reshape([psi[:, -2]], (psi.shape[0], 1)), psi[:, :2]), 1)
 
             Cut_psi = PeriodicBC(alpha_temp, beta_temp, gamma_temp, psi_temp)

@@ -186,3 +186,102 @@ def TwoDcentral_diff_velocity(solution):
 
     return dfuncdx, dfuncdy
              
+
+def Solve_a_b_c(x, y):
+    '''
+    input:
+        x: the x coordinate of x_{i=i-1~i+1, j=j-1~j+1}, at least 3x3 array
+        y: the y coordinate of y_{i=i-1~i+1, j=j-1~j+1}, at least 3x3 array
+    output:
+        a, b, c: at least 1x1 float
+    '''
+    a = 0.25 * (((x[1:-1, 2:] - x[1:-1, :-2])**2) + 
+                ((y[1:-1, 2:] - y[1:-1, :-2])**2))
+    b = 0.25 * ((x[2:, 1:-1] - x[:-2, 1:-1]) * 
+                (x[1:-1, 2:] - x[1:-1, :-2]) + 
+                (y[2:, 1:-1] - y[:-2, 1:-1]) * 
+                (y[1:-1, 2:] - y[1:-1, :-2]))
+    c = 0.25 * (((x[2:, 1:-1] - x[:-2, 1:-1])**2) + 
+                ((y[2:, 1:-1] - y[:-2, 1:-1])**2))
+    return a, b, c
+
+def SolveEq(a, b, c, U):
+    '''
+    input:
+        a, b, c: as described in the content
+        U: the result of the last iteration
+    output:
+        return the result of current iteration
+    '''
+    return 0.5 * (
+                  a * (U[2:, 1:-1] + U[:-2, 1:-1]) + 
+                  c * (U[1:-1, 2:] + U[1:-1, :-2]) -
+                  b * 0.5 * (U[2:, 2:] - U[2:, :-2] + U[:-2, :-2] - U[:-2, 2:])
+                 ) / (a + c)
+
+
+
+# def Solve_Coeffs(self, X, Y):
+#         """
+#             input:
+#                 x: the x coordinate of x_{i=i-1~i+1, j=j-1~j+1}, at least 3x3 array
+#                 y: the y coordinate of y_{i=i-1~i+1, j=j-1~j+1}, at least 3x3 array
+#             output:
+#                 a, b, c: at least 1x1 float
+#         """
+#         # X = X.T
+#         # Y = Y.T
+
+#         alpha = np.zeros(X.shape)
+#         beta = np.zeros(X.shape)
+#         gamma = np.zeros(X.shape)
+
+#         # alpha[1:-1,1:-1] = 0.25 * (((X[1:-1, 2:] - X[1:-1, :-2])**2) + 
+#         #             ((Y[1:-1, 2:] - Y[1:-1, :-2])**2))
+#         # beta[1:-1,1:-1] = 0.25 * ((X[2:, 1:-1] - X[:-2, 1:-1]) * 
+#         #             (X[1:-1, 2:] - X[1:-1, :-2]) + 
+#         #             (Y[2:, 1:-1] - Y[:-2, 1:-1]) * 
+#         #             (Y[1:-1, 2:] - Y[1:-1, :-2]))
+#         # gamma[1:-1,1:-1] = 0.25 * (((X[2:, 1:-1] - X[:-2, 1:-1])**2) + 
+#         #             ((Y[2:, 1:-1] - Y[:-2, 1:-1])**2))
+
+#         alpha[1:-1,1:-1] = 0.25 * (((X[2:, 1:-1] - X[:-2, 1:-1])**2) + 
+#                     ((Y[2:, 1:-1] - Y[:-2, 1:-1])**2))
+#         beta[1:-1,1:-1] = 0.25 * ((X[1:-1, 2:] - X[1:-1, :-2]) * 
+#                     (X[2:, 1:-1, ] - X[:-2, 1:-1]) + 
+#                     (Y[1:-1, 2:] - Y[1:-1, :-2]) * 
+#                     (Y[2:, 1:-1] - Y[:-2, 1:-1]))
+#         gamma[1:-1,1:-1] = 0.25 * (((X[1:-1, 2:] - X[1:-1, :-2])**2) + 
+#                     ((Y[1:-1, 2:] - Y[1:-1, :-2])**2))
+
+#         # alpha = alpha.T
+#         # beta = beta.T
+#         # gamma = gamma.T
+
+#         return alpha[1:-1,1:-1], beta[1:-1,1:-1], gamma[1:-1,1:-1]
+
+# def Solve_Eliptic(self, alpha, beta, gamma, U):
+#     """
+#         input:
+#             a, b, c: as described in the content
+#             U: the result of the last iteration
+#         output:
+#             return the result of current iteration
+#     """
+#     # alpha = alpha.T
+#     # beta = beta.T
+#     # gamma = gamma.T
+#     # U = U.T
+
+#     # U[1:-1, 1:-1] = ((-0.5) / (alpha[1:-1, 1:-1] + gamma[1:-1, 1:-1] + 1e-9)) * \
+#     # ( 2 * beta[1:-1, 1:-1] * (U[2:, 2:] - U[2:, :-2] - U[:-2, 2:] + U[:-2, :-2]) \
+#     # - alpha[1:-1, 1:-1] * (U[1:-1, 2:] + U[1:-1 , :-2])  \
+#     # -gamma[1:-1, 1:-1] * (U[2:, 1:-1] + U[:-2, 1:-1]))
+
+#     U = 0.5 * (
+#                 alpha * (U[1:-1, 2:] + U[1:-1, :-2]) + 
+#                 beta * (U[2:, 1:-1] + U[:-2, 1:-1]) -
+#                 gamma * 0.5 * (U[2:, 2:] - U[:-2, 2:] + U[:-2, :-2] - U[2:, :-2])
+#                 ) / (alpha + gamma)   #updated to Y,X coordinate
+
+#     return U

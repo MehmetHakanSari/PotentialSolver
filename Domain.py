@@ -9,6 +9,7 @@ from visiual import *
 from time import perf_counter
 
 
+
 class Mesh:
     """
         Domain is the phsical domain that problem will be solved. (Formal)
@@ -372,8 +373,8 @@ class ElippticMesh:
         self.nodes = nodes
         self.GAMA1 = GAMA1
         self.GAMA2 = GAMA2
-        
-        
+
+    
     def create_elipticmesh(self):
         """
             Create eliptic mesh by gauss-seidel itteration with SOR. Returns self X and Y matrixies inlucding coordinates of the nodal points. 
@@ -396,9 +397,9 @@ class ElippticMesh:
         GAMA3 = np.array([GAMA3_x, GAMA3_y]).T
         GAMA4 = np.array([GAMA4_x, GAMA4_y]).T
 
-        alpha = np.zeros((self.nodes[1], self.nodes[0]))
-        beta = np.zeros((self.nodes[1], self.nodes[0]))
-        gamma = np.zeros((self.nodes[1], self.nodes[0]))
+        # alpha = np.zeros((self.nodes[1], self.nodes[0]))
+        # beta = np.zeros((self.nodes[1], self.nodes[0]))
+        # gamma = np.zeros((self.nodes[1], self.nodes[0]))
 
         #create X and Y matrixes and give boundary conditions from GAMA1, GAMA2, GAMA3 and GAMA4
 
@@ -409,13 +410,12 @@ class ElippticMesh:
         X[-1,:] = GAMA2[:,0]
         X[:,0] = np.flip(GAMA3[:,0])
         X[:,-1] = np.flip(GAMA4[:,0])
-
+ 
         Y[0,:] = GAMA1[:,1]
         Y[-1,:] = GAMA2[:,1]
         Y[:,0] = np.flip(GAMA3[:,1])
         Y[:,-1] = np.flip(GAMA4[:,1])
 
-        X_new, Y_new = X, Y
         error_x, error_y = 1, 1
 
         maxiteration = 10000
@@ -424,14 +424,59 @@ class ElippticMesh:
         N_z = self.nodes[0]
         N_e = self.nodes[1]
 
+        X_new, Y_new = X.T, Y.T
+
+        #interpolate interiour nodes
+        for i in range(N_z):
+            X[1:-1, i] = np.linspace(X[0, i], X[-1, i], N_e)[1:-1]
+            Y[1:-1, i] = np.linspace(Y[0, i], Y[-1, i], N_e)[1:-1]
+
+        
+        self.X = X
+        self.Y = Y
+        # self.plot_mesh()
+
         for iteration in range(maxiteration):
 
-            alpha[1:N_e-1, 1: N_z-1] = (1/4) * ((X[2:N_e, 1:N_z-1] - X[0:N_e-2, 1:N_z-1])**2 + (Y[2:N_e, 1: N_z-1] - Y[0:N_e-2, 1: N_z-1])**2)
-            beta[1:N_e-1, 1: N_z-1] = (1/16) * ((X[2:N_e, 1:N_z-1] - X[0:N_e-2, 1:N_z-1]) * (X[1: N_e-1, 2: N_z] - X[1: N_e-1, 0:N_z-2]) + (Y[2:N_e, 1: N_z-1] - Y[0:N_e-2, 1: N_z-1]) * (Y[1: N_e-1, 2: N_z] - Y[1: N_e-1, 0:N_z-2]))
-            gamma[1:N_e-1, 1: N_z-1] = (1/4) * ((X[1: N_e-1, 2: N_z] - X[1: N_e-1, 0:N_z-2])**2 + (Y[1: N_e-1, 2: N_z] - Y[1: N_e-1, 0:N_z-2])**2)
+            # X_temp = np.concatenate((np.reshape([X[:, -2]], (X.shape[0], 1)), X[:, :2]), 1)
+            # Y_temp = np.concatenate((np.reshape([Y[:, -2]], (Y.shape[0], 1)), Y[:, :2]), 1)
+            # alpha_temp, beta_temp, gamma_temp = Solve_a_b_c(X_temp, Y_temp)
 
-            X_new[1:N_e-1, 1:N_z-1] = ((-0.5) / (alpha[1:N_e-1, 1:N_z-1] + gamma[1:N_e-1, 1:N_z-1] + 1e-9)) * (2 * beta[1:N_e-1, 1:N_z-1] * (X[2:N_e, 2:N_z] - X[2:N_e, 0:N_z-2] - X[0:N_e-2, 2:N_z] + X[0:N_e-2, 0:N_z-2]) - alpha[1:N_e-1, 1:N_z-1] * (X[1:N_e-1, 2: N_z] + X[1:N_e-1 , 0:N_z-2]) - gamma[1:N_e-1, 1:N_z-1] * (X[2:N_e, 1:N_z-1] + X[0:N_e-2, 1:N_z-1]))
-            Y_new[1:N_e-1, 1:N_z-1] = ((-0.5) / (alpha[1:N_e-1, 1:N_z-1] + gamma[1:N_e-1, 1:N_z-1] + 1e-9)) * (2 * beta[1:N_e-1, 1:N_z-1] * (Y[2:N_e, 2: N_z] - Y[2:N_e, 0:N_z-2] - Y[0:N_e-2, 2: N_z] + Y[0:N_e-2, 0:N_z-2]) - alpha[1:N_e-1, 1:N_z-1] * (Y[1:N_e-1, 2: N_z] + Y[1:N_e-1 , 0:N_z-2]) - gamma[1:N_e-1, 1:N_z-1] * (Y[2:N_e, 1:N_z-1] + Y[0:N_e-2, 1:N_z-1]))
+            # # print(alpha_temp.shape, beta_temp.shape, gamma_temp.shape, X_temp.shape)
+
+            # GAMA3_x = SolveEq(alpha_temp, beta_temp, gamma_temp, X_temp)
+            # GAMA3_y = SolveEq(alpha_temp, beta_temp, gamma_temp, Y_temp)
+
+            # print(GAMA3_x.shape, GAMA3_y.shape)
+
+            # X[1:-1, 0] = np.flip(np.reshape(GAMA3_x, len(GAMA3_x)))
+            # Y[1:-1, 0] = np.flip(np.reshape(GAMA3_y, len(GAMA3_y)))
+
+            # X[1:-1, -1] = X[1:-1, 0].copy()
+            # Y[1:-1, -1] = Y[1:-1, 0].copy()
+
+            X = X.T
+            Y = Y.T
+
+            X_temp = np.append([X[-2, :].copy()], X[0:2, :].copy(), 0) 
+            Y_temp = np.append([X[-2, :].copy()], Y[0:2, :].copy(), 0)
+            alpha, beta, gamma = Solve_a_b_c(X_temp , Y_temp)
+            X[0, 1:-1] = SolveEq(alpha, beta, gamma, X_temp )
+            Y[0, 1:-1] = SolveEq(alpha, beta, gamma, Y_temp)
+
+            X[-1, 1:-1] = X[0, 1:-1].copy()
+            Y[-1, 1:-1] = Y[0, 1:-1].copy()
+
+            alpha, beta, gamma = Solve_a_b_c(X, Y)
+            X_new[1:-1, 1:-1] = SolveEq(alpha,beta, gamma, X)
+            Y_new[1:-1, 1:-1] = SolveEq(alpha,beta, gamma, Y)
+
+            # alpha[1:N_e-1, 1: N_z-1] = (1/4) * ((X[2:N_e, 1:N_z-1] - X[0:N_e-2, 1:N_z-1])**2 + (Y[2:N_e, 1: N_z-1] - Y[0:N_e-2, 1: N_z-1])**2)
+            # beta[1:N_e-1, 1: N_z-1] = (1/16) * ((X[2:N_e, 1:N_z-1] - X[0:N_e-2, 1:N_z-1]) * (X[1: N_e-1, 2: N_z] - X[1: N_e-1, 0:N_z-2]) + (Y[2:N_e, 1: N_z-1] - Y[0:N_e-2, 1: N_z-1]) * (Y[1: N_e-1, 2: N_z] - Y[1: N_e-1, 0:N_z-2]))
+            # gamma[1:N_e-1, 1: N_z-1] = (1/4) * ((X[1: N_e-1, 2: N_z] - X[1: N_e-1, 0:N_z-2])**2 + (Y[1: N_e-1, 2: N_z] - Y[1: N_e-1, 0:N_z-2])**2)
+
+            # X_new[1:N_e-1, 1:N_z-1] = ((-0.5) / (alpha[1:N_e-1, 1:N_z-1] + gamma[1:N_e-1, 1:N_z-1] + 1e-9)) * (2 * beta[1:N_e-1, 1:N_z-1] * (X[2:N_e, 2:N_z] - X[2:N_e, 0:N_z-2] - X[0:N_e-2, 2:N_z] + X[0:N_e-2, 0:N_z-2]) - alpha[1:N_e-1, 1:N_z-1] * (X[1:N_e-1, 2: N_z] + X[1:N_e-1 , 0:N_z-2]) - gamma[1:N_e-1, 1:N_z-1] * (X[2:N_e, 1:N_z-1] + X[0:N_e-2, 1:N_z-1]))
+            # Y_new[1:N_e-1, 1:N_z-1] = ((-0.5) / (alpha[1:N_e-1, 1:N_z-1] + gamma[1:N_e-1, 1:N_z-1] + 1e-9)) * (2 * beta[1:N_e-1, 1:N_z-1] * (Y[2:N_e, 2: N_z] - Y[2:N_e, 0:N_z-2] - Y[0:N_e-2, 2: N_z] + Y[0:N_e-2, 0:N_z-2]) - alpha[1:N_e-1, 1:N_z-1] * (Y[1:N_e-1, 2: N_z] + Y[1:N_e-1 , 0:N_z-2]) - gamma[1:N_e-1, 1:N_z-1] * (Y[2:N_e, 1:N_z-1] + Y[0:N_e-2, 1:N_z-1]))
 
             error_x = np.max(np.abs(X_new - X))
             error_y = np.max(np.abs(Y_new - Y))
@@ -449,8 +494,12 @@ class ElippticMesh:
             if iteration == maxiteration - 1:
                 print("Max iteration reached. Error is: ", error_x, error_y)
 
-            X = X_new.copy()
-            Y = Y_new.copy()
+            X = X_new.T.copy()
+            Y = Y_new.T.copy()
+
+            # X = X_new.copy()
+            # Y = Y_new.copy()
+ 
 
         self.X = X
         self.Y = Y
