@@ -63,9 +63,8 @@ def create_airfoil(mesh, obj, map):
         Map: Map class
     """
 
-    x_MAT = mesh.matricies[0]
-    y_MAT = mesh.matricies[1]   
-
+    x_MAT = mesh.X
+    y_MAT = mesh.Y
     x1 = mesh.xlength[0]  # start
     x2 = mesh.xlength[1]  # end
 
@@ -92,9 +91,9 @@ def create_airfoil(mesh, obj, map):
     # finding vicinity of the airfoil:
 
     # A row that includes zeros until c_x1 then ones until end.
-    below = (mesh.matricies[0] <= c_x1)[0, :]
+    below = (mesh.X <= c_x1)[0, :]
     # A row that includes zeros until c_x2 then ones until end.
-    top = (mesh.matricies[0] <= c_x2)[0, :]
+    top = (mesh.X <= c_x2)[0, :]
 
     # index of first one apperas in the list
     c_x1_index = np.nonzero((below == False)*1)[0][0]
@@ -102,9 +101,9 @@ def create_airfoil(mesh, obj, map):
     c_x2_index = np.nonzero((top == False)*1)[0][0]
 
     # A row that includes zeros until c_x1 then ones until end.
-    below = (mesh.matricies[1] <= c_y1)[:, 1]
+    below = (mesh.Y <= c_y1)[:, 1]
     # A row that includes zeros until c_x2 then ones until end.
-    top = (mesh.matricies[1] <= c_y2)[:, 1]
+    top = (mesh.Y <= c_y2)[:, 1]
 
     # index of first one apperas in the list
     c_y1_index = np.nonzero((below == False)*1)[0][0]
@@ -226,9 +225,9 @@ def create_circle(mesh, obj, map):
     # finding vicinity of the circle:
 
     # A row that includes zeros until c_x1 then ones until end.
-    below = (mesh.matricies[0] <= c_x1)[0, :]
+    below = (mesh.X <= c_x1)[0, :]
     # A row that includes zeros until c_x2 then ones until end.
-    top = (mesh.matricies[0] <= c_x2)[0, :]
+    top = (mesh.X <= c_x2)[0, :]
 
     # index of first one apperas in the list
     c_x1_index = np.nonzero((below == False)*1)[0][0]
@@ -236,9 +235,9 @@ def create_circle(mesh, obj, map):
     c_x2_index = np.nonzero((top == False)*1)[0][0]
 
     # A row that includes zeros until c_x1 then ones until end.
-    below = (mesh.matricies[1] <= c_y1)[:, 1]
+    below = (mesh.Y <= c_y1)[:, 1]
     # A row that includes zeros until c_x2 then ones until end.
-    top = (mesh.matricies[1] <= c_y2)[:, 1]
+    top = (mesh.Y <= c_y2)[:, 1]
 
     # index of first one apperas in the list
     c_y1_index = np.nonzero((below == False)*1)[0][0]
@@ -247,8 +246,8 @@ def create_circle(mesh, obj, map):
 
     # finding points lies inside the circle
 
-    circle_matrix = ((mesh.matricies[0][c_y1_index:c_y2_index, c_x1_index:c_x2_index] - center[0])**2 + (
-        mesh.matricies[1][c_y1_index:c_y2_index, c_x1_index:c_x2_index] - center[1])**2 <= radius**2) * -1
+    circle_matrix = ((mesh.X[c_y1_index:c_y2_index, c_x1_index:c_x2_index] - center[0])**2 + (
+        mesh.Y[c_y1_index:c_y2_index, c_x1_index:c_x2_index] - center[1])**2 <= radius**2) * -1
     # print(circle_matrix)
 
     # defining wall
@@ -306,9 +305,9 @@ def create_rectangle(mesh, obj, map):
     # finding vicinity of the rectangle:
 
     # A row that includes zeros until c_x1 then ones until end.
-    below = (mesh.matricies[0] <= c_x1)[0, :]
+    below = (mesh.X <= c_x1)[0, :]
     # A row that includes zeros until c_x2 then ones until end.
-    top = (mesh.matricies[0] <= c_x2)[0, :]
+    top = (mesh.X <= c_x2)[0, :]
 
     # index of first one apperas in the list
     c_x1_index = np.nonzero((below == False)*1)[0][0]
@@ -316,9 +315,9 @@ def create_rectangle(mesh, obj, map):
     c_x2_index = np.nonzero((top == False)*1)[0][0]
 
     # A row that includes zeros until c_x1 then ones until end.
-    below = (mesh.matricies[1] <= c_y1)[:, 1]
+    below = (mesh.Y <= c_y1)[:, 1]
     # A row that includes zeros until c_x2 then ones until end.
-    top = (mesh.matricies[1] <= c_y2)[:, 1]
+    top = (mesh.Y <= c_y2)[:, 1]
 
     # index of first one apperas in the list
     c_y1_index = np.nonzero((below == False)*1)[0][0]
@@ -327,8 +326,8 @@ def create_rectangle(mesh, obj, map):
 
     # finding points lies inside the rectangle using obj parameters
 
-    rectangle_matrix = ((mesh.matricies[0][c_y1_index:c_y2_index, c_x1_index:c_x2_index] >= c_x1) * (mesh.matricies[0][c_y1_index:c_y2_index, c_x1_index:c_x2_index] <= c_x2) * (
-        mesh.matricies[1][c_y1_index:c_y2_index, c_x1_index:c_x2_index] >= c_y1) * (mesh.matricies[1][c_y1_index:c_y2_index, c_x1_index:c_x2_index] <= c_y2)) * -1
+    rectangle_matrix = ((mesh.X[c_y1_index:c_y2_index, c_x1_index:c_x2_index] >= c_x1) * (mesh.X[c_y1_index:c_y2_index, c_x1_index:c_x2_index] <= c_x2) * (
+        mesh.Y[c_y1_index:c_y2_index, c_x1_index:c_x2_index] >= c_y1) * (mesh.Y[c_y1_index:c_y2_index, c_x1_index:c_x2_index] <= c_y2)) * -1
     # print(rectangle_matrix)
 
     # defining wall

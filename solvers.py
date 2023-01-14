@@ -168,7 +168,7 @@ class PDE_2D_Solver:
 
         # print(property_map)
 
-        (N_y, N_x) = np.shape(mesh.matricies[0])
+        (N_y, N_x) = np.shape(mesh.X)
 
         if type(mesh.xspacing) == float:
             x_spacing = np.ones((N_y, N_x - 1),dtype="float") * mesh.xspacing
@@ -196,11 +196,7 @@ class PDE_2D_Solver:
         #the matrix should include the spacing information. But at the moent I cant configure that if we will apply solver for unstructerde mesh or after Jacobi is defined. Thus I am not 
         #hurrying to create unstrutred mesh and its spacing matrix. 
 
-        a_e = np.zeros((N_y, N_x - 1),dtype="float") + (mesh.matricies[1][1,0] - mesh.matricies[1][0,0])**2
-        a_w = np.zeros((N_y, N_x - 1),dtype="float") + (mesh.matricies[1][1,0] - mesh.matricies[1][0,0])**2
-        a_n = np.zeros((N_y - 1, N_x),dtype="float") + (mesh.matricies[0][0,1] - mesh.matricies[0][0,0])**2
-        a_s = np.zeros((N_y - 1, N_x),dtype="float") + (mesh.matricies[0][0,1] - mesh.matricies[0][0,0])**2
-
+       
         x_index = list(range(N_x))
         y_index = list(range(N_y))
 
@@ -239,13 +235,7 @@ class PDE_2D_Solver:
         """
         W = np.zeros(len(y_index), dtype="float")
         E = np.zeros(len(y_index), dtype="float")
-
-        # print(y_spacing)
-        # print(x_spacing)
-        # print(y_index)
-        # print(x_index)
         
-
         message = 100
         mass_old = 1
 
@@ -254,8 +244,8 @@ class PDE_2D_Solver:
 
             if itteration_type == "column":
                 phi = column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, W, E)
-            elif itteration_type == "nodebynode":
-                phi = nodebynode(x_index, y_index, x_spacing, y_spacing, self.BCvalues, phi, phi_old, property_map.area, N_x, N_y, omega, type = variable)
+            elif itteration_type == "pointwise":
+                phi = pointwise(x_index, y_index, x_spacing, y_spacing, self.BCvalues, phi, phi_old, property_map.area, N_x, N_y, omega, type = variable)
 
             self.solution = phi.copy()
 
@@ -266,9 +256,7 @@ class PDE_2D_Solver:
 
             if (t) % message == 0:
                 # mass = self.mass_conservation()
-                print("Residual: ", residual,"Mass Residual:", mass_residaul ,"Mass:", mass, " Continuity: ", np.sum(continuity) ," at ", t, "th iteration", "  Time: ", perf_counter() - start)
-
-                
+                print("Residual: ", residual,"Mass Residual:", mass_residaul ,"Mass:", mass, " Continuity: ", np.sum(continuity) ," at ", t, "th iteration", "  Time: ", perf_counter() - start)        
                 # sleep(1)
 
             if residual < toll or abs(mass_residaul) < toll:
@@ -279,10 +267,9 @@ class PDE_2D_Solver:
             phi_old = phi.copy()
             mass_old = mass
 
-        plt.pcolormesh(mesh.matricies[0], mesh.matricies[1], continuity)
+        plt.pcolormesh(mesh.X, mesh.Y, continuity)
         self.continuity = continuity.copy()
             
- 
 
     def mass_conservation(self):
         """
@@ -293,7 +280,7 @@ class PDE_2D_Solver:
         u = -self.velocity[:,:,0]
         v = self.velocity[:,:,1]
 
-        X, Y = self.mesh.matricies[0], self.mesh.matricies[1] 
+        X, Y = self.X, self.Y 
 
         dx = float(X[0,1] - X[0,0])   #normally dx should be taken from the spacing matrix. 
         dy = float(Y[0,0] - Y[1,0])
@@ -323,7 +310,7 @@ class PDE_2D_Solver:
 
         """
 
-        X, Y = self.mesh.matricies[0], self.mesh.matricies[1] 
+        X, Y = self.mesh.X, self.mesh.Y
 
         (N_y, N_x) = np.shape(X)
 
@@ -354,8 +341,8 @@ class PDE_2D_Solver:
 
         twin2 = ax.twinx()
         
-        x_MAT = self.mesh.matricies[0]
-        y_MAT = self.mesh.matricies[1]
+        x_MAT = self.mesh.X
+        y_MAT = self.mesh.Y
 
         z_min = self.solution.min()
         z_max = self.solution.max()
@@ -407,7 +394,6 @@ class PDE_2D_Solver:
             else:
                 twin2.set_ylabel(('$\partial \psi \partial y}$ = ' +  str(self.BCvalues["E"])) , fontsize=20)
         
-
         plt.colorbar(image, cax=cax)
         plt.show()
 
@@ -415,9 +401,6 @@ class PDE_2D_Solver:
         """
             Plots streamplot for velocity of the solution
         """
-
-        x_MAT = self.mesh.matricies[0]
-        y_MAT = self.mesh.matricies[1]
 
         u = self.velocity[:,:,0]
         v = self.velocity[:,:,1]
@@ -428,8 +411,8 @@ class PDE_2D_Solver:
 
         fig, (axs1, axs2) = plt.subplots(1,2)
         fig.set_size_inches(12, 5)
-        axs1.streamplot(x_MAT, y_MAT, -u, v, color=streamcolor, density=0.9, linewidth=lw, cmap='winter')
-        axs2.streamplot(x_MAT, y_MAT, -u, v, color=streamcolor, density=0.9, linewidth=1, cmap='winter')
+        axs1.streamplot(self.mesh.X, self.mesh.Y, -u, v, color=streamcolor, density=0.9, linewidth=lw, cmap='winter')
+        axs2.streamplot(self.mesh.X, self.mesh.Y, -u, v, color=streamcolor, density=0.9, linewidth=1, cmap='winter')
         plt.show()
 
     def countour(self):
@@ -439,8 +422,6 @@ class PDE_2D_Solver:
         """
             quiver plot of the solution
         """
-        x_MAT = self.mesh.matricies[0]
-        y_MAT = self.mesh.matricies[1]
 
         u = self.velocity[:,:,0]
         v = self.velocity[:,:,1]
@@ -448,5 +429,5 @@ class PDE_2D_Solver:
         fig, ax = plt.subplots()
 
         fig.set_size_inches(15, 15)
-        plt.quiver(x_MAT, y_MAT, -u, v)
+        plt.quiver(self.mesh.X, self.mesh.Y, -u, v)
         plt.show()

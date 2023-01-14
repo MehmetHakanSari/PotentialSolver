@@ -1,4 +1,4 @@
-"""
+
 import sympy as sy
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -54,7 +54,7 @@ BCs_values = {'W': 1, 'S': 0.6, 'E': 0.1, 'N': 0.2}
 
 
 solution = PDE_2D_Solver(space,BCs)
-solution.solver(BCs_values, "potensial", property_map, 1.4, 1e-5, itteration_type="nodebynode")
+solution.solver(BCs_values, "potensial", property_map, 1.4, 1e-7, itteration_type="nodebynode")
 
 # solution.countour()
 
@@ -71,14 +71,21 @@ solution.solver(BCs_values, "potensial", property_map, 1.4, 1e-5, itteration_typ
 # print(OneDcentraldiff(compt_dom.matricies[1], a))
 # print(OneDcentraldiff(compt_dom.matricies[1], -b, axis=1))
 # compt_dom.matricies[1] 
-solution.velocityfield("stream")
-solution.plot2D("stream")
-solution.stream()
-solution.quiver()
+
+
+#solution.velocityfield("stream")
+#solution.plot2D("stream")
+#solution.stream()
+#solution.quiver()
+
+
 solution.velocityfield("potensial")
 solution.plot2D("potensial")
 solution.streamplot()
 solution.quiver()
+
+
+"""
 phii = solution.solution
 a = solution.velocity[:,:,0]
 cont = solution.continuity
@@ -109,7 +116,7 @@ areea = property_map.area
 #%matplotlib notebook
 """
 
-import sympy as sy
+"""import sympy as sy
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -146,14 +153,16 @@ naca0012 = import_geometry('naca0012.txt')
 naca0012 = closeshape_interpolation(naca0012, 200)
 circleee = circles(3, 3, 3)
 naca0012[:,:] = naca0012[:,:] * 1.8
-naca0012[:,0] += 2.5
-naca0012[:,1] += 3
+
+naca0012[:,0], naca0012[:,1] = rotate(naca0012[:,0], naca0012[:,1], -np.pi/15)
+naca0012[:,0] += 2.4
+naca0012[:,1] += 3.0
 node_numbers = [200, 30]
 space_trial = ElippticMesh(node_numbers, naca0012, circleee) 
 space_trial.create_elipticmesh()
 space_trial.plot_mesh()
 Vinf = 1
-AOA = np.pi / 6
+AOA = np.pi / 6 * 0
 Out_psi = - space_trial.X[-1, :] * Vinf * np.sin(AOA) + space_trial.Y[-1, :] * Vinf * np.cos(AOA)
 BCvalues = {'Out': Out_psi, 'In': 0, 'Cut1': 0, 'Cut2': 0}
 stream_naca0012 = eliptic_PDE_solver(space_trial, BCvalues)
@@ -208,4 +217,71 @@ psi = stream_naca0012.solution
 # solution.velocityfield("potensial")
 # solution.plot2D("potensial")
 # solution.streamplot()
-# solution.quiver()
+# solution.quiver()"""
+
+
+"""
+import numpy as np
+import matplotlib.pyplot as plt
+from Differentials import *
+
+x = np.linspace(0,1,200)
+y = np.linspace(0,1,200)
+
+X, Y = np.meshgrid(x, y)
+
+Z = 2 * X**2 + Y**2 * X
+
+dZdx = 4 * X + Y**2
+dZdy = 2 * Y * X
+
+#plt.figure(1)
+#plt.streamplot(X, Y, dZdx, dZdy, color=dZdx, cmap="viridis")
+
+dZdX = OneDcentraldiff(Z, 1/200, 0)
+dZdY = OneDcentraldiff(Z, 1/200, 1)
+
+dZdX_u, dZdY_u = TwoDcentraldiff_simple(Z, 1/200, 1/200)
+
+dZdX_CD4, dZdY_CD4 = TwoDcentraldiff_CD4(Z, 1/200, 1/200)
+
+plt.figure(2)
+plt.pcolormesh(dZdX_u - dZdX)
+plt.colorbar()
+
+plt.figure(3)
+plt.pcolormesh(dZdY_u - dZdY)
+plt.colorbar()
+
+plt.figure(4)
+plt.pcolormesh(dZdy + dZdY)
+plt.colorbar()
+
+plt.figure(5)
+plt.pcolormesh(dZdy - dZdY_CD4)
+plt.colorbar()
+
+plt.figure(6)
+plt.pcolormesh(dZdx - dZdX_CD4)
+plt.colorbar()
+
+plt.figure(7)
+plt.pcolormesh(dZdx - dZdX_u)
+plt.colorbar()"""
+
+
+
+#plt.figure(2)
+#plt.streamplot(X, Y, dZdX, -dZdY, color=dZdX, cmap="viridis")
+
+
+
+
+
+
+
+
+
+
+
+

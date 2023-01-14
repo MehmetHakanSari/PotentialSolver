@@ -21,11 +21,43 @@ def TwoDcentraldiff_simple(func, dx, dy):
     dfuncdx[:,1:-1] = (func[:,2:] - func[:,0:-2]) / (2 * dx)
     dfuncdx[:,-1] = (func[:,-3] - 4 * func[:, -2] + 3 * func[:,-1]) / (2 * dx)
 
-    dfuncdy[0,:] = (func[2,:] - 4 * func[1,:] + 3 * func[0,:]) / (2 * dy)
-    dfuncdy[1:-1,:] = (-func[2:,:] + func[0:-2,:]) / (2 * dy)
-    dfuncdy[-1,:] = (-func[-3,:] + 4 * func[-2, :] - 3 * func[-1,:]) / (2 * dy)
+    dfuncdy[0,:] = (-func[2,:] + 4 * func[1,:] - 3 * func[0,:]) / (2 * dy)
+    dfuncdy[1:-1,:] = (func[2:,:] - func[0:-2,:]) / (2 * dy)
+    dfuncdy[-1,:] = (func[-3,:] - 4 * func[-2, :] + 3 * func[-1,:]) / (2 * dy)
 
     return dfuncdx, dfuncdy
+
+def TwoDcentraldiff_CD4(func, dx, dy):
+    """
+        func: 2D ndarray. Each node has its variables.
+        dx  : 1D ndarray. I will update to 2D or not. 
+        dy  : 1D ndarray. contains dy for each x  line. 
+
+        If grid changes both in direction of y and x, for dx or dy, I am not sure how to implement those codes. 
+    """
+    (m, n) = np.shape(func)
+    dfuncdx = np.zeros((m, n), dtype="float")
+    dfuncdy = np.zeros((m, n), dtype="float")
+
+    if n < 5:
+        raise IndexError("array size is too small")
+    if m < 5:
+        raise IndexError("array size is too small")
+  
+    #for j in range(m):
+        #for i in range(2,n-2):
+           #dfuncdx[j,i] = (-func[j,i+2] + 8 * func[j,i+1] - 8 * func[j,i-1] + func[j,i-2]) / (12 * dx)
+
+    dfuncdx[:,0:2] = (-3 * func[:,4:6] + 16 * func[:,3:5] - 36 * func[:,2:4] + 48 * func[:,1:3] - 25 * func[:,0:2]) / (12 * dx)
+    dfuncdx[:,2:-2] = (-func[:,4:] + 8 * func[:,3:-1] - 8 * func[:,1:-3] + func[:,:-4]) / (12 * dx)
+    dfuncdx[:,-2:] = (3 * func[:,-6:-4] - 16 * func[:,-5:-3] + 36 * func[:,-4:-2] - 48 * func[:,-3:-1] + 25 * func[:,-2:]) / (12 * dx)
+
+    dfuncdy[0:2,:] = (-3 * func[4:6,:] + 16 * func[3:5,:]  - 36 * func[2:4,:] + 48 * func[1:3,:] - 25 * func[0:2,:]) / (12 * dx)
+    dfuncdy[2:-2,:] = (-func[4:,:] + 8 * func[3:-1,:] - 8 * func[1:-3,:] + func[:-4,:]) / (12 * dx)
+    dfuncdy[-2:,:] = (3 * func[-6:-4,:] - 16 * func[-5:-3,:]  + 36 * func[-4:-2,:] - 48 * func[-3:-1,:] + 25 * func[-2:,:]) / (12 * dx)
+
+    return dfuncdx, dfuncdy
+
 
 def OneDcentraldiff(func, dx, axis = 0):
     """
@@ -73,7 +105,7 @@ def OneDcentraldiff(func, dx, axis = 0):
             dfuncdx[:,-1] = (func[:,-3] - 4 * func[:, -2] + 3 * func[:,-1]) / (dx[:,-1] + dx[:,-2])
         else:
             dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (2 * dx)
-            dfuncdx[:,1:-1] = (func[:,2:] - func[:,0:-2]) / (2 * dx)
+            dfuncdx[:,1:-1] = (func[:,2:] - func[:,:-2]) / (2 * dx)
             dfuncdx[:,-1] = (func[:,-3] - 4 * func[:, -2] + 3 * func[:,-1]) / (2 * dx) 
 
         return dfuncdx
@@ -92,13 +124,13 @@ def OneDcentraldiff(func, dx, axis = 0):
         if divflag:
             dy = dx    #last elements should be 0 for y axis.
             dfuncdy[0,:] = (func[2,:] - 4 * func[1,:] + 3 * func[0,:]) / (dy[0,:] + dy[1,:])
-            dfuncdy[1:-1,:] = (-func[2:,:] + func[0:-2,:]) / (dy[0:-1,:] + dy[1:,:])
+            dfuncdy[1:-1,:] = (func[2:,:] - func[:-2,:]) / (dy[0:-1,:] + dy[1:,:])
             dfuncdy[-1,:] = (-func[-3,:] + 4 * func[-2, :] - 3 * func[-1,:]) / (dy[-1,:] + dy[-2,:])
         else:
             dy = dx    #last elements should be 0 for y axis.
-            dfuncdy[0,:] = (func[2,:] - 4 * func[1,:] + 3 * func[0,:]) / (2 * dy)
-            dfuncdy[1:-1,:] = (-func[2:,:] + func[0:-2,:]) / (2 * dy)
-            dfuncdy[-1,:] = (-func[-3,:] + 4 * func[-2, :] - 3 * func[-1,:]) / (2 * dy)
+            dfuncdy[0,:] = (-func[2,:] + 4 * func[1,:] - 3 * func[0,:]) / (2 * dy)
+            dfuncdy[1:-1,:] = (func[2:,:] - func[:-2,:]) / (2 * dy)
+            dfuncdy[-1,:] = (func[-3,:] - 4 * func[-2, :] + 3 * func[-1,:]) / (2 * dy)  
 
         return dfuncdy
 
@@ -126,9 +158,9 @@ def TDMA(W,C,E,Q):
 
 def TwoDcentral_diff_velocity(solution):
     
-    n, m = np.shape(solution.mesh.matricies[0])
-    dfuncdx = np.zeros((n,m), dtype="float")
-    dfuncdy = np.zeros((n,m), dtype="float")
+    m, n = np.shape(solution.mesh.X)
+    dfuncdx = np.zeros((m,m), dtype="float")
+    dfuncdy = np.zeros((m,n), dtype="float")
     func = solution.solution
     
     if type(solution.mesh.xspacing) == float:
@@ -139,6 +171,7 @@ def TwoDcentral_diff_velocity(solution):
         dy = solution.mesh.yspacing
     else:
         dy = solution.mesh.yspacing[0,0]
+        
 
     dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (2 * dx) #Forward 
     dfuncdx[:,-1] = (func[:,-3] - 4 * func[:,-2] + 3 * func[:, -1]) / (2 * dx) #Backward
@@ -146,9 +179,9 @@ def TwoDcentral_diff_velocity(solution):
     dfuncdy[0,:] = -(-func[2,:] + 4 * func[1,:] - 3 * func[0,:]) / (2 * dy) #Forward 
     dfuncdy[-1,:] = -(func[-3,:] - 4 * func[-2,:] + 3 * func[-1, :]) / (2 * dy) #Backward
 
-    for j in range(n):
-         for i in range(1, m-1):
-            if solution.map.area[j,i] == -2:
+    for j in range(m):
+         for i in range(1, n-1):
+            if solution.map.area[j,i] == -2: #if it is wall
                 #check where is the boundary on the east or west side of the wall
                 if solution.map.area[j,i+1] == -1:
                     # 3 points backward difference
@@ -157,32 +190,26 @@ def TwoDcentral_diff_velocity(solution):
                     # 3 points forward difference
                     dfuncdx[j,i] = (-func[j,i+2] + 4 * func[j,i+1] - 3 * func[j,i]) / (2 * dx)
                 else:
-                    #central difference
                     dfuncdx[j,i] = (func[j,i+1] - func[j,i-1]) / (2 * dx)                     #Central
             elif solution.map.area[j,i] == -1:
                 dfuncdx[j,i] = 0
             else:
-                #central difference
-                dfuncdx[j,i] = (func[j,i+1] - func[j,i-1]) / (2 * dx)
+                dfuncdx[j,i] = (func[j,i+1] - func[j,i-1]) / (2 * dx)  #central difference
 
     for i in range(m):
-        for j in range(1, n-1):  #If (y(0)) != (y = 0). the case when matrix index is not coordinate. 
+        for j in range(1, m-1):  #If (y(0)) != (y = 0). the case when matrix index is not coordinate. 
             if solution.map.area[j,i] == -2:
                 #check where is the boundary on the north or south side of the wall
                 if solution.map.area[j+1,i] == -1: 
-                    # 3 points backward difference
-                    dfuncdy[j,i] = -(func[j-2,i] - 4 * func[j-1,i] + 3 * func[j,i]) / (2 * dy)
+                    dfuncdy[j,i] = (func[j-2,i] - 4 * func[j-1,i] + 3 * func[j,i]) / (2 * dy)  # 3 points backward difference
                 elif solution.map.area[j-1,i] == -1:
-                    # 3 points forward difference
-                    dfuncdy[j,i] = -(-func[j+2,i] + 4 * func[j+1,i] - 3 * func[j,i]) / (2 * dy)
+                    dfuncdy[j,i] = (-func[j+2,i] + 4 * func[j+1,i] - 3 * func[j,i]) / (2 * dy) # 3 points forward difference
                 else:
-                    #central difference
-                    dfuncdy[j,i] = -(func[j+1,i] - func[j-1,i]) / (2 * dy)
+                    dfuncdy[j,i] = -(func[j+1,i] - func[j-1,i]) / (2 * dy)  #central difference
             elif solution.map.area[j,i] == -1:
                 dfuncdy[j,i] = 0
             else:
-                #central difference
-                dfuncdy[j,i] = -(func[j+1,i] - func[j-1,i]) / (2 * dy)
+                dfuncdy[j,i] = (func[j+1,i] - func[j-1,i]) / (2 * dy) #central difference
 
     return dfuncdx, dfuncdy
              
@@ -219,7 +246,7 @@ def SolveEliptic(a, b, c, U):
                   b * 0.5 * (U[2:, 2:] - U[2:, :-2] + U[:-2, :-2] - U[:-2, 2:])
                  ) / (a + c)
 
-def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, phi_old, property_map, N_x, N_y, omega,type = "stream"):    
+def pointwise(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, phi_old, property_map, N_x, N_y, omega,type = "stream"):    
     if type == "stream":
         for i in x_index:
 
