@@ -396,6 +396,10 @@ class ElippticMesh:
 
         GAMA3 = np.array([GAMA3_x, GAMA3_y]).T
         GAMA4 = np.array([GAMA4_x, GAMA4_y]).T
+        
+        alpha = np.zeros((self.nodes[1], self.nodes[0]))
+        beta = np.zeros((self.nodes[1], self.nodes[0]))
+        gamma = np.zeros((self.nodes[1], self.nodes[0]))
 
         # alpha = np.zeros((self.nodes[1], self.nodes[0]))
         # beta = np.zeros((self.nodes[1], self.nodes[0]))
@@ -416,6 +420,7 @@ class ElippticMesh:
         Y[:,0] = np.flip(GAMA3[:,1])
         Y[:,-1] = np.flip(GAMA4[:,1])
 
+        X_new, Y_new = X.copy(), Y.copy()
         error_x, error_y = 1, 1
 
         maxiteration = 15000
@@ -425,7 +430,8 @@ class ElippticMesh:
         N_z = self.nodes[0]
         N_e = self.nodes[1]
 
-        X_new, Y_new = X.T.copy(), Y.T.copy()
+        """X_new, Y_new = X.T.copy(), Y.T.copy()"""
+        
 
         #interpolate interiour nodes
         for i in range(N_z):
@@ -433,7 +439,7 @@ class ElippticMesh:
             Y[1:-1, i] = np.linspace(Y[0, i], Y[-1, i], N_e)[1:-1]
 
         for iteration in range(maxiteration):
-
+            """
             # X_old = X.copy()
             # Y_old = Y.copy()
             X = X.T.copy()
@@ -450,18 +456,28 @@ class ElippticMesh:
 
             alpha, beta, gamma = Solve_Coeff(X, Y)
             X_new[1:-1, 1:-1] = omega * SolveEliptic(alpha, beta, gamma, X) + (1 - omega) * X[1:-1, 1:-1]
-            Y_new[1:-1, 1:-1] = omega * SolveEliptic(alpha, beta, gamma, Y) + (1 - omega) * Y[1:-1, 1:-1]
+            Y_new[1:-1, 1:-1] = omega * SolveEliptic(alpha, beta, gamma, Y) + (1 - omega) * Y[1:-1, 1:-1]"""
+            
+            alpha[1:N_e-1, 1: N_z-1] = (1/4) * ((X[2:N_e, 1:N_z-1] - X[0:N_e-2, 1:N_z-1])**2 + (Y[2:N_e, 1: N_z-1] - Y[0:N_e-2, 1: N_z-1])**2)
+            beta[1:N_e-1, 1: N_z-1] = (1/16) * ((X[2:N_e, 1:N_z-1] - X[0:N_e-2, 1:N_z-1]) * (X[1: N_e-1, 2: N_z] - X[1: N_e-1, 0:N_z-2]) + (Y[2:N_e, 1: N_z-1] - Y[0:N_e-2, 1: N_z-1]) * (Y[1: N_e-1, 2: N_z] - Y[1: N_e-1, 0:N_z-2]))
+            gamma[1:N_e-1, 1: N_z-1] = (1/4) * ((X[1: N_e-1, 2: N_z] - X[1: N_e-1, 0:N_z-2])**2 + (Y[1: N_e-1, 2: N_z] - Y[1: N_e-1, 0:N_z-2])**2)
+
+            X_new[1:N_e-1, 1:N_z-1] = ((-0.5) / (alpha[1:N_e-1, 1:N_z-1] + gamma[1:N_e-1, 1:N_z-1] + 1e-9)) * (2 * beta[1:N_e-1, 1:N_z-1] * (X[2:N_e, 2:N_z] - X[2:N_e, 0:N_z-2] - X[0:N_e-2, 2:N_z] + X[0:N_e-2, 0:N_z-2]) - alpha[1:N_e-1, 1:N_z-1] * (X[1:N_e-1, 2: N_z] + X[1:N_e-1 , 0:N_z-2]) - gamma[1:N_e-1, 1:N_z-1] * (X[2:N_e, 1:N_z-1] + X[0:N_e-2, 1:N_z-1]))
+            Y_new[1:N_e-1, 1:N_z-1] = ((-0.5) / (alpha[1:N_e-1, 1:N_z-1] + gamma[1:N_e-1, 1:N_z-1] + 1e-9)) * (2 * beta[1:N_e-1, 1:N_z-1] * (Y[2:N_e, 2: N_z] - Y[2:N_e, 0:N_z-2] - Y[0:N_e-2, 2: N_z] + Y[0:N_e-2, 0:N_z-2]) - alpha[1:N_e-1, 1:N_z-1] * (Y[1:N_e-1, 2: N_z] + Y[1:N_e-1 , 0:N_z-2]) - gamma[1:N_e-1, 1:N_z-1] * (Y[2:N_e, 1:N_z-1] + Y[0:N_e-2, 1:N_z-1]))
+
+            X_new[:,-1] = X_new[:,0]
+            Y_new[:,-1] = Y_new[:,0]
 
             error_x = np.max(np.abs(X_new - X))
             error_y = np.max(np.abs(Y_new - Y))
-
+            
             # error_x = np.max(np.abs(X - X_old))
             # error_y = np.max(np.abs(Y - Y_old))
             
             if error_x < 1e-11 and error_y < 1e-11:
                 print("Iteration: ", iteration, "Error is: ", error_x, error_y)
-                X = X.T
-                Y = Y.T
+                """X = X.T
+                Y = Y.T"""
                 break
             
             #give message with some interval 
@@ -471,8 +487,11 @@ class ElippticMesh:
             if iteration == maxiteration - 1:
                 print("Max iteration reached. Error is: ", error_x, error_y)
 
-            X = X_new.T.copy()
-            Y = Y_new.T.copy()
+            X = X_new.copy()
+            Y = Y_new.copy()
+
+            """X = X_new.T.copy()
+            Y = Y_new.T.copy()"""
 
         self.X = X
         self.Y = Y

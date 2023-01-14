@@ -23,9 +23,9 @@ class eliptic_PDE_solver:
 
         N_z = self.mesh.nodes[0]
         N_e = self.mesh.nodes[1]
-        alpha = self.mesh.alpha
-        beta = self.mesh.beta
-        gamma = self.mesh.gamma
+        alpha = self.mesh.alpha.T[1:-1, 1:-1]
+        beta = self.mesh.beta.T[1:-1, 1:-1]
+        gamma = self.mesh.gamma.T[1:-1, 1:-1]
         X = self.mesh.X
         Y = self.mesh.Y
 
@@ -90,7 +90,7 @@ class eliptic_PDE_solver:
 
         X, Y = self.mesh.X, self.mesh.Y
         #use pcolormesh for better visualization
-        plt.pcolormesh(X, Y, self.solution, cmap = 'jet')
+        plt.pcolormesh(X, Y, self.solution, cmap = 'jet', shading='auto' )
         plt.colorbar()
         plt.show()
 
