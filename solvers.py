@@ -214,6 +214,7 @@ class PDE_2D_Solver:
             phi[0,:] = BC_values['N']
             y_index = y_index[1:]
 
+        """
         if self.BC['W'] == "N":
             # a_w[:,0] += 1 * a_e[:,-1]
             pass
@@ -224,6 +225,7 @@ class PDE_2D_Solver:
             pass
         if self.BC['N'] == "N":
             a_n =  np.concatenate((a_n, np.array([a_n[1,:]])), axis=0)
+            """
             
         #Column by Column TDMA
         """
@@ -265,7 +267,7 @@ class PDE_2D_Solver:
                 break
 
             phi_old = phi.copy()
-            mass_old = mass
+            mass_old = mass.copy()
 
         plt.pcolormesh(mesh.X, mesh.Y, continuity)
         self.continuity = continuity.copy()
@@ -280,7 +282,7 @@ class PDE_2D_Solver:
         u = -self.velocity[:,:,0]
         v = self.velocity[:,:,1]
 
-        X, Y = self.X, self.Y 
+        X, Y = self.mesh.X, self.mesh.Y 
 
         dx = float(X[0,1] - X[0,0])   #normally dx should be taken from the spacing matrix. 
         dy = float(Y[0,0] - Y[1,0])
@@ -322,7 +324,7 @@ class PDE_2D_Solver:
             u, v  = TwoDcentral_diff_velocity(self)
 
         elif type == "stream":
-            (v, u) = TwoDcentral_diff_velocity(self.solution, dx, dy)
+            (v, u) = TwoDcentral_diff_velocity_CD2(self.solution, dx, dy)
 
 
         W = np.zeros((N_y, N_x, 3))

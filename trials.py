@@ -54,7 +54,7 @@ BCs_values = {'W': 1, 'S': 0.6, 'E': 0.1, 'N': 0.2}
 
 
 solution = PDE_2D_Solver(space,BCs)
-solution.solver(BCs_values, "potensial", property_map, 1.4, 1e-7, itteration_type="nodebynode")
+solution.solver(BCs_values, "potensial", property_map, 1.4, 5e-6, itteration_type="pointwise")
 
 # solution.countour()
 

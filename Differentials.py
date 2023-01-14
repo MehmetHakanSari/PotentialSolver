@@ -50,11 +50,11 @@ def TwoDcentraldiff_CD4(func, dx, dy):
 
     dfuncdx[:,0:2] = (-3 * func[:,4:6] + 16 * func[:,3:5] - 36 * func[:,2:4] + 48 * func[:,1:3] - 25 * func[:,0:2]) / (12 * dx)
     dfuncdx[:,2:-2] = (-func[:,4:] + 8 * func[:,3:-1] - 8 * func[:,1:-3] + func[:,:-4]) / (12 * dx)
-    dfuncdx[:,-2:] = (3 * func[:,-6:-4] - 16 * func[:,-5:-3] + 36 * func[:,-4:-2] - 48 * func[:,-3:-1] + 25 * func[:,-2:]) / (12 * dx)
+    dfuncdx[:,-2:] = (3 * func[:,-6:-4] - 16 * func[:,-5:-3] + 36 * func[:,-4:-2] - 48 * func[:,-3:-1] + 25 * func[:,-2:]) / (12 * dy)
 
-    dfuncdy[0:2,:] = (-3 * func[4:6,:] + 16 * func[3:5,:]  - 36 * func[2:4,:] + 48 * func[1:3,:] - 25 * func[0:2,:]) / (12 * dx)
+    dfuncdy[0:2,:] = (-3 * func[4:6,:] + 16 * func[3:5,:]  - 36 * func[2:4,:] + 48 * func[1:3,:] - 25 * func[0:2,:]) / (12 * dy)
     dfuncdy[2:-2,:] = (-func[4:,:] + 8 * func[3:-1,:] - 8 * func[1:-3,:] + func[:-4,:]) / (12 * dx)
-    dfuncdy[-2:,:] = (3 * func[-6:-4,:] - 16 * func[-5:-3,:]  + 36 * func[-4:-2,:] - 48 * func[-3:-1,:] + 25 * func[-2:,:]) / (12 * dx)
+    dfuncdy[-2:,:] = (3 * func[-6:-4,:] - 16 * func[-5:-3,:]  + 36 * func[-4:-2,:] - 48 * func[-3:-1,:] + 25 * func[-2:,:]) / (12 * dy)
 
     return dfuncdx, dfuncdy
 
@@ -156,7 +156,7 @@ def TDMA(W,C,E,Q):
     return X
 
 
-def TwoDcentral_diff_velocity(solution):
+def TwoDcentral_diff_velocity_CD2(solution):
     
     m, n = np.shape(solution.mesh.X)
     dfuncdx = np.zeros((m,m), dtype="float")
@@ -201,17 +201,75 @@ def TwoDcentral_diff_velocity(solution):
             if solution.map.area[j,i] == -2:
                 #check where is the boundary on the north or south side of the wall
                 if solution.map.area[j+1,i] == -1: 
-                    dfuncdy[j,i] = (func[j-2,i] - 4 * func[j-1,i] + 3 * func[j,i]) / (2 * dy)  # 3 points backward difference
+                    dfuncdy[j,i] = -(func[j-2,i] - 4 * func[j-1,i] + 3 * func[j,i]) / (2 * dy)  # 3 points backward difference
                 elif solution.map.area[j-1,i] == -1:
-                    dfuncdy[j,i] = (-func[j+2,i] + 4 * func[j+1,i] - 3 * func[j,i]) / (2 * dy) # 3 points forward difference
+                    dfuncdy[j,i] = -(-func[j+2,i] + 4 * func[j+1,i] - 3 * func[j,i]) / (2 * dy) # 3 points forward difference
                 else:
                     dfuncdy[j,i] = -(func[j+1,i] - func[j-1,i]) / (2 * dy)  #central difference
             elif solution.map.area[j,i] == -1:
                 dfuncdy[j,i] = 0
             else:
-                dfuncdy[j,i] = (func[j+1,i] - func[j-1,i]) / (2 * dy) #central difference
+                dfuncdy[j,i] = -(func[j+1,i] - func[j-1,i]) / (2 * dy) #central difference
 
     return dfuncdx, dfuncdy
+
+def TwoDcentral_diff_velocity_CD4(solution):
+    
+    m, n = np.shape(solution.mesh.X)
+    dfuncdx = np.zeros((m,m), dtype="float")
+    dfuncdy = np.zeros((m,n), dtype="float")
+    func = solution.solution
+    
+    if type(solution.mesh.xspacing) == float:
+        dx = solution.mesh.xspacing
+    else:
+        dx = solution.mesh.xspacing[0,0]
+    if type(solution.mesh.xspacing) == float:
+        dy = solution.mesh.yspacing
+    else:
+        dy = solution.mesh.yspacing[0,0]
+        
+
+    dfuncdx[:,0:2] = (-3 * func[:,4:6] + 16 * func[:,3:5] - 36 * func[:,2:4] + 48 * func[:,1:3] - 25 * func[:,0:2]) / (12 * dx)
+    dfuncdx[:,-2:] = (3 * func[:,-6:-4] - 16 * func[:,-5:-3] + 36 * func[:,-4:-2] - 48 * func[:,-3:-1] + 25 * func[:,-2:]) / (12 * dx)
+
+    dfuncdy[0:2,:] = (-3 * func[4:6,:] + 16 * func[3:5,:]  - 36 * func[2:4,:] + 48 * func[1:3,:] - 25 * func[0:2,:]) / (12 * dy)
+    dfuncdy[-2:,:] = (3 * func[-6:-4,:] - 16 * func[-5:-3,:]  + 36 * func[-4:-2,:] - 48 * func[-3:-1,:] + 25 * func[-2:,:]) / (12 * dy)
+
+
+    for j in range(m):
+         for i in range(1, n-1):
+            if solution.map.area[j,i] == -2: #if it is wall
+                #check where is the boundary on the east or west side of the wall
+                if solution.map.area[j,i+1] == -1:
+                    # 5 points backward difference
+                    dfuncdx[j,i] = (3 * func[j,i-4] - 16 * func[j,i-3] + 36 * func[j,i-2] - 48 * func[j,i-1] + 25 * func[j,i]) / (12 * dx)
+                elif solution.map.area[j,i-1] == -1:
+                    # 5 points forward difference
+                    dfuncdx[j,i] = (-3 * func[j,i+4] + 16 * func[j,i+3] - 36 * func[j,i+2] + 48 * func[j,i+1] - 25 * func[j,i]) / (12 * dx)
+                else:
+                    dfuncdx[j,i] = (-func[j,i+2] + 8 * func[j,i+1] - 8 * func[j,i-1] + func[j,i-2]) / (12 * dx)
+            elif solution.map.area[j,i] == -1:
+                dfuncdx[j,i] = 0
+            else:
+                dfuncdx[j,i] = (-func[j,i+2] + 8 * func[j,i+1] - 8 * func[j,i-1] + func[j,i-2]) / (12 * dx)
+
+    for i in range(m):
+        for j in range(1, m-1):  #If (y(0)) != (y = 0). the case when matrix index is not coordinate. 
+            if solution.map.area[j,i] == -2:
+                #check where is the boundary on the north or south side of the wall
+                if solution.map.area[j+1,i] == -1: 
+                    dfuncdy[j,i] = (3 * func[j-4,i] - 16 * func[j-3,i]  + 36 * func[j-2,i] - 48 * func[j-1,i] + 25 * func[j,i]) / (12 * dy)  # 5 points backward difference
+                elif solution.map.area[j-1,i] == -1:
+                    dfuncdy[j,i] = (-3 * func[j+4,i] + 16 * func[j+3,i]  - 36 * func[j+2,i] + 48 * func[j+1,i] - 25 * func[j,i]) / (12 * dy)# 5 points forward difference
+                else:
+                    dfuncdx[j,i] = (-func[j+2,i] + 8 * func[j+1,i] - 8 * func[j-1,i] + func[j-2,i]) / (12 * dy)
+            elif solution.map.area[j,i] == -1:
+                dfuncdy[j,i] = 0
+            else:
+                dfuncdx[j,i] = (-func[j+2,i] + 8 * func[j+1,i] - 8 * func[j-1,i] + func[j-2,i]) / (12 * dy) #central difference
+
+    return dfuncdx, -dfuncdy
              
 
 def Solve_Coeff(x, y):
