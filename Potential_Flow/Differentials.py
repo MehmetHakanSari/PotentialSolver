@@ -729,12 +729,98 @@ def pointwise(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, phi_old, pr
 
 
 
-def column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, W, E):
+def column_TDMA(x_spacing, y_spacing, phi, y_index, x_index, BC_values, property_map, N_y, N_x, W, E):
+    """
+        x & yspacing: dx's and dy's stored in a 2D or 1D ndarrays or a float. 
+        phi         : property of the field, 2D ndarray
+        y x_index   : indicies for unsolved phi matrix. 
+        BC_values   : BC values for neumann Condiation
+        property_map: 2D ndarray including objects in the field. 0 for open, -1 for interior, -2 for wall 
+        N_y & N_x   : Number of nodes 
+        W           : west side of the TDMA
+        E           : east side of the TDMA
+
+        Well I will write with constant dx and dy for the time being. If we already use Jacabi Transformation, dx and dy will be constant.
+    """
+
+    dx = x_spacing[0,0]
+    dy = y_spacing[0,0]
+
+
     for i in x_index:
-        if i == 0:
-            W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
-            C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
-            E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
+
+        line = property_map[:, i] 
+
+        #find wall and interior points by checking line. if the element in line -1 it is interior, if it is 2 it is wall:
+
+
+        inter_indicies = np.nonzero((line == -1))[0]
+        wall_indicies = np.nonzero((line == -2))[0] #check wheter nonzero gives a row or column ndarray
+
+        if i == 0:  # if the west wall is neumann
+            W[1:] = -dy
+                                       
+            C = 2 * dy + 2 * dx
+            E[:-1] = -dy                            
+            Q = 2 * dx * phi[y_index[0]:y_index[-1]+1,(i+1)] + 2 * dx**2 * BC_values['W']   #conditions are set for neumann BC.                
+            Q[0] += dy * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * dy**2 * BC_values['N']
+            Q[-1] += dy * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * dy**2 * BC_values['S']
+        
+        if i > 0 and i < N_x-1:
+            W[1:] = -dy                          
+            C = 2 * dy + 2 * dx
+            E[:-1] = -dy                            
+            Q = dx * phi[y_index[0]:y_index[-1]+1,(i-1)] + dx * phi[y_index[0]:y_index[-1]+1,(i+1)] #conditions are set for neumann BC.                
+            Q[0] += dy * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * dy**2 * BC_values['N']
+            Q[-1] += dy * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * dy**2 * BC_values['S']
+
+        if i == N_x - 1: # if the east wall is neumann
+            W[1:] = -dy                      
+            C = 2 * dy + 2 * dx
+            E[:-1] = -dy                           
+            Q = 2 * dx * phi[y_index[0]:y_index[-1]+1,(i-1)] + 2 * dx**2 * BC_values['E']             
+            Q[0] += dy * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * dy**2 * BC_values['N']
+            Q[-1] += dy * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * dy**2 * BC_values['S']
+
+        #we will update east and west by checking lines, if the line is -1 it is interior, if it is -2 it is wall. It the interior is in south, update the east by -dy, if it is in north, update the west by -dy.
+        #wall indicies are the indicies of the walls. The index j will be used for updateing E and W.
+        for j in wall_indicies:
+            if line[j-1] == -1: #north is interior
+                W[j] += -dy
+            if line[j+1] == -1: #south is interior
+                E[j] += -dy
+
+        #the left and right sides will be checked for wall. Update Q accordingly. Use property map to find left and right side of the wall
+        for j in wall_indicies:
+            if property_map[j, i-1] == -1:
+                Q[j] += dx * phi[j,i+1]
+            if property_map[j, i+1] == -1:
+                Q[j] += dx * phi[j,i-1]
+
+        Q = np.flip(Q)                     #The reason of reversing Q is, existing Q is inconsistent with the W and E and C list.
+
+        W[-1] += -dy * (y_index[0] == 0)             #Neumann of N-S boundaries. implemented here. 
+        E[0] += -dy * (y_index[-1] == N_y - 1)        #probabaly for different spacing matrixies the east and west should fliped
+        
+        if y_index[0] == 0:
+            phi[y_index[-1]::-1,i] = TDMA(W,C,E,Q) 
+        else:
+            phi[y_index[-1]:y_index[0] - 1:-1,i] = TDMA(W,C,E,Q)
+
+        #interior points makes phi zero.
+        for j in inter_indicies:
+            phi[j,i] = 0 
+
+    return phi
+
+
+
+    """
+    for i in x_index:
+        if i == 0:  # if the west wall is neumann
+            W[1:] = -y_spacing[y_index[0]:y_index[-1], i]                          
+            C = 2 * y_spacing[y_index[0]:, i] + 2 * y_spacing[y_index[0]:y_index[-1]+1, i - 1]
+            E[:-1] = -y_spacing[y_index[0]:y_index[-1], i]                            
             Q = 2 * a_e[y_index[0]:y_index[-1]+1,i] * phi[y_index[0]:y_index[-1]+1,(i+1)] + 2 * a_e[y_index[0]:y_index[-1]+1,i]**2 * BC_values['W']   #conditions are set for neumann BC.                
             Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
             Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
@@ -747,7 +833,7 @@ def column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, 
             Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
             Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
 
-        if i == N_x - 1:
+        if i == N_x - 1: # if the east wall is neumann
             W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
             C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
             E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
@@ -767,6 +853,7 @@ def column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, 
             phi[y_index[-1]:y_index[0] - 1:-1,i] = TDMA(W,C,E,Q) 
 
     return phi
+    """
 
 
 

@@ -8,6 +8,7 @@ from object import object
 from visiual import *
 from time import perf_counter
 from time import sleep
+import os 
 
 
 class eliptic_PDE_solver:
@@ -19,7 +20,7 @@ class eliptic_PDE_solver:
         self.BCvalues = BC_values
         self.BC_type = BC_type
 
-    def solver(self):
+    def solver(self, tolerance, omega):
 
         N_z = self.mesh.nodes[0]
         N_e = self.mesh.nodes[1]
@@ -32,13 +33,12 @@ class eliptic_PDE_solver:
         psi = np.zeros((N_e, N_z))  # initial guess for psi
         psi_old = np.zeros((N_e, N_z))  # initial guess for psi
 
-        psi[:,0] = np.zeros((N_e)) * self.BCvalues['Cut1']
-        psi[:,-1] = np.zeros((N_e)) * self.BCvalues['Cut2']
+        psi[:,0] = np.ones((N_e)) * self.BCvalues['Cut1']
+        psi[:,-1] = np.ones((N_e)) * self.BCvalues['Cut2']
         psi[0,:] = np.ones((1, N_z)) * self.BCvalues['In']
         psi[-1,:] = np.ones((1, N_z)) * self.BCvalues['Out']
 
         maxiteration = 50000
-        tolerance = 1e-11
         message = 1000
 
         X = X.T
@@ -55,6 +55,7 @@ class eliptic_PDE_solver:
 
             psi_old = psi.copy()
 
+            #Periodic BC.
             psi_temp = np.append([psi[-2, :].copy()], psi[0:2, :].copy(), 0)
 
             psi[0, 1:-1] = SolveEliptic(alpha_temp, beta_temp, gamma_temp, psi_temp)
@@ -62,12 +63,12 @@ class eliptic_PDE_solver:
 
             psi[:, 0] = psi[0, 1] #Kutta Condiation
 
-            psi[1:-1, 1:-1] = SolveEliptic(alpha, beta, gamma, psi)
+            psi[1:-1, 1:-1] = omega * SolveEliptic(alpha, beta, gamma, psi) + (1 - omega) * psi_old
   
             residual_psi = np.max(np.abs(psi - psi_old))
 
             if residual_psi < tolerance:
-                print("Psi is calculated with residual: ", residual_psi)
+                print("Psi is calculated with residual: ", residual_psi, "at itteration: ", iteration)
                 break
 
             #give message with some interval 
@@ -166,8 +167,6 @@ class PDE_2D_Solver:
         # property_map = mesh.map()
         property_map = map    #name of the given input can be change like this afterwards 
 
-        # print(property_map)
-
         (N_y, N_x) = np.shape(mesh.X)
 
         if type(mesh.xspacing) == float:
@@ -202,16 +201,16 @@ class PDE_2D_Solver:
 
         #this spacing updates should be more explainable. 
         if self.BC['W'] == "D":
-            phi[:,0] = BC_values['W']
+            phi[:,0] = np.ones((N_y)) * BC_values['W']
             x_index = x_index[1:] 
         if self.BC['S'] == "D":
-            phi[-1,:] = BC_values['S']
+            phi[-1,:] = np.ones((N_x)) * BC_values['S']
             y_index = y_index[:-1]
         if self.BC['E'] == "D":
-            phi[:,-1] = BC_values['E']
+            phi[:,-1] = np.ones((N_y)) * BC_values['E']
             x_index = x_index[:-1]
         if self.BC['N'] == "D":
-            phi[0,:] = BC_values['N']
+            phi[0,:] = np.ones((N_x)) * BC_values['N']
             y_index = y_index[1:]
 
         """
@@ -238,14 +237,14 @@ class PDE_2D_Solver:
         W = np.zeros(len(y_index), dtype="float")
         E = np.zeros(len(y_index), dtype="float")
         
-        message = 100
+        message = 1000
         mass_old = 1
 
         start = perf_counter()    
         for t in range(1, 500001):
 
             if itteration_type == "column":
-                phi = column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, W, E)
+                phi = column_TDMA(x_spacing, y_spacing, phi, y_index, x_index, BC_values, property_map.area, N_y, N_x, W, E)
             elif itteration_type == "pointwise":
                 phi = pointwise(x_index, y_index, x_spacing, y_spacing, self.BCvalues, phi, phi_old, property_map.area, N_x, N_y, omega, type = variable)
 
@@ -259,6 +258,26 @@ class PDE_2D_Solver:
             if (t) % message == 0:
                 # mass = self.mass_conservation()
                 print("Residual: ", residual,"Mass Residual:", mass_residaul ,"Mass:", mass, " Continuity: ", np.sum(continuity) ," at ", t, "th iteration", "  Time: ", perf_counter() - start)        
+                
+                #Store data for each message iteration in a seperate directory. First check whether a result directory exists or not.
+                #Open a new directory for one solution set. Inside that directory, create a new directory for each message iteration.
+            
+                if not os.path.exists("results"):
+                    os.mkdir("results")
+                if not os.path.exists("results/" + self.name):
+                    os.mkdir("results/" + self.name)
+                if not os.path.exists("results/" + self.name + "/" + str(t)):
+                    os.mkdir("results/" + self.name + "/" + str(t))
+                
+                #store the solution in that directory
+                np.save("results/" + self.name + "/" + str(t) + "/solution", phi)
+                
+                self.velocityfield("potensial")
+                
+                #Also plot the solution and store it in the same directory
+                self.plot2D(phi, variable, "results/" + self.name + "/" + str(t) + "/solution.png")
+                self.streamplot("results/" + self.name + "/" + str(t) + "/streamplot.png")
+                
                 # sleep(1)
 
             if residual < toll or abs(mass_residaul) < toll:
@@ -335,7 +354,7 @@ class PDE_2D_Solver:
 
         self.velocity = W
 
-    def plot2D(self, type ="potensial", colormap = "copper"):
+    def plot2D(self, type ="potensial", savepath = "None", colormap = "copper"):
         """
             plot Z for domain of the X and Y. 
         """
@@ -398,9 +417,14 @@ class PDE_2D_Solver:
                 twin2.set_ylabel(('$\partial \psi \partial y}$ = ' +  str(self.BCvalues["E"])) , fontsize=20)
         
         plt.colorbar(image, cax=cax)
-        plt.show()
+        
+        #save the figure for given savepath
+        if savepath != None:
+            plt.savefig(savepath, dpi=300)
+        else:
+            plt.show()
 
-    def streamplot(self, streamcolor = "blue"):
+    def streamplot(self, savepath = "None", streamcolor = "blue"):
         """
             Plots streamplot for velocity of the solution
         """
@@ -416,7 +440,11 @@ class PDE_2D_Solver:
         fig.set_size_inches(12, 5)
         axs1.streamplot(self.mesh.X, self.mesh.Y, -u, v, color=streamcolor, density=0.9, linewidth=lw, cmap='winter')
         axs2.streamplot(self.mesh.X, self.mesh.Y, -u, v, color=streamcolor, density=0.9, linewidth=1, cmap='winter')
-        plt.show()
+        
+        if savepath != None:
+            plt.savefig(savepath, dpi=300)
+        else:
+            plt.show()
 
     def countour(self):
         pass
