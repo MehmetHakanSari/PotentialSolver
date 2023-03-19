@@ -25,7 +25,7 @@ def TwoDcentraldiff_simple(func, dx, dy):
     dfuncdy[1:-1,:] = (-func[2:,:] + func[0:-2,:]) / (2 * dy)
     dfuncdy[-1,:] = (-func[-3,:] + 4 * func[-2, :] - 3 * func[-1,:]) / (2 * dy)
 
-    return dfuncdx, dfuncdy
+    return dfuncdx, -dfuncdy
 
 def OneDcentraldiff(func, dx, axis = 0):
     """
