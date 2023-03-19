@@ -21,11 +21,43 @@ def TwoDcentraldiff_simple(func, dx, dy):
     dfuncdx[:,1:-1] = (func[:,2:] - func[:,0:-2]) / (2 * dx)
     dfuncdx[:,-1] = (func[:,-3] - 4 * func[:, -2] + 3 * func[:,-1]) / (2 * dx)
 
-    dfuncdy[0,:] = (func[2,:] - 4 * func[1,:] + 3 * func[0,:]) / (2 * dy)
-    dfuncdy[1:-1,:] = (-func[2:,:] + func[0:-2,:]) / (2 * dy)
-    dfuncdy[-1,:] = (-func[-3,:] + 4 * func[-2, :] - 3 * func[-1,:]) / (2 * dy)
+    dfuncdy[0,:] = (-func[2,:] + 4 * func[1,:] - 3 * func[0,:]) / (2 * dy)
+    dfuncdy[1:-1,:] = (func[2:,:] - func[0:-2,:]) / (2 * dy)
+    dfuncdy[-1,:] = (func[-3,:] - 4 * func[-2, :] + 3 * func[-1,:]) / (2 * dy)
 
     return dfuncdx, -dfuncdy
+
+def TwoDcentraldiff_CD4(func, dx, dy):
+    """
+        func: 2D ndarray. Each node has its variables.
+        dx  : 1D ndarray. I will update to 2D or not. 
+        dy  : 1D ndarray. contains dy for each x  line. 
+
+        If grid changes both in direction of y and x, for dx or dy, I am not sure how to implement those codes. 
+    """
+    (m, n) = np.shape(func)
+    dfuncdx = np.zeros((m, n), dtype="float")
+    dfuncdy = np.zeros((m, n), dtype="float")
+
+    if n < 5:
+        raise IndexError("array size is too small")
+    if m < 5:
+        raise IndexError("array size is too small")
+  
+    #for j in range(m):
+        #for i in range(2,n-2):
+           #dfuncdx[j,i] = (-func[j,i+2] + 8 * func[j,i+1] - 8 * func[j,i-1] + func[j,i-2]) / (12 * dx)
+
+    dfuncdx[:,0:2] = (-3 * func[:,4:6] + 16 * func[:,3:5] - 36 * func[:,2:4] + 48 * func[:,1:3] - 25 * func[:,0:2]) / (12 * dx)
+    dfuncdx[:,2:-2] = (-func[:,4:] + 8 * func[:,3:-1] - 8 * func[:,1:-3] + func[:,:-4]) / (12 * dx)
+    dfuncdx[:,-2:] = (3 * func[:,-6:-4] - 16 * func[:,-5:-3] + 36 * func[:,-4:-2] - 48 * func[:,-3:-1] + 25 * func[:,-2:]) / (12 * dy)
+
+    dfuncdy[0:2,:] = (-3 * func[4:6,:] + 16 * func[3:5,:]  - 36 * func[2:4,:] + 48 * func[1:3,:] - 25 * func[0:2,:]) / (12 * dy)
+    dfuncdy[2:-2,:] = (-func[4:,:] + 8 * func[3:-1,:] - 8 * func[1:-3,:] + func[:-4,:]) / (12 * dx)
+    dfuncdy[-2:,:] = (3 * func[-6:-4,:] - 16 * func[-5:-3,:]  + 36 * func[-4:-2,:] - 48 * func[-3:-1,:] + 25 * func[-2:,:]) / (12 * dy)
+
+    return dfuncdx, dfuncdy
+
 
 def OneDcentraldiff(func, dx, axis = 0):
     """
@@ -73,7 +105,7 @@ def OneDcentraldiff(func, dx, axis = 0):
             dfuncdx[:,-1] = (func[:,-3] - 4 * func[:, -2] + 3 * func[:,-1]) / (dx[:,-1] + dx[:,-2])
         else:
             dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (2 * dx)
-            dfuncdx[:,1:-1] = (func[:,2:] - func[:,0:-2]) / (2 * dx)
+            dfuncdx[:,1:-1] = (func[:,2:] - func[:,:-2]) / (2 * dx)
             dfuncdx[:,-1] = (func[:,-3] - 4 * func[:, -2] + 3 * func[:,-1]) / (2 * dx) 
 
         return dfuncdx
@@ -92,13 +124,13 @@ def OneDcentraldiff(func, dx, axis = 0):
         if divflag:
             dy = dx    #last elements should be 0 for y axis.
             dfuncdy[0,:] = (func[2,:] - 4 * func[1,:] + 3 * func[0,:]) / (dy[0,:] + dy[1,:])
-            dfuncdy[1:-1,:] = (-func[2:,:] + func[0:-2,:]) / (dy[0:-1,:] + dy[1:,:])
+            dfuncdy[1:-1,:] = (func[2:,:] - func[:-2,:]) / (dy[0:-1,:] + dy[1:,:])
             dfuncdy[-1,:] = (-func[-3,:] + 4 * func[-2, :] - 3 * func[-1,:]) / (dy[-1,:] + dy[-2,:])
         else:
             dy = dx    #last elements should be 0 for y axis.
-            dfuncdy[0,:] = (func[2,:] - 4 * func[1,:] + 3 * func[0,:]) / (2 * dy)
-            dfuncdy[1:-1,:] = (-func[2:,:] + func[0:-2,:]) / (2 * dy)
-            dfuncdy[-1,:] = (-func[-3,:] + 4 * func[-2, :] - 3 * func[-1,:]) / (2 * dy)
+            dfuncdy[0,:] = (-func[2,:] + 4 * func[1,:] - 3 * func[0,:]) / (2 * dy)
+            dfuncdy[1:-1,:] = (func[2:,:] - func[:-2,:]) / (2 * dy)
+            dfuncdy[-1,:] = (func[-3,:] - 4 * func[-2, :] + 3 * func[-1,:]) / (2 * dy)  
 
         return dfuncdy
 
@@ -124,11 +156,11 @@ def TDMA(W,C,E,Q):
     return X
 
 
-def TwoDcentral_diff_velocity(solution):
+def TwoDcentral_diff_velocity_CD2(solution):
     
-    n, m = np.shape(solution.mesh.matricies[0])
-    dfuncdx = np.zeros((n,m), dtype="float")
-    dfuncdy = np.zeros((n,m), dtype="float")
+    m, n = np.shape(solution.mesh.X)
+    dfuncdx = np.zeros((m,m), dtype="float")
+    dfuncdy = np.zeros((m,n), dtype="float")
     func = solution.solution
     
     if type(solution.mesh.xspacing) == float:
@@ -139,6 +171,7 @@ def TwoDcentral_diff_velocity(solution):
         dy = solution.mesh.yspacing
     else:
         dy = solution.mesh.yspacing[0,0]
+        
 
     dfuncdx[:,0] = (-func[:,2] + 4 * func[:,1] - 3 * func[:,0]) / (2 * dx) #Forward 
     dfuncdx[:,-1] = (func[:,-3] - 4 * func[:,-2] + 3 * func[:, -1]) / (2 * dx) #Backward
@@ -146,9 +179,9 @@ def TwoDcentral_diff_velocity(solution):
     dfuncdy[0,:] = -(-func[2,:] + 4 * func[1,:] - 3 * func[0,:]) / (2 * dy) #Forward 
     dfuncdy[-1,:] = -(func[-3,:] - 4 * func[-2,:] + 3 * func[-1, :]) / (2 * dy) #Backward
 
-    for j in range(n):
-         for i in range(1, m-1):
-            if solution.map.area[j,i] == -2:
+    for j in range(m):
+         for i in range(1, n-1):
+            if solution.map.area[j,i] == -2: #if it is wall
                 #check where is the boundary on the east or west side of the wall
                 if solution.map.area[j,i+1] == -1:
                     # 3 points backward difference
@@ -157,34 +190,86 @@ def TwoDcentral_diff_velocity(solution):
                     # 3 points forward difference
                     dfuncdx[j,i] = (-func[j,i+2] + 4 * func[j,i+1] - 3 * func[j,i]) / (2 * dx)
                 else:
-                    #central difference
                     dfuncdx[j,i] = (func[j,i+1] - func[j,i-1]) / (2 * dx)                     #Central
             elif solution.map.area[j,i] == -1:
                 dfuncdx[j,i] = 0
             else:
-                #central difference
-                dfuncdx[j,i] = (func[j,i+1] - func[j,i-1]) / (2 * dx)
+                dfuncdx[j,i] = (func[j,i+1] - func[j,i-1]) / (2 * dx)  #central difference
 
     for i in range(m):
-        for j in range(1, n-1):  #If (y(0)) != (y = 0). the case when matrix index is not coordinate. 
+        for j in range(1, m-1):  #If (y(0)) != (y = 0). the case when matrix index is not coordinate. 
             if solution.map.area[j,i] == -2:
                 #check where is the boundary on the north or south side of the wall
                 if solution.map.area[j+1,i] == -1: 
-                    # 3 points backward difference
-                    dfuncdy[j,i] = -(func[j-2,i] - 4 * func[j-1,i] + 3 * func[j,i]) / (2 * dy)
+                    dfuncdy[j,i] = -(func[j-2,i] - 4 * func[j-1,i] + 3 * func[j,i]) / (2 * dy)  # 3 points backward difference
                 elif solution.map.area[j-1,i] == -1:
-                    # 3 points forward difference
-                    dfuncdy[j,i] = -(-func[j+2,i] + 4 * func[j+1,i] - 3 * func[j,i]) / (2 * dy)
+                    dfuncdy[j,i] = -(-func[j+2,i] + 4 * func[j+1,i] - 3 * func[j,i]) / (2 * dy) # 3 points forward difference
                 else:
-                    #central difference
-                    dfuncdy[j,i] = -(func[j+1,i] - func[j-1,i]) / (2 * dy)
+                    dfuncdy[j,i] = -(func[j+1,i] - func[j-1,i]) / (2 * dy)  #central difference
             elif solution.map.area[j,i] == -1:
                 dfuncdy[j,i] = 0
             else:
-                #central difference
-                dfuncdy[j,i] = -(func[j+1,i] - func[j-1,i]) / (2 * dy)
+                dfuncdy[j,i] = -(func[j+1,i] - func[j-1,i]) / (2 * dy) #central difference
 
     return dfuncdx, dfuncdy
+
+def TwoDcentral_diff_velocity_CD4(solution):
+    
+    m, n = np.shape(solution.mesh.X)
+    dfuncdx = np.zeros((m,m), dtype="float")
+    dfuncdy = np.zeros((m,n), dtype="float")
+    func = solution.solution
+    
+    if type(solution.mesh.xspacing) == float:
+        dx = solution.mesh.xspacing
+    else:
+        dx = solution.mesh.xspacing[0,0]
+    if type(solution.mesh.xspacing) == float:
+        dy = solution.mesh.yspacing
+    else:
+        dy = solution.mesh.yspacing[0,0]
+        
+
+    dfuncdx[:,0:2] = (-3 * func[:,4:6] + 16 * func[:,3:5] - 36 * func[:,2:4] + 48 * func[:,1:3] - 25 * func[:,0:2]) / (12 * dx)
+    dfuncdx[:,-2:] = (3 * func[:,-6:-4] - 16 * func[:,-5:-3] + 36 * func[:,-4:-2] - 48 * func[:,-3:-1] + 25 * func[:,-2:]) / (12 * dx)
+
+    dfuncdy[0:2,:] = (-3 * func[4:6,:] + 16 * func[3:5,:]  - 36 * func[2:4,:] + 48 * func[1:3,:] - 25 * func[0:2,:]) / (12 * dy)
+    dfuncdy[-2:,:] = (3 * func[-6:-4,:] - 16 * func[-5:-3,:]  + 36 * func[-4:-2,:] - 48 * func[-3:-1,:] + 25 * func[-2:,:]) / (12 * dy)
+
+
+    for j in range(m):
+         for i in range(2, n-2):
+            if solution.map.area[j,i] == -2: #if it is wall
+                #check where is the boundary on the east or west side of the wall
+                if solution.map.area[j,i+1] == -1:
+                    # 5 points backward difference
+                    dfuncdx[j,i] = (3 * func[j,i-4] - 16 * func[j,i-3] + 36 * func[j,i-2] - 48 * func[j,i-1] + 25 * func[j,i]) / (12 * dx)
+                elif solution.map.area[j,i-1] == -1:
+                    # 5 points forward difference
+                    dfuncdx[j,i] = (-3 * func[j,i+4] + 16 * func[j,i+3] - 36 * func[j,i+2] + 48 * func[j,i+1] - 25 * func[j,i]) / (12 * dx)
+                else:
+                    dfuncdx[j,i] = (-func[j,i+2] + 8 * func[j,i+1] - 8 * func[j,i-1] + func[j,i-2]) / (12 * dx)
+            elif solution.map.area[j,i] == -1:
+                dfuncdx[j,i] = 0
+            else:
+                dfuncdx[j,i] = (-func[j,i+2] + 8 * func[j,i+1] - 8 * func[j,i-1] + func[j,i-2]) / (12 * dx)
+
+    for i in range(m):
+        for j in range(2, m-2):  #If (y(0)) != (y = 0). the case when matrix index is not coordinate. 
+            if solution.map.area[j,i] == -2:
+                #check where is the boundary on the north or south side of the wall
+                if solution.map.area[j+1,i] == -1: 
+                    dfuncdy[j,i] = (3 * func[j-4,i] - 16 * func[j-3,i]  + 36 * func[j-2,i] - 48 * func[j-1,i] + 25 * func[j,i]) / (12 * dy)  # 5 points backward difference
+                elif solution.map.area[j-1,i] == -1:
+                    dfuncdy[j,i] = (-3 * func[j+4,i] + 16 * func[j+3,i]  - 36 * func[j+2,i] + 48 * func[j+1,i] - 25 * func[j,i]) / (12 * dy)# 5 points forward difference
+                else:
+                    dfuncdy[j,i] = (-func[j+2,i] + 8 * func[j+1,i] - 8 * func[j-1,i] + func[j-2,i]) / (12 * dy)
+            elif solution.map.area[j,i] == -1:
+                dfuncdy[j,i] = 0
+            else:
+                dfuncdy[j,i] = (-func[j+2,i] + 8 * func[j+1,i] - 8 * func[j-1,i] + func[j-2,i]) / (12 * dy) #central difference
+
+    return dfuncdx, -dfuncdy
              
 
 def Solve_Coeff(x, y):
@@ -219,7 +304,7 @@ def SolveEliptic(a, b, c, U):
                   b * 0.5 * (U[2:, 2:] - U[2:, :-2] + U[:-2, :-2] - U[:-2, 2:])
                  ) / (a + c)
 
-def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, phi_old, property_map, N_x, N_y, omega,type = "stream"):    
+def pointwise(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, phi_old, property_map, N_x, N_y, omega,type = "stream"):    
     if type == "stream":
         for i in x_index:
 
@@ -644,12 +729,98 @@ def nodebynode(x_index, y_index, x_spacing, y_spacing, BCvalues, phi, phi_old, p
 
 
 
-def column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, W, E):
+def column_TDMA(x_spacing, y_spacing, phi, y_index, x_index, BC_values, property_map, N_y, N_x, W, E):
+    """
+        x & yspacing: dx's and dy's stored in a 2D or 1D ndarrays or a float. 
+        phi         : property of the field, 2D ndarray
+        y x_index   : indicies for unsolved phi matrix. 
+        BC_values   : BC values for neumann Condiation
+        property_map: 2D ndarray including objects in the field. 0 for open, -1 for interior, -2 for wall 
+        N_y & N_x   : Number of nodes 
+        W           : west side of the TDMA
+        E           : east side of the TDMA
+
+        Well I will write with constant dx and dy for the time being. If we already use Jacabi Transformation, dx and dy will be constant.
+    """
+
+    dx = x_spacing[0,0]
+    dy = y_spacing[0,0]
+
+
     for i in x_index:
-        if i == 0:
-            W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
-            C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
-            E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
+
+        line = property_map[:, i] 
+
+        #find wall and interior points by checking line. if the element in line -1 it is interior, if it is 2 it is wall:
+
+
+        inter_indicies = np.nonzero((line == -1))[0]
+        wall_indicies = np.nonzero((line == -2))[0] #check wheter nonzero gives a row or column ndarray
+
+        if i == 0:  # if the west wall is neumann
+            W[1:] = -dy
+                                       
+            C = 2 * dy + 2 * dx
+            E[:-1] = -dy                            
+            Q = 2 * dx * phi[y_index[0]:y_index[-1]+1,(i+1)] + 2 * dx**2 * BC_values['W']   #conditions are set for neumann BC.                
+            Q[0] += dy * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * dy**2 * BC_values['N']
+            Q[-1] += dy * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * dy**2 * BC_values['S']
+        
+        if i > 0 and i < N_x-1:
+            W[1:] = -dy                          
+            C = 2 * dy + 2 * dx
+            E[:-1] = -dy                            
+            Q = dx * phi[y_index[0]:y_index[-1]+1,(i-1)] + dx * phi[y_index[0]:y_index[-1]+1,(i+1)] #conditions are set for neumann BC.                
+            Q[0] += dy * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * dy**2 * BC_values['N']
+            Q[-1] += dy * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * dy**2 * BC_values['S']
+
+        if i == N_x - 1: # if the east wall is neumann
+            W[1:] = -dy                      
+            C = 2 * dy + 2 * dx
+            E[:-1] = -dy                           
+            Q = 2 * dx * phi[y_index[0]:y_index[-1]+1,(i-1)] + 2 * dx**2 * BC_values['E']             
+            Q[0] += dy * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * dy**2 * BC_values['N']
+            Q[-1] += dy * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * dy**2 * BC_values['S']
+
+        #we will update east and west by checking lines, if the line is -1 it is interior, if it is -2 it is wall. It the interior is in south, update the east by -dy, if it is in north, update the west by -dy.
+        #wall indicies are the indicies of the walls. The index j will be used for updateing E and W.
+        for j in wall_indicies:
+            if line[j-1] == -1: #north is interior
+                W[j] += -dy
+            if line[j+1] == -1: #south is interior
+                E[j] += -dy
+
+        #the left and right sides will be checked for wall. Update Q accordingly. Use property map to find left and right side of the wall
+        for j in wall_indicies:
+            if property_map[j, i-1] == -1:
+                Q[j] += dx * phi[j,i+1]
+            if property_map[j, i+1] == -1:
+                Q[j] += dx * phi[j,i-1]
+
+        Q = np.flip(Q)                     #The reason of reversing Q is, existing Q is inconsistent with the W and E and C list.
+
+        W[-1] += -dy * (y_index[0] == 0)             #Neumann of N-S boundaries. implemented here. 
+        E[0] += -dy * (y_index[-1] == N_y - 1)        #probabaly for different spacing matrixies the east and west should fliped
+        
+        if y_index[0] == 0:
+            phi[y_index[-1]::-1,i] = TDMA(W,C,E,Q) 
+        else:
+            phi[y_index[-1]:y_index[0] - 1:-1,i] = TDMA(W,C,E,Q)
+
+        #interior points makes phi zero.
+        for j in inter_indicies:
+            phi[j,i] = 0 
+
+    return phi
+
+
+
+    """
+    for i in x_index:
+        if i == 0:  # if the west wall is neumann
+            W[1:] = -y_spacing[y_index[0]:y_index[-1], i]                          
+            C = 2 * y_spacing[y_index[0]:, i] + 2 * y_spacing[y_index[0]:y_index[-1]+1, i - 1]
+            E[:-1] = -y_spacing[y_index[0]:y_index[-1], i]                            
             Q = 2 * a_e[y_index[0]:y_index[-1]+1,i] * phi[y_index[0]:y_index[-1]+1,(i+1)] + 2 * a_e[y_index[0]:y_index[-1]+1,i]**2 * BC_values['W']   #conditions are set for neumann BC.                
             Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
             Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
@@ -662,7 +833,7 @@ def column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, 
             Q[0] += a_n[0,0] * phi[0,i-1] * (y_index[0] == 1) + (y_index[0] == 0) * 2 * a_n[0,i - 1]**2 * BC_values['N']
             Q[-1] += a_s[0,0] * phi[-1,i-1] * (y_index[-1] == N_y - 2) + (y_index[-1] == N_y - 1) * 2 * a_s[0,i - 1]**2 * BC_values['S']
 
-        if i == N_x - 1:
+        if i == N_x - 1: # if the east wall is neumann
             W[1:] = -a_s[y_index[0]:y_index[-1], i]                          
             C = 2 * a_s[y_index[0]:, i] + 2 * a_w[y_index[0]:y_index[-1]+1, i - 1]
             E[:-1] = -a_n[y_index[0]:y_index[-1], i]                            
@@ -682,6 +853,7 @@ def column_TDMA(a_s, a_w, a_n, a_e, phi, y_index, BC_values, x_index, N_y, N_x, 
             phi[y_index[-1]:y_index[0] - 1:-1,i] = TDMA(W,C,E,Q) 
 
     return phi
+    """
 
 
 
