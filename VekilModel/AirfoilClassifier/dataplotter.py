@@ -8,7 +8,7 @@ def plotairfoil(airfoil):
     #the values are the lists of the values
 
     plt.figure(1, figsize=(6, 10))
-    plt.subplot(2, 1, 1)
+    plt.subplot(3, 1, 1)
     #plot AOA vs Cl as a square dots
     plt.plot(airfoil['AOA'], airfoil['Cl'], 's', label = 'Cl-' + airfoil['name'])
     #plot AOA vs Cm as a triangle dots
@@ -23,13 +23,23 @@ def plotairfoil(airfoil):
     plt.legend()
     plt.show()
 
-    plt.subplot(2, 1, 2)
+    plt.subplot(3, 1, 2)
     #plot dCl vs AOA as a circle dots
-    plt.plot(airfoil['AOA'], airfoil['dCl'], 'o', label = 'dCl-' + airfoil['name'])
+    plt.plot(airfoil['AOA'], airfoil['dCl'], '-', label = 'dCl-' + airfoil['name'])
     #also plot x and y axis
     plt.axhline(y=0, color='k')
     plt.axvline(x=0, color='k')
     plt.xlabel('alpha, degress')
+    plt.legend()
+    plt.show()
+
+    plt.subplot(3, 1, 3)
+    #plot Cd vs Cl as a circle dots
+    plt.plot(airfoil['Cd'], airfoil['Cl'], '-', label = 'Cd-' + airfoil['name'])
+    plt.axhline(y=0, color='k')
+    plt.axvline(x=0, color='k')
+    plt.xlabel('Cd')
+    plt.ylabel('Cl')
     plt.legend()
     plt.show()
 
@@ -65,5 +75,16 @@ def compare_airfoils(airfoil1, airfoil2):
     plt.axhline(y=0, color='k')
     plt.axvline(x=0, color='k')
     plt.xlabel('alpha, degress')
+    plt.legend()
+    plt.show()
+
+    plt.subplot(3, 1, 3)
+    #plot Cd vs Cl as a circle dots
+    plt.plot(airfoil1['Cd'], airfoil1['Cl'], '-', label = 'Cd-' + airfoil1['name'])
+    plt.plot(airfoil2['Cd'], airfoil2['Cl'], 'r-', label = 'Cd-' + airfoil2['name'])
+    plt.axhline(y=0, color='k')
+    plt.axvline(x=0, color='k')
+    plt.xlabel('Cd')
+    plt.ylabel('Cl')
     plt.legend()
     plt.show()

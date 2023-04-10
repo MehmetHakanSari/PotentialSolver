@@ -9,14 +9,19 @@ def readairfoil(foldername):
     #returns a dictionary, where the key is the airfoil name and the value is a dictionary of [AOA, Cd, Cl, CDp, Cm].
     #AOD, Cd, Cl, CDp, Cm are dictionary where the key its name and the value is a list of values
 
-    #read txt files in the folder
-
-    #create a list from 1 to 9999 but 100 and its  multiples will not exist in the list. Also each number has 4 digits
-    #this is to make sure that the airfoil name is 4 digits
-    nacanames = [str(i).zfill(4) for i in range(1,10000) if i%100 != 0]
+    #read  each txt files in the folder, the name of the file is not known in advance
     airfoildata = {}
-    for nacaairfoil in nacanames:
-        with open(foldername + '/NACA' + str(nacaairfoil) + '.txt') as f:
+    
+    for filename in os.listdir(foldername):
+        if filename.endswith(".txt"):
+            data_available = False
+            #read the file
+            f = open(foldername + '/' + filename, 'r')
+
+            #the airfoilname is the file name without the extension
+            airfoilname = filename.split('.')[0]
+
+            #read the lines in the file
             lines = f.readlines()
             #the values starts from the 11th line 
             #the first 10 lines are the header
@@ -39,26 +44,28 @@ def readairfoil(foldername):
                 cdp.append(float(line[3]))
                 cm.append(float(line[4]))
 
-            for i in range(len(aoa)-1):
-                dcl.append((cl[i+1] - cl[i])/(aoa[i+1] - aoa[i]))
-            dcl.append(dcl[-1])
+            if len(aoa) > 12:
+                data_available = True
+                for i in range(len(aoa)-1):
+                    dcl.append((cl[i+1] - cl[i])/(aoa[i+1] - aoa[i]))
+                dcl.append(dcl[-1])
 
             #convert the lists to numpy arrays
-            aoa = np.array(aoa)
-            cd = np.array(cd)
-            cl = np.array(cl)
-            cdp = np.array(cdp)
-            cm = np.array(cm)
-            dcl = np.array(dcl)
+            # aoa = np.array(aoa)
+            # cd = np.array(cd)
+            # cl = np.array(cl)
+            # cdp = np.array(cdp)
+            # cm = np.array(cm)
+            # dcl = np.array(dcl)
 
             #create a dictionary to store the AOA, Cd, and Cl, CDp, Cm
-            airfoil = {'name':("NACA" + str(nacaairfoil)),'AOA': aoa, 'Cd': cd, 'Cl': cl, 'CDp': cdp, 'Cm': cm, 'dCl': dcl}
+            airfoil = {'name':(str(airfoilname)),'AOA': np.array(aoa), 'Cd': np.array(cd), 'Cl': np.array(cl), 'CDp': np.array(cdp), 'Cm': np.array(cm), 'dCl': np.array(dcl), 'data_available': data_available}
 
             #calculate the rate of change of Cl with respect to AOA
             #create an empty list to store the rate of change of Cl with respect to AOA
   
 
             #create a dictionary to store the airfoil name and its data
-            airfoildata['NACA' + str(nacaairfoil)] = airfoil
+            airfoildata[str(airfoilname)] = airfoil
 
     return airfoildata
