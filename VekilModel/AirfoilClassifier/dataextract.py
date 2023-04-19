@@ -32,7 +32,8 @@ def readairfoil(foldername):
             cl = []
             cdp = []
             cm = []
-            dcl = []    
+            dcl = []   
+             
 
             for line in lines[12:]:
                 #split the line into a list
@@ -50,16 +51,8 @@ def readairfoil(foldername):
                     dcl.append((cl[i+1] - cl[i])/(aoa[i+1] - aoa[i]))
                 dcl.append(dcl[-1])
 
-            #convert the lists to numpy arrays
-            # aoa = np.array(aoa)
-            # cd = np.array(cd)
-            # cl = np.array(cl)
-            # cdp = np.array(cdp)
-            # cm = np.array(cm)
-            # dcl = np.array(dcl)
-
             #create a dictionary to store the AOA, Cd, and Cl, CDp, Cm
-            airfoil = {'name':(str(airfoilname)),'AOA': np.array(aoa), 'Cd': np.array(cd), 'Cl': np.array(cl), 'CDp': np.array(cdp), 'Cm': np.array(cm), 'dCl': np.array(dcl), 'data_available': data_available}
+            airfoil = {'name':(str(airfoilname)),'AOA': np.array(aoa), 'Cd': np.array(cd), 'Cl': np.array(cl), 'CDp': np.array(cdp), 'Cm': np.array(cm), 'dCl': np.array(dcl), 'CmCd': np.array(cl) / np.array(cd), 'data_available': data_available}
 
             #calculate the rate of change of Cl with respect to AOA
             #create an empty list to store the rate of change of Cl with respect to AOA
