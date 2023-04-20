@@ -8,19 +8,20 @@ class Airfoil:
     It can call plotter functions to plot polars and airfoil. 
     It might have self meshing tools and flow graph etc. 
     """
-    def __init__(self, name = None, geometry = None, polars = None):
+    def __init__(self, name = None, geometry = None, polars = None, data_available = False):
         """
         name: string
 
         geometry: ndarray (list, tuple) in format [N x 2] or [N x 3]
 
         polars: dictionary, key is double representing Reynolds Number, value is [N x 7] list. 
-        
+
         """
+        self.name = name
+        self.geometry = geometry
+        self.polars = polars
 
-        pass
-
-    def __call__(self, *args: Any, **kwds: Any) -> Any:
+    def __call__():
         """
         specifications, important geometrical position vectors, names etc.
         """
@@ -35,7 +36,10 @@ class Airfoil:
     def plot_polars(self):
         pass
 
-    def call_VM(self, Re):
+    def call_SM(self, Re):
+        pass
+
+    def call_xfoil(self, Re):
         pass
 
     def calculate_polars(self, Re):
