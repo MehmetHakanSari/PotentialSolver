@@ -1,0 +1,17 @@
+PLOP
+G, F
+
+
+LOAD NACA6420.dat
+NACA6420
+PANE
+OPER
+Visc 600000
+PACC
+../NACAxxxx_Re_600000/NACA6420.txt
+
+ITER 100
+ASeq -5 18 1
+
+
+quit
