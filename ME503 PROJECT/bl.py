@@ -62,7 +62,7 @@ def f(x, y):
 def BL_solver():
 
     target = 1.0
-    tspan = np.linspace(0, 20, 10000)
+    tspan = np.linspace(0, 5, 20)
     blp = ODEs(f, tspan)
 
 
@@ -112,13 +112,14 @@ def BL_domain(Uinf, size = 100):
     Re = Uinf*x/nu
     delta = 5 * x / np.sqrt(Re)
     delta_idx = np.round(delta*size)
+    delta_idx[delta_idx > size] = size
 
     solution = np.ones((size, size))*Uinf
 
     for i in range(len(delta_idx)):
-        for j in range(int(delta_idx[i])):
+        for j in range(int(delta_idx[i]) - 1):
             loc = x[i]
-            height = delta_idx[j]/size
+            height = j/size
 
             mu_val = mu_calc(loc, height, Uinf, nu)
 
