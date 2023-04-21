@@ -1,0 +1,13 @@
+LOAD naca0012.dat
+naca0012
+PANE
+OPER
+Visc 1000000
+PACC
+naca0012.txt
+
+ITER 100
+ASeq -5 10 1
+
+
+quit

@@ -1,0 +1,15 @@
+  
+       XFOIL         Version 6.99
+  
+ Calculated polar for: NACA 1037                                       
+  
+ 1 1 Reynolds number fixed          Mach number fixed         
+  
+ xtrf =   1.000 (top)        1.000 (bottom)  
+ Mach =   0.000     Re =     0.100 e 6     Ncrit =   9.000
+  
+   alpha    CL        CD       CDp       CM     Top_Xtr  Bot_Xtr
+  ------ -------- --------- --------- -------- -------- --------
+  -2.000   0.5119   0.06239   0.05392  -0.0805   0.5796   0.4948
+  -1.000   0.4967   0.05812   0.04969  -0.0692   0.5572   0.5209
+   0.000  -0.1126   0.04481   0.03611   0.0275   0.5484   0.5707
