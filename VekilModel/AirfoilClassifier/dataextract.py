@@ -38,12 +38,25 @@ def readairfoil(foldername, save_path):
                 #split the line into a list
                 line = line.split()
                 polar_matrix[i,:-1] = np.array(line, dtype=float)
-                polar_matrix[i,-1] = float(polar_matrix[i,1]) / float(polar_matrix[i,2])
+                polar_matrix[i,-1] = float(polar_matrix[i,1]) / float(polar_matrix[i,2]) #ClCd
 
             polar = {}
             polar[Re] = polar_matrix
 
-            airfoil = Airfoil(name = airfoilname, geometry = None, polars = polar, data_available = data_available)
+            #check if the airfoil exist in savepath directory
+            if os.path.exists(save_path + '/' + airfoilname + '.pkl'):
+                #if it exists, load the airfoil object
+                with open(save_path + '/' + airfoilname + '.pkl', 'rb') as input:
+                    airfoil = pickle.load(input)
+                #update the polar dictionary
+                airfoil.polars.update(polar) 
+                #update the data_available
+                airfoil.data_available = data_available
+                #update the airfoil object
+                with open(save_path + '/' + airfoilname + '.pkl', 'wb') as output:
+                    pickle.dump(airfoil, output, pickle.HIGHEST_PROTOCOL)
+            else:
+                airfoil = Airfoil(name = airfoilname, geometry = None, polars = polar, data_available = data_available)
 
             #save the airfoil object
             with open(save_path + '/' + airfoilname + '.pkl', 'wb') as output:
