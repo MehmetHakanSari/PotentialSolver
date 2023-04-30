@@ -3,47 +3,72 @@ import numpy as np
 
 #This function plots the airfoil data
 
-def plotairfoil(airfoil):
-    #input is the dctionary contains 5 keys: AOA, Cd, Cl, CDp, Cm
-    #the values are the lists of the values
+def plot_polars(airfoil, Re):
+    """
+    airfoil: an airfoil object
 
-    plt.figure(1, figsize=(6, 10))
-    plt.subplot(3, 1, 1)
-    #plot AOA vs Cl as a square dots
-    plt.plot(airfoil['AOA'], airfoil['Cl'], 's', label = 'Cl-' + airfoil['name'])
-    #plot AOA vs Cm as a triangle dots
-    plt.plot(airfoil['AOA'], airfoil['Cm'], '^', label = 'Cm-' + airfoil['name'])
+    Re: Reynolds number, list of Reynolds number, or 'all'
+    """
 
-    #also plot x and y axis
-    plt.axhline(y=0, color='k')
-    plt.axvline(x=0, color='k')
+    if Re == 'all':
+        Re_list = airfoil.polars.keys()
 
-    plt.xlabel('alpha, degress')
-    #plt.title() #change the title to the airfoil name
-    plt.legend()
-    plt.show()
+    if type(Re) == int:
+        Re_list = [Re]
 
-    plt.subplot(3, 1, 2)
-    #plot dCl vs AOA as a circle dots
-    plt.plot(airfoil['AOA'], airfoil['dCl'], '-', label = 'dCl-' + airfoil['name'])
-    #also plot x and y axis
-    plt.axhline(y=0, color='k')
-    plt.axvline(x=0, color='k')
-    plt.xlabel('alpha, degress')
-    plt.legend()
-    plt.show()
+    if Re not in airfoil.polars.keys():
+        raise KeyError("Reynolds number is not aviable!")
 
-    plt.subplot(3, 1, 3)
-    #plot Cd vs Cl as a circle dots
-    plt.plot(airfoil['Cd'], airfoil['Cl'], '-', label = 'Cd-' + airfoil['name'])
-    plt.axhline(y=0, color='k')
-    plt.axvline(x=0, color='k')
-    plt.xlabel('Cd')
-    plt.ylabel('Cl')
-    plt.legend()
-    plt.show()
+    for Re in Re_list:
+        polar = airfoil.polars[Re]
+        plt.figure(1, figsize=(6, 10))
+        plt.subplot(2, 2, 1)
+        #plot AOA vs Cl as a square dots
+        plt.plot(polar[:,0], polar[:,1], 's', label = 'Cl-' + airfoil.name + '-' + str(Re))
+        #plot AOA vs Cm as a triangle dots
+        plt.plot(polar[:,0], polar[:,4], '^', label = 'Cm-' + airfoil.name + '-' + str(Re))
+        plt.axhline(y=0, color='k')
+        plt.axvline(x=0, color='k')
+        plt.xlabel('alpha, degress')
+        #plt.title() #change the title to the airfoil name
+        plt.legend()
+        plt.show()
+
+        plt.subplot(2, 2, 2)
+        #plot Cd vs AOA as a circle dots
+        plt.plot(polar[:,0], polar[:,2], '-', label = 'Cd-' + airfoil.name + '-' + str(Re))
+        #also plot x and y axis
+        plt.axhline(y=0, color='k')
+        plt.axvline(x=0, color='k')
+        plt.xlabel('alpha, degress')
+        plt.legend()
+        plt.show()
+
+        plt.subplot(2, 2, 3)
+        #plot Cd vs Cl as a circle dots
+        plt.plot(polar[:,1], polar[:,2], '-', label = 'Cd-' + airfoil.name + '-' + str(Re))
+        plt.axhline(y=0, color='k')
+        plt.axvline(x=0, color='k')
+        plt.xlabel('Cd')
+        plt.ylabel('Cl')
+        plt.legend()
+        plt.show()
+
+        plt.subplot(2, 2, 4)
+        plt.plot(polar[:,0], polar[:,-1], '-', label = 'Cl/Cd-' + airfoil.name + '-' + str(Re))
+        plt.axhline(y=0, color='k')
+        plt.axvline(x=0, color='k')
+        plt.xlabel('alpha, degress')
+        plt.ylabel('Cl')
+        plt.legend()
+        plt.show()
+
 
 def compare_airfoils(airfoil1, airfoil2):
+    """
+    airfoil1: an airfoil object
+    airfoil2: an airfoil object
+    """
     #plot values in same graph
 
     plt.figure(1, figsize=(6, 10))

@@ -47,13 +47,13 @@ alpha_f = 18
 alpha_step = 1
 n_iter = 100
 #  and np.mod(i,100) != 12
-ReS = [6*1e5]
+ReS = [9*1e5]
 for Re in ReS:
     Re = int(Re)
     folder_name = "../NACAxxxx" + "_Re_" + str(Re)
-    for i in range(3000,6740):
+    for i in range(3025,7000):
         airfoil_name = "NACA" + str(i).zfill(4)
-        if 10 < np.mod(i,100) < 35:
+        if 10 < np.mod(i,100) < 35 and np.mod(i,100) != 10:
             xfoil_analysis(airfoil_name, alpha_i, alpha_f, alpha_step, folder_name, Re, n_iter)
     print("Re = ", Re, " is done")
 # %%
