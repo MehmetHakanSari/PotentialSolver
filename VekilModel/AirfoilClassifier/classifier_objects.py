@@ -1,5 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+import pickle
+from dataplotter import geometry_plotter
 
 class Airfoil:
     """
@@ -29,11 +32,13 @@ class Airfoil:
         """
         pass
 
-    def plot_geometry(self):
-        if self.geometry == None:
-            raise FileNotFoundError("geometry of airfoil is not aviable!")
-        else:
-            pass #write geometry plot funcition
+    def plot_geometry(self,  *args):
+        """
+        Plot geometry of airfoil. 
+        """
+ 
+        geometry_plotter(self.geometry, *args)
+                
 
     def plot_polars(self, Re, *args):
         """
@@ -110,7 +115,26 @@ class Airfoil:
 
         self.position_info["aerodyanmic-center"] = x_aerodynamic_center
 
-            
+
+    def NACA_geometry_generator(self):
+        """
+        Generate the NACA geometry from the airfoil name
+        """
+        if self.name == None:
+            raise FileNotFoundError("Airfoil name is not aviable!")
+        else:
+            #check the name is NACA or not
+            if self.name[0:4] == "NACA":
+                #check the name is 4 digit or 5 digit
+                if len(self.name) == 8:
+                    #4 digit
+                    self.geometry = four_digit_NACA(int(self.name[5]), int(self.name[6]), int(self.name[7:]))
+                elif len(self.name) == 9:
+                    #5 digit
+                    pass
+                else:
+                    raise ValueError("Airfoil name is not valid!")
+                      
 
     def call_SM(self, Re):
         pass
@@ -179,5 +203,107 @@ class Airfoil:
                 return False
 
         return None
+
+
+def four_digit_NACA(m, p, t):
+    """
+    Generate the four digit NACA airfoil geometry
+    """
+    #m = max camber
+    #p = location of max camber
+    #t = thickness
+
+    #check the input is valid or not
+    if m > 9 or m < 0:
+        raise ValueError("m must be between 0 and 9!")
+    if p > 9 or p < 0:
+        raise ValueError("p must be between 0 and 9!")
+    if t > 99 or t < 0:
+        raise ValueError("t must be between 0 and 99!")
+
+    #generate the x coordinates
+    x = np.linspace(0,1,100)
+    #generate the y coordinates
+    y = np.zeros(100)
+
+    #calculate the camber line
+    for i in range(100):
+        if x[i] <= p / 10:
+            y[i] = m / (p / 10)**2 * (2 * p / 10 * x[i] - x[i]**2)
+        else:
+            y[i] = m / (1 - p / 10)**2 * ((1 - 2 * p / 10) + 2 * p / 10 * x[i] - x[i]**2)
+
+    #calculate the thickness
+    yt = 5 * t / 100 * (0.2969 * np.sqrt(x) - 0.1260 * x - 0.3516 * x**2 + 0.2843 * x**3 - 0.1015 * x**4)
+
+    #calculate the upper and lower surface
+    xu = x - yt * np.sin(np.arctan(np.gradient(y,x)))
+    xl = x + yt * np.sin(np.arctan(np.gradient(y,x)))
+    yu = y + yt * np.cos(np.arctan(np.gradient(y,x)))
+    yl = y - yt * np.cos(np.arctan(np.gradient(y,x)))
+
+    #generate the geometry
+    geometry = np.zeros((200,2))
+    geometry[0:100,0] = xu
+    geometry[0:100,1] = yu
+    geometry[100:,0] = xl[::-1]
+    geometry[100:,1] = yl[::-1]
+
+    return geometry
+
+def five_digit_NACA(m, p, t, c):
+    """
+    Generate the five digit NACA airfoil geometry
+    """
+    #m = max camber
+    #p = location of max camber
+    #t = thickness
+    #c = chord length
+
+    #check the input is valid or not
+    if m > 9 or m < 0:
+        raise ValueError("m must be between 0 and 9!")
+    if p > 9 or p < 0:
+        raise ValueError("p must be between 0 and 9!")
+    if t > 99 or t < 0:
+        raise ValueError("t must be between 0 and 99!")
+    if c < 0:
+        raise ValueError("c must be positive!")
+
+    #generate the x coordinates
+    x = np.linspace(0,1,100)
+    #generate the y coordinates
+    y = np.zeros(100)
+
+    #calculate the camber line
+    for i in range(100):
+        if x[i] <= p / 10:
+            y[i] = m / (p / 10)**2 * (2 * p / 10 * x[i] - x[i]**2)
+        else:
+            y[i] = m / (1 - p / 10)**2 * ((1 - 2 * p / 10) + 2 * p / 10 * x[i] - x[i]**2)
+
+    #calculate the thickness
+    yt = 5 * t / 100 * (0.2969 * np.sqrt(x) - 0.1260 * x - 0.3516 * x**2 + 0.2843 * x**3 - 0.1015 * x**4)
+
+    #calculate the upper and lower surface
+    xu = x - yt * np.sin(np.arctan(np.gradient(y,x)))
+    xl = x + yt * np.sin(np.arctan(np.gradient(y,x)))
+    yu = y + yt * np.cos(np.arctan(np.gradient(y,x)))
+    yl = y - yt * np.cos(np.arctan(np.gradient(y,x)))
+
+    #generate the geometry
+    geometry = np.zeros((200,2))
+    geometry[0:100,0] = xu
+    geometry[0:100,1] = yu
+    geometry[100:,0] = xl[::-1]
+    geometry[100:,1] = yl[::-1]
+
+    #scale the geometry
+    geometry[:,0] = geometry[:,0] * c
+
+    return geometry
+
+
+    
 
 

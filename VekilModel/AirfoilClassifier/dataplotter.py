@@ -113,3 +113,50 @@ def compare_airfoils(airfoil1, airfoil2):
     plt.ylabel('Cl')
     plt.legend()
     plt.show()
+
+
+def geometry_plotter(geometry, *args):
+    """
+    geometry: list, [x, y]
+    
+    *args:
+
+    alpha_range = [alpha_min, alpha_max]
+    """
+
+    print(*args)
+    print(args)
+    print(geometry)
+
+    if len(args) == 0:
+        plt.plot(geometry[0], geometry[1], 'k-')
+        plt.axis('equal')
+        plt.show()
+    else:
+        alpha_range = args[0]
+        print(alpha_range)
+        plt.figure(facecolor='#212121', figsize=(6, 10))
+        #plot geometry at different angle of attack
+        for alpha in alpha_range:
+            #rotate the geometry
+            geometry_rotated = rotate_geometry(geometry, alpha)
+            
+            plt.plot(geometry_rotated[0], geometry_rotated[1], 'r--')
+            ax = plt.axes()
+            plt.axis('equal')
+            ax.set_facecolor("#424242")
+        plt.plot(geometry[0], geometry[1], 'b-')    
+        plt.show()
+
+def rotate_geometry(geometry, alpha):
+    """
+    geometry: list, [x, y], [N, 2]
+    alpha: float, angle of attack in degrees
+    """
+    #convert angle of attack from degrees to radians
+    alpha_rad = alpha * np.pi / 180
+    #rotation matrix
+    rotation_matrix = np.array([[np.cos(alpha_rad), -np.sin(alpha_rad)], [np.sin(alpha_rad), np.cos(alpha_rad)]])
+    #rotate the geometry
+    geometry_rotated = np.dot(rotation_matrix, geometry)
+    return geometry_rotated
