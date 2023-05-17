@@ -128,7 +128,7 @@ class Airfoil:
                 #check the name is 4 digit or 5 digit
                 if len(self.name) == 8:
                     #4 digit
-                    self.geometry = four_digit_NACA(int(self.name[5]), int(self.name[6]), int(self.name[7:]))
+                    self.geometry = four_digit_NACA(int(self.name[4]), int(self.name[5]), int(self.name[6:]))
                 elif len(self.name) == 9:
                     #5 digit
                     pass
@@ -205,14 +205,17 @@ class Airfoil:
         return None
 
 
-def four_digit_NACA(m, p, t):
+def four_digit_NACA(m, p, t, c=1):
     """
     Generate the four digit NACA airfoil geometry
     """
     #m = max camber
     #p = location of max camber
     #t = thickness
-
+    # print(m, p, t)
+    m = m/100
+    p = p/10
+    t = t/100
     #check the input is valid or not
     if m > 9 or m < 0:
         raise ValueError("m must be between 0 and 9!")
@@ -222,32 +225,32 @@ def four_digit_NACA(m, p, t):
         raise ValueError("t must be between 0 and 99!")
 
     #generate the x coordinates
-    x = np.linspace(0,1,100)
-    #generate the y coordinates
-    y = np.zeros(100)
+    x = np.linspace(0,c,100)
 
-    #calculate the camber line
-    for i in range(100):
-        if x[i] <= p / 10:
-            y[i] = m / (p / 10)**2 * (2 * p / 10 * x[i] - x[i]**2)
-        else:
-            y[i] = m / (1 - p / 10)**2 * ((1 - 2 * p / 10) + 2 * p / 10 * x[i] - x[i]**2)
+    Y_c = np.array([m * ((2 * p * x) - np.power(x,2)) / p**2 if x < p else m * ((1 - 2*p) +2*p*x-np.square(x)) / (1 - p)**2 for x in x])
+    Y_t = 5*t * (0.2969 * np.sqrt(x) - 0.1260*x - 0.3516 * np.square(x) + 0.2843 * np.power(x,3) - 0.1015 * np.power(x, 4))
+    dy_c_dx = np.array([2 * m * (p - x) / p**2 if x < p else 2 * m * (p - x) / (1 - p)**2 for x in x])
 
-    #calculate the thickness
-    yt = 5 * t / 100 * (0.2969 * np.sqrt(x) - 0.1260 * x - 0.3516 * x**2 + 0.2843 * x**3 - 0.1015 * x**4)
+    teta = np.arctan(dy_c_dx)
+    X_U = np.subtract(x, np.multiply(Y_t,np.sin(teta)))
+    Y_U = Y_c + np.multiply(Y_t, np.cos(teta))
+    X_L = x + np.multiply(Y_t, np.sin(teta))
+    Y_L = Y_c - np.multiply(Y_t, np.cos(teta))
+    Y_first = np.flip(Y_U)
+    Y = np.round(np.concatenate((Y_first, Y_L)), 6)
+    X_first = np.flip(X_U)
+    X = np.round(np.concatenate((X_first, X_L)), 6)
 
-    #calculate the upper and lower surface
-    xu = x - yt * np.sin(np.arctan(np.gradient(y,x)))
-    xl = x + yt * np.sin(np.arctan(np.gradient(y,x)))
-    yu = y + yt * np.cos(np.arctan(np.gradient(y,x)))
-    yl = y - yt * np.cos(np.arctan(np.gradient(y,x)))
+    # plt.plot(X_U, Y_U)
+    # plt.plot(X_L, Y_L)
+    # plt.axis("equal")
+    # plt.show()
 
-    #generate the geometry
-    geometry = np.zeros((200,2))
-    geometry[0:100,0] = xu
-    geometry[0:100,1] = yu
-    geometry[100:,0] = xl[::-1]
-    geometry[100:,1] = yl[::-1]
+    X = X.reshape(-1,1)
+    Y = Y.reshape(-1,1)
+
+    geometry = np.concatenate((X, Y), axis=1)
+    # print(geometry)
 
     return geometry
 

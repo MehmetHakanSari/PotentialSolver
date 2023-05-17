@@ -127,43 +127,40 @@ def geometry_plotter(geometry, *args):
 
     # print(*args)
     # print(args)
-    print(geometry[:,0])
-    print(geometry[:,1])
+    # print(geometry[:,0])
+    # print(geometry[:,1])
+
+    plt.figure(1, facecolor='#212121', figsize=(15, 5))
+    cmap = plt.get_cmap('viridis')
+    ax = plt.axes()
+    ax.set_facecolor("#424242")
+    ax.spines['bottom'].set_color('white')
+    ax.spines['top'].set_color('white')
+    ax.spines['left'].set_color('white')
+    ax.spines['right'].set_color('white')
+    ax.xaxis.label.set_color('white')
+    ax.yaxis.label.set_color('white')
+    ax.tick_params(axis='x', colors='white')
+    ax.tick_params(axis='y', colors='white')
 
     if len(args) == 0:
-        plt.figure(1, facecolor='#212121', figsize=(15, 5))
-        ax = plt.axes()
-        ax.set_facecolor("#424242")
-        ax.spines['bottom'].set_color('white')
-        ax.spines['top'].set_color('white')
-        ax.spines['left'].set_color('white')
-        ax.spines['right'].set_color('white')
-        ax.xaxis.label.set_color('white')
-        ax.yaxis.label.set_color('white')
-        plt.plot(geometry[0], geometry[1], 'k-')
+        plt.figure(1)
+        plt.plot(geometry[:,0], geometry[:,1], color='#00AAAF')
         plt.show()
     else:
-        alpha_range = args[0]
-        plt.figure(1, facecolor='#212121', figsize=(15, 5))
-        ax = plt.axes()
-        ax.set_facecolor("#424242")
-        ax.spines['bottom'].set_color('white')
-        ax.spines['top'].set_color('white')
-        ax.spines['left'].set_color('white')
-        ax.spines['right'].set_color('white')
-        ax.xaxis.label.set_color('white')
-        ax.yaxis.label.set_color('white')
-        
-         #plot geometry at different angle of attack
+        alpha_range = args[0]  
+        #plot geometry at different angle of attack
         for alpha in alpha_range:
             #rotate the geometry
             geometry_rotated = rotate(geometry, alpha)
-            #print(geometry_rotated[0])
+            normalized_angle = (alpha - (-10)) / ((20) - (-10))
+            color = cmap(normalized_angle)
             plt.figure(1)
-            plt.plot(geometry_rotated[:,0], geometry_rotated[:,1], '--', color='#00AFFF', linewidth=2)
+            # plt.plot(geometry_rotated[:,0], geometry_rotated[:,1], '--', color='#00AFFF', linewidth=2)
+            plt.plot(geometry_rotated[:,0], geometry_rotated[:,1], '--', color=color, linewidth=2)
 
-            
         plt.figure(1)
+        # plt.axis("equal")
         plt.xlim(-1.1, 0.1)
         plt.ylim(-0.3, 0.3)
         plt.show()
@@ -188,7 +185,7 @@ def rotate(geometry, alpha):
     x = geometry[:, 0]
     y = geometry[:, 1]
 
-    angle = math.radians(alpha)
+    angle = -math.radians(alpha)
 
     for i in range(len(x)):
         x_rotated.append(x[i] * math.cos(angle) - y[i] * math.sin(angle))

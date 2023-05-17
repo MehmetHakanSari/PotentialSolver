@@ -33,12 +33,14 @@ def readairfoil(foldername, save_path):
 
             if len(lines[12:]) > 6:
                 data_available = True
-                
+
+            # print(airfoilname)   
             for i, line in enumerate(lines[12:]):
                 #split the line into a list
                 line = line.split()
                 polar_matrix[i,:-1] = np.array(line, dtype=float)
-                polar_matrix[i,-1] = float(polar_matrix[i,1]) / float(polar_matrix[i,2]) #ClCd
+                if float(polar_matrix[i,2] != 0):
+                    polar_matrix[i,-1] = float(polar_matrix[i,1]) / float(polar_matrix[i,2]) #ClCd
 
             polar = {}
             polar[Re] = polar_matrix
@@ -52,11 +54,17 @@ def readairfoil(foldername, save_path):
                 airfoil.polars.update(polar) 
                 #update the data_available
                 airfoil.data_available = data_available
+                #generate the geometry if it is a NACA airfoil
+                if airfoilname.geometry == None and airfoilname[0:4] == 'NACA':
+                    airfoil.NACA_geometry_generator()
                 #update the airfoil object
                 with open(save_path + '/' + airfoilname + '.pkl', 'wb') as output:
                     pickle.dump(airfoil, output, pickle.HIGHEST_PROTOCOL)
+                
             else:
                 airfoil = Airfoil(name = airfoilname, geometry = None, polars = polar, data_available = data_available)
+                if airfoilname[0:4] == 'NACA':
+                    airfoil.NACA_geometry_generator()
 
             #save the airfoil object
             with open(save_path + '/' + airfoilname + '.pkl', 'wb') as output:
