@@ -131,41 +131,69 @@ def geometry_plotter(geometry, *args):
     print(geometry[:,1])
 
     if len(args) == 0:
+        plt.figure(1, facecolor='#212121', figsize=(15, 5))
+        ax = plt.axes()
+        ax.set_facecolor("#424242")
+        ax.spines['bottom'].set_color('white')
+        ax.spines['top'].set_color('white')
+        ax.spines['left'].set_color('white')
+        ax.spines['right'].set_color('white')
+        ax.xaxis.label.set_color('white')
+        ax.yaxis.label.set_color('white')
         plt.plot(geometry[0], geometry[1], 'k-')
-        plt.axis('equal')
         plt.show()
     else:
         alpha_range = args[0]
-        plt.figure(1, facecolor='#212121', figsize=(6, 10))
+        plt.figure(1, facecolor='#212121', figsize=(15, 5))
+        ax = plt.axes()
+        ax.set_facecolor("#424242")
+        ax.spines['bottom'].set_color('white')
+        ax.spines['top'].set_color('white')
+        ax.spines['left'].set_color('white')
+        ax.spines['right'].set_color('white')
+        ax.xaxis.label.set_color('white')
+        ax.yaxis.label.set_color('white')
         
-        #plot geometry at different angle of attack
+         #plot geometry at different angle of attack
         for alpha in alpha_range:
             #rotate the geometry
-            geometry_rotated = rotate_geometry(geometry, alpha)
+            geometry_rotated = rotate(geometry, alpha)
             #print(geometry_rotated[0])
             plt.figure(1)
-            plt.plot(geometry_rotated[0], geometry_rotated[1], 'r--')
-            ax = plt.axes()
-            plt.axis('equal')
-            ax.set_facecolor("#424242")
-            plt.show()
+            plt.plot(geometry_rotated[:,0], geometry_rotated[:,1], '--', color='#00AFFF', linewidth=2)
+
+            
         plt.figure(1)
-        plt.plot(geometry[0], geometry[1], 'b-')    
+        plt.xlim(-1.1, 0.1)
+        plt.ylim(-0.3, 0.3)
         plt.show()
 
-def rotate_geometry(geometry, alpha):
+def rotate(geometry, alpha):
     """
-    geometry: list, [x, y], [N, 2]
-    alpha: float, angle of attack in degrees
+        x: x coordinates of airfoil
+        y: y coordinates of airfoil
+        angle: angle to rotate airfoil
     """
+    #The rotation of the airfoil needed to be done rom its trailing edge.
+    #Carry translation to the origin
+
+    #The rotation of the airfoil needed to be done rom its trailing edge.
+    # 
+    #Carry translation to the origin
+    geometry[:,0] = geometry[:,0] - geometry[0,0]
+    geometry[:,1] = geometry[:,1] - geometry[0,1]
+    
     x_rotated = []
     y_rotated = []
     x = geometry[:, 0]
     y = geometry[:, 1]
-    alpha = math.radians(alpha)
-    for i in range(len(geometry[:,1])):
-        x_rotated.append(x[i] * math.cos(alpha) - y[i] * math.sin(alpha))
-        y_rotated.append(x[i] * math.sin(alpha) + y[i] * math.cos(alpha))
-    geometry = np.array([x_rotated, y_rotated])
-    return geometry
+
+    angle = math.radians(alpha)
+
+    for i in range(len(x)):
+        x_rotated.append(x[i] * math.cos(angle) - y[i] * math.sin(angle))
+        y_rotated.append(x[i] * math.sin(angle) + y[i] * math.cos(angle))
+
+    geometry_rotated = np.array([x_rotated, y_rotated]).T
+    return geometry_rotated
     
