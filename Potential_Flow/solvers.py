@@ -63,7 +63,7 @@ class eliptic_PDE_solver:
 
             psi[:, 0] = psi[0, 1] #Kutta Condiation
 
-            psi[1:-1, 1:-1] = omega * SolveEliptic(alpha, beta, gamma, psi) + (1 - omega) * psi_old
+            psi[1:-1, 1:-1] = omega * SolveEliptic(alpha, beta, gamma, psi) + (1 - omega) * psi_old[1:-1, 1:-1]
   
             residual_psi = np.max(np.abs(psi - psi_old))
 
@@ -97,14 +97,14 @@ class eliptic_PDE_solver:
 
     def contour(self):
         plt.figure(figsize=(10, 8), dpi=100)
-        cs = plt.contour(self.mesh.X, self.mesh.Y, self.solution, 20, colors='k')
+        cs = plt.contour(self.mesh.X, self.mesh.Y, self.solution, 100, colors='k')
         plt.clabel(cs)
         plt.plot(self.mesh.X[0, :], self.mesh.Y[0, :], 'b-', lw=2) # plot the airfoil
         # plt.xlim((-2., 3.))
         # plt.ylim((-1.5, 1.5))
         plt.show()
 
-    def streamplot(self, streamcolor):
+    def streamplot(self, streamcolor="viridis"):
         """
             Plots streamplot for velocity of the solution
         """

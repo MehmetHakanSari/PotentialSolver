@@ -74,4 +74,13 @@ def AF(x, t, sign, m, p, c):
                          sign * AFyt(x[i], t, c) * np.cos(AFth(x[i], m, p, c))
                          for i in range(np.size(x))])
 
+def NACA_fourdigit(m, p, t, c, N):
+    
+    xc = np.linspace(0., 1., N)
+    xU, yU = AF(xc, t, 1, m, p, c)
+    xL, yL = AF(xc, t, -1, m, p, c)
+    
+    airfoil_x = np.reshape(np.concatenate((xU, np.flip(xL))), (len(xU) + len(xL), 1))
+    airfoil_y = np.reshape(np.concatenate((yU, np.flip(yL))), (len(yU) + len(yL), 1))
 
+    return np.concatenate((airfoil_x, airfoil_y), axis=1) 

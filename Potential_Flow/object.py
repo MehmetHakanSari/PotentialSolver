@@ -6,6 +6,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import cm
 import math
 import scipy as sp
+import scipy.interpolate
 
 
 class object:
@@ -390,7 +391,7 @@ def closeshape_interpolation(contour, length = int):
     #contour: 2D array containing x and y coordinates of the closed curve. 
     #length: int. Interpolated close shape counter matrix length. 
 
-    tck, u = sp.interpolate.splprep([contour[:,0], contour[:,1]], s=0)
+    tck, u = scipy.interpolate.splprep([contour[:,0], contour[:,1]], s=0)
     u_new = np.linspace(u.min(), u.max(), length)
     x_new, y_new = sp.interpolate.splev(u_new, tck, der=0)
 

@@ -78,11 +78,11 @@ class Map:
         mesh = self.mesh
 
         if obj.type == "circle":
-            self.area = create_circle(mesh, obj ,self)
+            self.area = create_circle(mesh, obj, self)
         if obj.type == "rectangle":
-            self.area = create_rectangle(mesh, obj ,self)
+            self.area = create_rectangle(mesh, obj, self)
         if obj.type == "airfoil":
-            self.area = create_airfoil(mesh, obj ,self)
+            self.area = create_airfoil(mesh, obj, self)
         if obj.type == "boundary_layer":
             self.area = create_boundarylayer(obj, self)
         
