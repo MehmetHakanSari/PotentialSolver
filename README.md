@@ -18,8 +18,8 @@ We can define boundary conditions in both Dirichlet and Neumann. The North wall 
 
 The ultimate goal is to solve for an airfoil. The airfoil is created via the formulations provided on the web. For the stream solver, we need to solve the grid first for grid transformation. The transformed grid is given such in the figure. First, interpolation between the specified outer domain and the object of interest is employed to speed up the grid solver. 
 
-![Ekran görüntüsü 2023-10-22 151921](https://github.com/MehmetHakanSari/PotentialSolver/assets/112701635/e626b9de-41e8-4133-9431-18d333cd47b4)
+![Ekran görüntüsü 2023-10-22 152047](https://github.com/MehmetHakanSari/PotentialSolver/assets/112701635/b062577a-2499-415d-b6b4-458a48888beb)
 
 Afterwards, the stream is solved for the grid. The below figures compare the flow field around an airfoil with two methods. The stream function and potential function are interrelated to each other by velocity fields. Stream solutions do not require additional steps to show the stream around an object as streamplot is basically doing the same calculations. But from the potential solver, one is required to take derivatives in order to obtain the velocity field and then use streamplot to show the streamline:
 
-![Ekran görüntüsü 2023-10-22 152047](https://github.com/MehmetHakanSari/PotentialSolver/assets/112701635/b062577a-2499-415d-b6b4-458a48888beb)
+![Ekran görüntüsü 2023-10-22 151921](https://github.com/MehmetHakanSari/PotentialSolver/assets/112701635/e626b9de-41e8-4133-9431-18d333cd47b4)
