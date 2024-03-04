@@ -1,10 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+import warnings
 
 #This function plots the airfoil data
 
-def plot_polars(airfoil, Re):
+def plot_polars(airfoil, Re, **kwargs):
     """
     airfoil: an airfoil object
 
@@ -12,107 +13,194 @@ def plot_polars(airfoil, Re):
     """
 
     if Re == 'all':
-        Re_list = airfoil.polars.keys()
+        Re_list = airfoil.polars.keys()   
+    elif Re not in airfoil.polars.keys():
+        raise KeyError("Reynolds number is not aviable!")
 
     if type(Re) == int:
         Re_list = [Re]
 
-    if Re not in airfoil.polars.keys():
-        raise KeyError("Reynolds number is not aviable!")
+    
+    LiWi = kwargs.get('LiWi', 1)
+    MaSi = kwargs.get('MaSi', 5)
 
+    fig, axs = plt.subplots(2, 2, figsize=(10, 6))
     for Re in Re_list:
-        polar = airfoil.polars[Re]
-        plt.figure(1, figsize=(6, 10))
-        plt.subplot(2, 2, 1)
-        #plot AOA vs Cl as a square dots
-        plt.plot(polar[:,0], polar[:,1], 's', label = 'Cl-' + airfoil.name + '-' + str(Re))
-        #plot AOA vs Cm as a triangle dots
-        plt.plot(polar[:,0], polar[:,4], '^', label = 'Cm-' + airfoil.name + '-' + str(Re))
-        plt.axhline(y=0, color='k')
-        plt.axvline(x=0, color='k')
-        plt.xlabel('alpha, degress')
-        #plt.title() #change the title to the airfoil name
-        plt.legend()
-        plt.show()
+        if Re != 0:
+            polar = airfoil.polars[Re]
+        else:
+            continue
 
-        plt.subplot(2, 2, 2)
-        #plot Cd vs AOA as a circle dots
-        plt.plot(polar[:,0], polar[:,2], '-', label = 'Cd-' + airfoil.name + '-' + str(Re))
-        #also plot x and y axis
-        plt.axhline(y=0, color='k')
-        plt.axvline(x=0, color='k')
-        plt.xlabel('alpha, degress')
-        plt.legend()
-        plt.show()
+        # Plot AOA vs Cl as square dots
+        axs[0, 0].plot(polar[:, 0], polar[:, 1], '-s', label= 'Re: ' + str(Re), linewidth=LiWi, markersize=MaSi)
+        # Plot AOA vs Cm as triangle dots
+        axs[0, 0].plot(polar[:, 0], polar[:, 4], '-^', label= 'Re: ' + str(Re), linewidth=LiWi, markersize=MaSi)
+        axs[0, 0].set_title('Cl and Cm')
+    
+        # Plot Cd vs AOA as circle dots
+        axs[0, 1].plot(polar[:, 0], polar[:, 2], '-', label= 'Re: ' + str(Re), linewidth=LiWi, markersize=MaSi)
+        axs[0, 1].set_title('Cd')
+    
+        # Plot Cd vs AOA as circle dots
+        axs[1, 0].plot(polar[:,1], polar[:,2], '-', label = 'Re: ' + str(Re),  linewidth=LiWi, markersize=MaSi)
+        axs[1, 0].set_title('Cd v Cl')
+    
+        # Plot Cd vs AOA as circle dots
+        axs[1, 1].plot(polar[:,0], polar[:,-1], '-', label = 'Re: ' + str(Re), linewidth=LiWi, markersize=MaSi)
+        axs[1, 1].set_title('Cl/Cd')
 
-        plt.subplot(2, 2, 3)
-        #plot Cd vs Cl as a circle dots
-        plt.plot(polar[:,1], polar[:,2], '-', label = 'Cd-' + airfoil.name + '-' + str(Re))
-        plt.axhline(y=0, color='k')
-        plt.axvline(x=0, color='k')
-        plt.xlabel('Cd')
-        plt.ylabel('Cl')
-        plt.legend()
-        plt.show()
+        
+    for i, ax_row in enumerate(axs):
+        for j, ax in enumerate(ax_row):
+            if i == 0 and j == 0:
+                ax.axhline(y=0, color='k')
+                ax.axvline(x=0, color='k')
+                ax.set_xlabel('alpha, degrees')
+                ax.legend()
+            if i == 0 and j == 1:
+                ax.axhline(y=0, color='k')
+                ax.axvline(x=0, color='k')
+                ax.set_xlabel('Cd')
+                ax.legend()
+            if i == 1 and j == 0: 
+                ax.axhline(y=0, color='k')
+                ax.axvline(x=0, color='k')
+                ax.set_xlabel('Cl')
+                ax.set_ylabel('Cd')
+                ax.legend()
+            if i == 1 and j == 1: 
+                ax.axhline(y=0, color='k')
+                ax.axvline(x=0, color='k')
+                ax.set_xlabel('alpha, degrees')
+                ax.set_ylabel('Cl/Cd')
+                ax.legend()
 
-        plt.subplot(2, 2, 4)
-        plt.plot(polar[:,0], polar[:,-1], '-', label = 'Cl/Cd-' + airfoil.name + '-' + str(Re))
-        plt.axhline(y=0, color='k')
-        plt.axvline(x=0, color='k')
-        plt.xlabel('alpha, degress')
-        plt.ylabel('Cl')
-        plt.legend()
-        plt.show()
+    # Adjust layout and display the plot
+    plt.tight_layout()
+    plt.show()
+
+    # for Re in Re_list:
+    #     polar = airfoil.polars[Re]
+    #     plt.figure(1, figsize=(6, 10))
+    #     plt.subplot(2, 2, 1)
+    #     #plot AOA vs Cl as a square dots
+    #     ax.plot(polar[:,0], polar[:,1], 's', label = 'Cl-' + airfoil.name + '-' + str(Re))
+    #     #plot AOA vs Cm as a triangle dots
+    #     ax.plot(polar[:,0], polar[:,4], '^', label = 'Cm-' + airfoil.name + '-' + str(Re))
+    #     plt.axhline(y=0, color='k')
+    #     plt.axvline(x=0, color='k')
+    #     plt.xlabel('alpha, degress')
+    #     #plt.title() #change the title to the airfoil name
+    #     plt.legend()
+    #     plt.show()
+
+    #     plt.subplot(2, 2, 2)
+    #     #plot Cd vs AOA as a circle dots
+    #     plt.plot(polar[:,0], polar[:,2], '-', label = 'Cd-' + airfoil.name + '-' + str(Re))
+    #     #also plot x and y axis
+    #     plt.axhline(y=0, color='k')
+    #     plt.axvline(x=0, color='k')
+    #     plt.xlabel('alpha, degress')
+    #     plt.legend()
+    #     plt.show()
+
+    #     plt.subplot(2, 2, 3)
+    #     #plot Cd vs Cl as a circle dots
+    #     plt.plot(polar[:,1], polar[:,2], '-', label = 'Cd-' + airfoil.name + '-' + str(Re))
+    #     plt.axhline(y=0, color='k')
+    #     plt.axvline(x=0, color='k')
+    #     plt.xlabel('Cd')
+    #     plt.ylabel('Cl')
+    #     plt.legend()
+    #     plt.show()
+
+    #     plt.subplot(2, 2, 4)
+    #     plt.plot(polar[:,0], polar[:,-1], '-', label = 'Cl/Cd-' + airfoil.name + '-' + str(Re))
+    #     plt.axhline(y=0, color='k')
+    #     plt.axvline(x=0, color='k')
+    #     plt.xlabel('alpha, degress')
+    #     plt.ylabel('Cl')
+    #     plt.legend()
+    #     plt.show()
 
 
-def compare_airfoils(airfoil1, airfoil2):
+def compare_airfoils(airfoil1, airfoil2, Re, **kwargs):
     """
     airfoil1: an airfoil object
     airfoil2: an airfoil object
     """
-    #plot values in same graph
+    Re1, Re2 = (Re, Re)
+    if Re not in airfoil1.polars.keys():
+        warnings.warn("Reynolds number is not aviable in airfoil 1. Looking for closest Re")
+        Re1_L = airfoil1.polars.keys()
+        Re1 = min(Re1_L, key=lambda x: abs(x - Re))
+    if Re not in airfoil2.polars.keys():
+        warnings.warn("Reynolds number is not aviable in airfoil 2. Looking for closest Re")
+        Re2_L = airfoil1.polars.keys()
+        Re2 = min(Re2_L, key=lambda x: abs(x - Re))
 
-    plt.figure(1, figsize=(6, 10))
-    #make figure size larger
-    #plt.rcParams["figure.figsize"] = (15,15)
-    plt.subplot(2, 1, 1)
-    #plot AOA vs Cl as a square dots
-    plt.plot(airfoil1['AOA'], airfoil1['Cl'], 'bs', label = 'Cl-' + airfoil1['name'])
-    plt.plot(airfoil2['AOA'], airfoil2['Cl'], 'rs', fillstyle = 'none', label = 'Cl-' + airfoil2['name'])
+    if type(Re) != int:
+        raise KeyError("Only one Reynolds number is avaibable")
+         
+    LiWi = kwargs.get('LiWi', 1)
+    MaSi = kwargs.get('MaSi', 5)
 
-    plt.plot(airfoil1['AOA'], airfoil1['Cm'], 'b^', label = 'Cm-' + airfoil1['name'])
-    plt.plot(airfoil2['AOA'], airfoil2['Cm'], 'r^', fillstyle = 'none', label = 'Cm-' + airfoil2['name'])
+    fig, axs = plt.subplots(2, 2, figsize=(10, 6))
+    if Re != 0:
+        polar1 = airfoil1.polars[Re1]
+        polar2 = airfoil2.polars[Re2]
 
-    #also plot x and y axis
-    plt.axhline(y=0, color='k')
-    plt.axvline(x=0, color='k')
+    # Plot AOA vs Cl as square dots
+    axs[0, 0].plot(polar1[:, 0], polar1[:, 1], '-s', label= 'Re: ' + str(Re1), linewidth=LiWi, markersize=MaSi)
+    axs[0, 0].plot(polar2[:, 0], polar2[:, 1], '--s', label= 'Re: ' + str(Re2), linewidth=LiWi, markersize=MaSi)
+    # Plot AOA vs Cm as triangle dots
+    axs[0, 0].plot(polar1[:, 0], polar1[:, 4], '-^', label= 'Re: ' + str(Re1), linewidth=LiWi, markersize=MaSi)
+    axs[0, 0].plot(polar2[:, 0], polar2[:, 4], '--^', label= 'Re: ' + str(Re2), linewidth=LiWi, markersize=MaSi)
+    axs[0, 0].set_title('Cl and Cm')
 
-    plt.xlabel('alpha, degress')
+    # Plot Cd vs AOA as circle dots
+    axs[0, 1].plot(polar1[:, 0], polar1[:, 2], '-', label= 'Re: ' + str(Re1), linewidth=LiWi, markersize=MaSi)
+    axs[0, 1].plot(polar2[:, 0], polar2[:, 2], '--', label= 'Re: ' + str(Re2), linewidth=LiWi, markersize=MaSi)
+    axs[0, 1].set_title('Cd')
 
-    plt.legend()
-    plt.show()
+    # Plot Cd vs AOA as circle dots
+    axs[1, 0].plot(polar1[:,1], polar1[:,2], '-', label = 'Re: ' + str(Re1),  linewidth=LiWi, markersize=MaSi)
+    axs[1, 0].plot(polar2[:,1], polar2[:,2], '--', label = 'Re: ' + str(Re2),  linewidth=LiWi, markersize=MaSi)
+    axs[1, 0].set_title('Cd v Cl')
 
-    plt.subplot(2, 1, 2)
-    #plot dCl vs AOA as a circle dots
-    plt.plot(airfoil1['AOA'], airfoil1['dCl'], 'o', label = 'dCl-' + airfoil1['name'])
-    #plot second airfoil with red color circle dots unfilled
-    plt.plot(airfoil2['AOA'], airfoil2['dCl'], 'ro', fillstyle = 'none', label = 'dCl-' + airfoil2['name'])
-    #also plot x and y axis
-    plt.axhline(y=0, color='k')
-    plt.axvline(x=0, color='k')
-    plt.xlabel('alpha, degress')
-    plt.legend()
-    plt.show()
+    # Plot Cd vs AOA as circle dots
+    axs[1, 1].plot(polar1[:,0], polar1[:,-1], '-', label = 'Re: ' + str(Re1), linewidth=LiWi, markersize=MaSi)
+    axs[1, 1].plot(polar2[:,0], polar2[:,-1], '--', label = 'Re: ' + str(Re2), linewidth=LiWi, markersize=MaSi)
+    axs[1, 1].set_title('Cl/Cd')
 
-    plt.subplot(3, 1, 3)
-    #plot Cd vs Cl as a circle dots
-    plt.plot(airfoil1['Cd'], airfoil1['Cl'], '-', label = 'Cd-' + airfoil1['name'])
-    plt.plot(airfoil2['Cd'], airfoil2['Cl'], 'r-', label = 'Cd-' + airfoil2['name'])
-    plt.axhline(y=0, color='k')
-    plt.axvline(x=0, color='k')
-    plt.xlabel('Cd')
-    plt.ylabel('Cl')
-    plt.legend()
+        
+    for i, ax_row in enumerate(axs):
+        for j, ax in enumerate(ax_row):
+            if i == 0 and j == 0:
+                ax.axhline(y=0, color='k')
+                ax.axvline(x=0, color='k')
+                ax.set_xlabel('alpha, degrees')
+                ax.legend()
+            if i == 0 and j == 1:
+                ax.axhline(y=0, color='k')
+                ax.axvline(x=0, color='k')
+                ax.set_xlabel('Cd')
+                ax.legend()
+            if i == 1 and j == 0: 
+                ax.axhline(y=0, color='k')
+                ax.axvline(x=0, color='k')
+                ax.set_xlabel('Cl')
+                ax.set_ylabel('Cd')
+                ax.legend()
+            if i == 1 and j == 1: 
+                ax.axhline(y=0, color='k')
+                ax.axvline(x=0, color='k')
+                ax.set_xlabel('alpha, degrees')
+                ax.set_ylabel('Cl/Cd')
+                ax.legend()
+
+    # Adjust layout and display the plot
+    plt.tight_layout()
     plt.show()
 
 
@@ -145,7 +233,11 @@ def geometry_plotter(geometry, *args):
 
     if len(args) == 0:
         plt.figure(1)
-        plt.plot(geometry[:,0], geometry[:,1], color='#00AAAF')
+        ax.plot(geometry[:,0], geometry[:,1], color='#00AAAF')
+        # print(min(geometry[:,0]) - 0.2 * abs(max(geometry[:,0])), max(geometry[:,0]) + 0.2 * max(geometry[:,0]))
+        # print(min(geometry[:,1]) - 0.2 * abs(min(geometry[:,1])), max(geometry[:,1]) + 0.2 * max(geometry[:,1]))
+        ax.set_xlim(min(geometry[:,0]) - 0.1 * abs(max(geometry[:,0])), max(geometry[:,0]) + 0.1 * max(geometry[:,0]))
+        ax.set_ylim(min(geometry[:,1]) - 0.4 * abs(min(geometry[:,1])), max(geometry[:,1]) + 0.4 * max(geometry[:,1]))
         plt.show()
     else:
         alpha_range = args[0]  
@@ -154,7 +246,7 @@ def geometry_plotter(geometry, *args):
             #rotate the geometry
             geometry_rotated = rotate(geometry, alpha)
             normalized_angle = (alpha - (-10)) / ((20) - (-10))
-            color = cmap(normalized_angle)
+            color = cmap(1 - normalized_angle)
             plt.figure(1)
             # plt.plot(geometry_rotated[:,0], geometry_rotated[:,1], '--', color='#00AFFF', linewidth=2)
             plt.plot(geometry_rotated[:,0], geometry_rotated[:,1], '--', color=color, linewidth=2)

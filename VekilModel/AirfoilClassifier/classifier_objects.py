@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import glob
 import pickle
 from dataplotter import geometry_plotter
+from dataextract import readairfoil, read_airfoil
 
 class Airfoil:
     """
@@ -31,6 +33,11 @@ class Airfoil:
         specifications, important geometrical position vectors, names etc.
         """
         pass
+
+    def change_name(self, new_name):
+        self.name = new_name
+        return self
+
 
     def plot_geometry(self,  *args):
         """
@@ -148,12 +155,29 @@ class Airfoil:
         """
         pass
 
-    def data_search(self):
+    def data_search(self,  datapath = None):
         """
         If data is exist for given airfoil, do not calculate polars. Search by name!
         It needs a datapath to be defined.
         """
-        pass
+        
+        airfoil_base_name = self.name[0:4]
+        airfoil_directory = os.path.join(os.path.dirname(os.getcwd()), 'data', 'train_data')
+
+        if os.path.exists(airfoil_directory):
+            files_and_directories = os.listdir(airfoil_directory)
+            Re_folders = [file for file in files_and_directories if file.startswith(airfoil_base_name)]
+            for re_folder in Re_folders:
+                re_folder_path = os.path.join(airfoil_directory, re_folder)
+                Re = int(re_folder_path.split('_')[-1])
+                if os.path.isdir(re_folder_path):
+                    airfoil_file = os.path.join(re_folder_path, self.name + ".txt")
+                    if os.path.isfile(airfoil_file):
+                        self.polars[Re] = read_airfoil(airfoil_file, Re)
+                                                         
+        return self  
+
+        
 
     def polar_search(self, Re, alpha_range, **kwargs):
         """
