@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import pickle
 
 def prepare_design_matrix(data_path, selection='all', num_samples=None, randomize=False, **kwargs):
     """
