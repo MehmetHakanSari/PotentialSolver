@@ -145,32 +145,44 @@ def compare_airfoils(airfoil1, airfoil2, Re, **kwargs):
     LiWi = kwargs.get('LiWi', 1)
     MaSi = kwargs.get('MaSi', 5)
 
+    label1 = kwargs.get('Lab1', False)
+    label2 = kwargs.get('Lab2', False)
+    if type(label1) != bool or type(label2) != bool:
+        pass
+    else:
+        if airfoil1.name == airfoil2.name:
+            label1 = 'Re: ' + str(Re1)
+            label2 = 'Re: ' + str(Re2)
+        elif airfoil1.name != airfoil2.name:
+            label1 = airfoil1.name
+            label2 = airfoil2.name
+
     fig, axs = plt.subplots(2, 2, figsize=(10, 6))
     if Re != 0:
         polar1 = airfoil1.polars[Re1]
         polar2 = airfoil2.polars[Re2]
 
     # Plot AOA vs Cl as square dots
-    axs[0, 0].plot(polar1[:, 0], polar1[:, 1], '-s', label= 'Re: ' + str(Re1), linewidth=LiWi, markersize=MaSi)
-    axs[0, 0].plot(polar2[:, 0], polar2[:, 1], '--s', label= 'Re: ' + str(Re2), linewidth=LiWi, markersize=MaSi)
+    axs[0, 0].plot(polar1[:, 0], polar1[:, 1], '-s', label= label1, linewidth=LiWi, markersize=MaSi)
+    axs[0, 0].plot(polar2[:, 0], polar2[:, 1], '--s', label= label2, linewidth=LiWi, markersize=MaSi)
     # Plot AOA vs Cm as triangle dots
-    axs[0, 0].plot(polar1[:, 0], polar1[:, 4], '-^', label= 'Re: ' + str(Re1), linewidth=LiWi, markersize=MaSi)
-    axs[0, 0].plot(polar2[:, 0], polar2[:, 4], '--^', label= 'Re: ' + str(Re2), linewidth=LiWi, markersize=MaSi)
+    axs[0, 0].plot(polar1[:, 0], polar1[:, 4], '-^', label= label1, linewidth=LiWi, markersize=MaSi)
+    axs[0, 0].plot(polar2[:, 0], polar2[:, 4], '--^', label= label2, linewidth=LiWi, markersize=MaSi)
     axs[0, 0].set_title('Cl and Cm')
 
     # Plot Cd vs AOA as circle dots
-    axs[0, 1].plot(polar1[:, 0], polar1[:, 2], '-', label= 'Re: ' + str(Re1), linewidth=LiWi, markersize=MaSi)
-    axs[0, 1].plot(polar2[:, 0], polar2[:, 2], '--', label= 'Re: ' + str(Re2), linewidth=LiWi, markersize=MaSi)
+    axs[0, 1].plot(polar1[:, 0], polar1[:, 2], '-', label= label1, linewidth=LiWi, markersize=MaSi)
+    axs[0, 1].plot(polar2[:, 0], polar2[:, 2], '--', label= label2, linewidth=LiWi, markersize=MaSi)
     axs[0, 1].set_title('Cd')
 
     # Plot Cd vs AOA as circle dots
-    axs[1, 0].plot(polar1[:,1], polar1[:,2], '-', label = 'Re: ' + str(Re1),  linewidth=LiWi, markersize=MaSi)
-    axs[1, 0].plot(polar2[:,1], polar2[:,2], '--', label = 'Re: ' + str(Re2),  linewidth=LiWi, markersize=MaSi)
+    axs[1, 0].plot(polar1[:,1], polar1[:,2], '-', label = label1,  linewidth=LiWi, markersize=MaSi)
+    axs[1, 0].plot(polar2[:,1], polar2[:,2], '--', label = label2,  linewidth=LiWi, markersize=MaSi)
     axs[1, 0].set_title('Cd v Cl')
 
     # Plot Cd vs AOA as circle dots
-    axs[1, 1].plot(polar1[:,0], polar1[:,-1], '-', label = 'Re: ' + str(Re1), linewidth=LiWi, markersize=MaSi)
-    axs[1, 1].plot(polar2[:,0], polar2[:,-1], '--', label = 'Re: ' + str(Re2), linewidth=LiWi, markersize=MaSi)
+    axs[1, 1].plot(polar1[:,0], polar1[:,-1], '-', label = label1, linewidth=LiWi, markersize=MaSi)
+    axs[1, 1].plot(polar2[:,0], polar2[:,-1], '--', label = label2, linewidth=LiWi, markersize=MaSi)
     axs[1, 1].set_title('Cl/Cd')
 
         

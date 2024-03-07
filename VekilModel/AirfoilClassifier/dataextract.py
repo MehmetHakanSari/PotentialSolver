@@ -1,6 +1,6 @@
 import os
 import numpy as np
-# from classifier_objects import Airfoil
+from classifier_objects import Airfoil
 import pickle
 
 #This function reads the AOA, Cd, and Cl from the airfoil data file and returns them as arrays

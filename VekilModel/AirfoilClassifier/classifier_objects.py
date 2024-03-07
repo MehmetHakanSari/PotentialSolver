@@ -4,7 +4,6 @@ import os
 import glob
 import pickle
 from dataplotter import geometry_plotter
-from dataextract import readairfoil, read_airfoil
 
 class Airfoil:
     """
@@ -13,7 +12,7 @@ class Airfoil:
     It can call plotter functions to plot polars and airfoil. 
     It might have self meshing tools and flow graph etc. 
     """
-    def __init__(self, name = None, geometry = None, polars = None, data_available = False):
+    def __init__(self, name = None, geometry = None, polars = {}, data_available = False):
         """
         name: string
 
@@ -101,6 +100,8 @@ class Airfoil:
         """
         Update the polar for given Re. If Re is not given, update all polars. 
         """
+        if type(self.polars == None):
+            self.polars = {}
         self.polars[Re] = polars
 
     def set_position_info(self):
